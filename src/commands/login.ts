@@ -1,13 +1,13 @@
-import { Command, Flags } from '@oclif/core'
-import { store } from '../store'
-import { loginAction } from '../store/auth/auth-slice'
+import { Flags } from '@oclif/core'
+import { loginAction, store } from 'kyso-store'
+import { KysoCommand } from './kyso-command'
 
-export default class Login extends Command {
+export default class Login extends KysoCommand {
   static description = 'Make login request to the server'
 
   static examples = [
-    `$ oex login
-    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ey.....e--Elg9G6qO4wXzPIlnDc77fdBoHNoq6SbtuqDPN1uc
+    `$ oex login --username admin --password 123456 --provider kyso
+    Logged successfully
     `,
   ]
 
@@ -33,14 +33,18 @@ export default class Login extends Command {
 
   async run(): Promise<void> {
     const { flags } = await this.parse(Login)
-    await store.dispatch(
-      loginAction({
-        username: flags.username,
-        password: flags.password,
-        provider: flags.provider,
-      })
-    )
+    const credentials = {
+      username: flags.username,
+      password: flags.password,
+      provider: flags.provider,
+    }
+    await store.dispatch(loginAction(credentials))
     const { auth } = store.getState()
-    this.log(auth?.token || 'An error occurred making login request')
+    if (auth.token) {
+      this.saveToken(auth.token)
+      this.log('Logged successfully')
+    } else {
+      this.error('An error occurred making login request')
+    }
   }
 }

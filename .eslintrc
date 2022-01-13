@@ -2,6 +2,13 @@
   "extends": ["oclif", "oclif-typescript"],
   "rules": {
     "object-curly-spacing": "off",
-    "comma-dangle": "off"
+    "comma-dangle": "off",
+    "unicorn/import-style": "off",
+    "unicorn/prefer-date-now": "off",
+    "unicorn/prefer-node-protocol": "off",
+    "no-else-return": "off",
+    "padding-line-between-statements": "off",
+    "quotes": "off",
+    "node/no-extraneous-import": "off"
   }
 }
