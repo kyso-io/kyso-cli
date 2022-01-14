@@ -1,5 +1,5 @@
 import { Flags } from '@oclif/core'
-import { loginAction, store } from 'kyso-store'
+import { loginAction, store } from '@kyso-io/kyso-store'
 import { KysoCommand } from './kyso-command'
 
 export default class Login extends KysoCommand {
@@ -40,6 +40,7 @@ export default class Login extends KysoCommand {
     }
     await store.dispatch(loginAction(credentials))
     const { auth } = store.getState()
+    console.log(auth)
     if (auth.token) {
       this.saveToken(auth.token)
       this.log('Logged successfully')

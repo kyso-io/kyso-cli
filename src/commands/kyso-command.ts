@@ -1,7 +1,7 @@
 import { Command, Config } from '@oclif/core'
 import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
 import jwtDecode from 'jwt-decode'
-import { setToken, store } from 'kyso-store'
+import { setToken, store } from '@kyso-io/kyso-store'
 import { homedir } from 'os'
 import { join } from 'path'
 

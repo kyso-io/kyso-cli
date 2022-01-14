@@ -1,6 +1,6 @@
 import { Flags } from '@oclif/core'
-import { fetchReposAction, setPageAndLimit, setProvider, setSearchQuery, store } from 'kyso-store'
-import { LoginProviderEnum } from 'kyso-store/dist/enums/login-provider.enum'
+import { fetchReposAction, setPageAndLimit, setProvider, setSearchQuery, store } from '@kyso-io/kyso-store'
+import { LoginProviderEnum } from '@kyso-io/kyso-store/dist/enums/login-provider.enum'
 import { KysoCommand } from './kyso-command'
 
 // export default class Login extends Command {

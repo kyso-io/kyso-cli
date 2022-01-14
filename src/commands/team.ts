@@ -1,5 +1,5 @@
 import { Flags } from '@oclif/core'
-import { fetchTeamAction, store } from 'kyso-store'
+import { fetchTeamAction, store } from '@kyso-io/kyso-store'
 import { KysoCommand } from './kyso-command'
 
 // export default class Login extends Command {

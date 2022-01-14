@@ -1,17 +1,18 @@
 {
   "name": "kyso-cli",
   "description": "Kyso Client",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "author": "Kyso",
   "bin": {
     "kyso-cli": "./bin/run"
   },
-  "bugs": "https://github.com/kyso-io/kyso-cli/issues",
   "dependencies": {
+    "@kyso-io/kyso-store": "0.0.1",
     "@oclif/core": "^1",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.0.1",
-    "jwt-decode": "^3.1.2"
+    "jwt-decode": "^3.1.2",
+    "trim-newlines": "3.0.1"
   },
   "devDependencies": {
     "@oclif/test": "^2",
@@ -41,7 +42,7 @@
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json"
   ],
-  "homepage": "https://github.com/https://github.com/kyso-io/kyso-cli/kyso-cli",
+  "homepage": "https://kyso.io",
   "keywords": [
     "oclif"
   ],
@@ -61,7 +62,7 @@
       }
     }
   },
-  "repository": "https://github.com/kyso-io/kyso-cli",
+  "repository": "https://gitlab.kyso.io/kyso-io/kyso-cli/",
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
     "lint": "eslint . --ext .ts --config .eslintrc",
