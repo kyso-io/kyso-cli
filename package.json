@@ -1,8 +1,8 @@
 {
-  "name": "kyso-cli",
+  "name": "@kyso-io/kyso-cli",
   "description": "Kyso Client",
   "version": "0.0.1",
-  "author": "Kyso",
+  "author": "Kyso Inc.",
   "bin": {
     "kyso-cli": "./bin/run"
   },
@@ -62,13 +62,19 @@
       }
     }
   },
-  "repository": "https://gitlab.kyso.io/kyso-io/kyso-cli/",
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.kyso.io/kyso-io/kyso-cli.git"
+  },
+  "publishConfig": {
+    "registry": "https://gitlab.kyso.io/api/v4/projects/8/packages/npm/"
+  },
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
     "lint": "eslint . --ext .ts --config .eslintrc",
     "postpack": "shx rm -f oclif.manifest.json",
-    "posttest": "yarn lint",
-    "prepack": "yarn build && oclif manifest && oclif readme",
+    "posttest": "npm run lint",
+    "prepack": "npm build && oclif manifest && oclif readme",
     "test": "mocha --forbid-only \"test/**/*.test.ts\"",
     "version": "oclif readme && git add README.md",
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\""
