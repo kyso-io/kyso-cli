@@ -7,18 +7,27 @@
     "kyso-cli": "./bin/run"
   },
   "dependencies": {
-    "@kyso-io/kyso-store": "0.0.1",
+    "@kyso-io/kyso-model": "0.0.38",
+    "@kyso-io/kyso-store": "0.0.56",
     "@oclif/core": "^1",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.0.1",
+    "adm-zip": "^0.5.9",
+    "axios": "^0.25.0",
+    "dotenv": "^14.3.0",
+    "form-data": "^4.0.0",
     "jwt-decode": "^3.1.2",
+    "sha256-file": "^1.0.0",
     "trim-newlines": "3.0.1"
   },
   "devDependencies": {
     "@oclif/test": "^2",
+    "@types/adm-zip": "^0.4.34",
     "@types/chai": "^4",
+    "@types/dotenv": "^8.2.0",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.9.4",
+    "@types/sha256-file": "^1.0.1",
     "chai": "^4",
     "eslint": "^7.32.0",
     "eslint-config-oclif": "^4",

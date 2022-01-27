@@ -1,12 +1,12 @@
-import { Flags } from '@oclif/core'
 import { loginAction, store } from '@kyso-io/kyso-store'
+import { Flags } from '@oclif/core'
 import { KysoCommand } from './kyso-command'
 
 export default class Login extends KysoCommand {
   static description = 'Make login request to the server'
 
   static examples = [
-    `$ oex login --username admin --password 123456 --provider kyso
+    `$ kyso login --username <username> --password <password> --provider <provider> --organization <organization name> --team <team name>
     Logged successfully
     `,
   ]
@@ -27,6 +27,16 @@ export default class Login extends KysoCommand {
       description: 'provider',
       required: true,
     }),
+    organization: Flags.string({
+      char: 'o',
+      description: 'organization',
+      required: false,
+    }),
+    team: Flags.string({
+      char: 't',
+      description: 'team',
+      required: false,
+    }),
   }
 
   static args = []
@@ -40,9 +50,8 @@ export default class Login extends KysoCommand {
     }
     await store.dispatch(loginAction(credentials))
     const { auth } = store.getState()
-    console.log(auth)
     if (auth.token) {
-      this.saveToken(auth.token)
+      this.saveToken(auth.token, flags.organization || null, flags.team || null)
       this.log('Logged successfully')
     } else {
       this.error('An error occurred making login request')
