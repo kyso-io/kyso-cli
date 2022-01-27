@@ -16,36 +16,39 @@ oclif example Hello World CLI
 # Usage
 <!-- usage -->
 ```sh-session
-$ npm install -g oclif-hello-world
-$ oex COMMAND
+$ npm install -g @kyso-io/kyso-cli
+$ kyso-cli COMMAND
 running command...
-$ oex (--version)
-oclif-hello-world/0.0.0 darwin-x64 node-v16.13.1
-$ oex --help [COMMAND]
+$ kyso-cli (--version)
+@kyso-io/kyso-cli/0.0.1 darwin-x64 node-v16.13.2
+$ kyso-cli --help [COMMAND]
 USAGE
-  $ oex COMMAND
+  $ kyso-cli COMMAND
 ...
 ```
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`oex hello PERSON`](#oex-hello-person)
-* [`oex hello world`](#oex-hello-world)
-* [`oex help [COMMAND]`](#oex-help-command)
-* [`oex plugins`](#oex-plugins)
-* [`oex plugins:inspect PLUGIN...`](#oex-pluginsinspect-plugin)
-* [`oex plugins:install PLUGIN...`](#oex-pluginsinstall-plugin)
-* [`oex plugins:link PLUGIN`](#oex-pluginslink-plugin)
-* [`oex plugins:uninstall PLUGIN...`](#oex-pluginsuninstall-plugin)
-* [`oex plugins update`](#oex-plugins-update)
+* [`kyso-cli hello PERSON`](#kyso-cli-hello-person)
+* [`kyso-cli hello world`](#kyso-cli-hello-world)
+* [`kyso-cli help [COMMAND]`](#kyso-cli-help-command)
+* [`kyso-cli kyso-command`](#kyso-cli-kyso-command)
+* [`kyso-cli login`](#kyso-cli-login)
+* [`kyso-cli plugins`](#kyso-cli-plugins)
+* [`kyso-cli plugins:inspect PLUGIN...`](#kyso-cli-pluginsinspect-plugin)
+* [`kyso-cli plugins:install PLUGIN...`](#kyso-cli-pluginsinstall-plugin)
+* [`kyso-cli plugins:link PLUGIN`](#kyso-cli-pluginslink-plugin)
+* [`kyso-cli plugins:uninstall PLUGIN...`](#kyso-cli-pluginsuninstall-plugin)
+* [`kyso-cli plugins update`](#kyso-cli-plugins-update)
+* [`kyso-cli push`](#kyso-cli-push)
 
-## `oex hello PERSON`
+## `kyso-cli hello PERSON`
 
 Say hello
 
 ```
 USAGE
-  $ oex hello [PERSON] -f <value>
+  $ kyso-cli hello [PERSON] -f <value>
 
 ARGUMENTS
   PERSON  Person to say hello to
@@ -61,15 +64,13 @@ EXAMPLES
   hello friend from oclif! (./src/commands/hello/index.ts)
 ```
 
-_See code: [dist/commands/hello/index.ts](https://github.com/oclif/hello-world/blob/v0.0.0/dist/commands/hello/index.ts)_
-
-## `oex hello world`
+## `kyso-cli hello world`
 
 Say hello world
 
 ```
 USAGE
-  $ oex hello world
+  $ kyso-cli hello world
 
 DESCRIPTION
   Say hello world
@@ -79,13 +80,13 @@ EXAMPLES
   hello world! (./src/commands/hello/world.ts)
 ```
 
-## `oex help [COMMAND]`
+## `kyso-cli help [COMMAND]`
 
-Display help for oex.
+Display help for kyso-cli.
 
 ```
 USAGE
-  $ oex help [COMMAND] [-n]
+  $ kyso-cli help [COMMAND] [-n]
 
 ARGUMENTS
   COMMAND  Command to show help for.
@@ -94,18 +95,48 @@ FLAGS
   -n, --nested-commands  Include all nested commands in the output.
 
 DESCRIPTION
-  Display help for oex.
+  Display help for kyso-cli.
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.1.10/src/commands/help.ts)_
 
-## `oex plugins`
+## `kyso-cli kyso-command`
+
+```
+USAGE
+  $ kyso-cli kyso-command
+```
+
+## `kyso-cli login`
+
+Make login request to the server
+
+```
+USAGE
+  $ kyso-cli login -u <value> -p <value> -r <value> [-o <value>] [-t <value>]
+
+FLAGS
+  -o, --organization=<value>  organization
+  -p, --password=<value>      (required) password
+  -r, --provider=<value>      (required) provider
+  -t, --team=<value>          team
+  -u, --username=<value>      (required) username
+
+DESCRIPTION
+  Make login request to the server
+
+EXAMPLES
+  $ kyso login --username <username> --password <password> --provider <provider> --organization <organization name> --team <team name>
+      Logged successfully
+```
+
+## `kyso-cli plugins`
 
 List installed plugins.
 
 ```
 USAGE
-  $ oex plugins [--core]
+  $ kyso-cli plugins [--core]
 
 FLAGS
   --core  Show core plugins.
@@ -114,18 +145,18 @@ DESCRIPTION
   List installed plugins.
 
 EXAMPLES
-  $ oex plugins
+  $ kyso-cli plugins
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.0.11/src/commands/plugins/index.ts)_
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.0.12/src/commands/plugins/index.ts)_
 
-## `oex plugins:inspect PLUGIN...`
+## `kyso-cli plugins:inspect PLUGIN...`
 
 Displays installation properties of a plugin.
 
 ```
 USAGE
-  $ oex plugins:inspect PLUGIN...
+  $ kyso-cli plugins:inspect PLUGIN...
 
 ARGUMENTS
   PLUGIN  [default: .] Plugin to inspect.
@@ -138,16 +169,16 @@ DESCRIPTION
   Displays installation properties of a plugin.
 
 EXAMPLES
-  $ oex plugins:inspect myplugin
+  $ kyso-cli plugins:inspect myplugin
 ```
 
-## `oex plugins:install PLUGIN...`
+## `kyso-cli plugins:install PLUGIN...`
 
 Installs a plugin into the CLI.
 
 ```
 USAGE
-  $ oex plugins:install PLUGIN...
+  $ kyso-cli plugins:install PLUGIN...
 
 ARGUMENTS
   PLUGIN  Plugin to install.
@@ -169,23 +200,23 @@ DESCRIPTION
   the CLI without the need to patch and update the whole CLI.
 
 ALIASES
-  $ oex plugins add
+  $ kyso-cli plugins add
 
 EXAMPLES
-  $ oex plugins:install myplugin 
+  $ kyso-cli plugins:install myplugin 
 
-  $ oex plugins:install https://github.com/someuser/someplugin
+  $ kyso-cli plugins:install https://github.com/someuser/someplugin
 
-  $ oex plugins:install someuser/someplugin
+  $ kyso-cli plugins:install someuser/someplugin
 ```
 
-## `oex plugins:link PLUGIN`
+## `kyso-cli plugins:link PLUGIN`
 
 Links a plugin into the CLI for development.
 
 ```
 USAGE
-  $ oex plugins:link PLUGIN
+  $ kyso-cli plugins:link PLUGIN
 
 ARGUMENTS
   PATH  [default: .] path to plugin
@@ -203,16 +234,16 @@ DESCRIPTION
   command will override the user-installed or core plugin implementation. This is useful for development work.
 
 EXAMPLES
-  $ oex plugins:link myplugin
+  $ kyso-cli plugins:link myplugin
 ```
 
-## `oex plugins:uninstall PLUGIN...`
+## `kyso-cli plugins:uninstall PLUGIN...`
 
 Removes a plugin from the CLI.
 
 ```
 USAGE
-  $ oex plugins:uninstall PLUGIN...
+  $ kyso-cli plugins:uninstall PLUGIN...
 
 ARGUMENTS
   PLUGIN  plugin to uninstall
@@ -225,17 +256,17 @@ DESCRIPTION
   Removes a plugin from the CLI.
 
 ALIASES
-  $ oex plugins unlink
-  $ oex plugins remove
+  $ kyso-cli plugins unlink
+  $ kyso-cli plugins remove
 ```
 
-## `oex plugins update`
+## `kyso-cli plugins update`
 
 Update installed plugins.
 
 ```
 USAGE
-  $ oex plugins update [-h] [-v]
+  $ kyso-cli plugins update [-h] [-v]
 
 FLAGS
   -h, --help     Show CLI help.
@@ -243,5 +274,23 @@ FLAGS
 
 DESCRIPTION
   Update installed plugins.
+```
+
+## `kyso-cli push`
+
+Make login request to the server
+
+```
+USAGE
+  $ kyso-cli push [-p <value>]
+
+FLAGS
+  -p, --path=<value>  [default: .] path
+
+DESCRIPTION
+  Make login request to the server
+
+EXAMPLES
+  $ kyso push --name <name> --main <main file path>
 ```
 <!-- commandsstop -->
