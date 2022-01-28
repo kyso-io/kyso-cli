@@ -13,10 +13,8 @@ const getAllFiles = function (dirPath: string, arrayOfFiles: string[]): string[]
       continue
     }
     if (statSync(dirPath + '/' + file).isDirectory()) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       arrayOfFiles = getAllFiles(dirPath + '/' + file, arrayOfFiles)
     } else {
-      // eslint-disable-next-line unicorn/prefer-module
       arrayOfFiles.push(join(dirPath, '/', file))
     }
   }
@@ -24,9 +22,9 @@ const getAllFiles = function (dirPath: string, arrayOfFiles: string[]): string[]
 }
 
 export default class Push extends KysoCommand {
-  static description = 'Make login request to the server'
+  static description = 'Upload local repository to Kyso'
 
-  static examples = [`$ kyso push --name <name> --main <main file path>`]
+  static examples = [`$ kyso push --path <name>`]
 
   static flags = {
     path: Flags.string({
