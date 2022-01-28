@@ -1,8 +1,9 @@
+import { KysoConfigFile } from '@kyso-io/kyso-model'
 import { createKysoReportAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import { readdirSync, readFileSync, statSync } from 'fs'
+import * as jsYaml from 'js-yaml'
 import { join } from 'path'
-import { KysoConfig } from '../interfaces/kyso-config'
 import { KysoCommand } from './kyso-command'
 
 const getAllFiles = function (dirPath: string, arrayOfFiles: string[]): string[] {
@@ -44,11 +45,26 @@ export default class Push extends KysoCommand {
     const { flags } = await this.parse(Push)
     let files: string[] = getAllFiles(flags.path, [])
 
-    const index: number = files.findIndex((file: string) => file.endsWith('kyso.json'))
-    if (index === -1) {
-      this.error('kyso.json not found')
+    let kysoConfig: KysoConfigFile | null = null
+    let index: number = files.findIndex((file: string) => file.endsWith('kyso.json'))
+    if (index > -1) {
+      try {
+        kysoConfig = JSON.parse(readFileSync(files[index], 'utf8').toString())
+      } catch (error: any) {
+        this.error(`Error parsing kyso.json: ${error.message}`)
+      }
+    } else {
+      index = files.findIndex((file: string) => file.endsWith('kyso.yml'))
+      try {
+        kysoConfig = jsYaml.load(readFileSync(files[index], 'utf8')) as KysoConfigFile
+      } catch (error: any) {
+        this.error(`Error parsing kyso.yml: ${error.message}`)
+      }
     }
-    const kysoConfig: KysoConfig = JSON.parse(readFileSync(files[index], 'utf8').toString())
+    if (!kysoConfig) {
+      this.error('kyso.{json,yml} not found')
+    }
+
     const gitIgnores: any[] = files.filter((file: string) => file.endsWith('.gitignore'))
     let ignoredFiles: string[] = []
     for (const gitIgnore of gitIgnores) {
@@ -67,10 +83,11 @@ export default class Push extends KysoCommand {
 
     const reportDto = await store.dispatch(
       createKysoReportAction({
-        title: kysoConfig.title,
-        description: kysoConfig.description,
-        organization: kysoConfig.organization,
-        team: kysoConfig.team,
+        title: kysoConfig!.title,
+        description: kysoConfig!.description,
+        tags: kysoConfig!.tags || [],
+        organization: kysoConfig!.organization,
+        team: kysoConfig!.team,
         filePaths: files,
         basePath: flags?.path ? flags.path : null,
       })
