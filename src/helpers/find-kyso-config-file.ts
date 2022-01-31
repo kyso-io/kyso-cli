@@ -12,7 +12,7 @@ export const findKysoConfigFile = (files: string[]): KysoConfigFile => {
       throw new Error(`Error parsing kyso.json: ${error.message}`)
     }
   } else {
-    index = files.findIndex((file: string) => file.endsWith('kyso.yml'))
+    index = files.findIndex((file: string) => file.endsWith('kyso.yml') || file.endsWith('kyso.yaml'))
     if (index > -1) {
       try {
         kysoConfig = jsYaml.load(readFileSync(files[index], 'utf8')) as KysoConfigFile
@@ -22,7 +22,7 @@ export const findKysoConfigFile = (files: string[]): KysoConfigFile => {
     }
   }
   if (!kysoConfig) {
-    throw new Error('kyso.{json,yml} not found')
+    throw new Error('kyso.{json,yml,yaml} not found')
   }
   return kysoConfig
 }
