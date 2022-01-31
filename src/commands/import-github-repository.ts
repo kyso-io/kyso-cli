@@ -5,7 +5,7 @@ import { KysoCommand } from './kyso-command'
 export default class ImportGithubRepository extends KysoCommand {
   static description = 'Import Github repository to Kyso'
 
-  static examples = [`$ kyso push-github --name <repository name>`]
+  static examples = [`$ kyso import-github-repository --name <repository name>`]
 
   static flags = {
     name: Flags.string({

@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@kyso-io/kyso-model": "0.0.52",
-    "@kyso-io/kyso-store": "0.0.66",
+    "@kyso-io/kyso-store": "0.0.70",
     "@oclif/core": "^1",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.0.1",
