@@ -59,7 +59,7 @@ export default class Push extends KysoCommand {
       store.dispatch(setTeamAuthAction(kysoConfig.team))
     }
 
-    const gitIgnores: any[] = files.filter((file: string) => file.endsWith('.gitignore'))
+    const gitIgnores: any[] = files.filter((file: string) => file.endsWith('.gitignore') || file.endsWith('.kysoignore'))
     let ignoredFiles: string[] = []
     for (const gitIgnore of gitIgnores) {
       const ifs: string[] = readFileSync(gitIgnore, 'utf8').toString().split('\n')
