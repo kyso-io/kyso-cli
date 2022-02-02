@@ -20,7 +20,7 @@ $ npm install -g @kyso-io/kyso-cli
 $ kyso-cli COMMAND
 running command...
 $ kyso-cli (--version)
-@kyso-io/kyso-cli/0.0.1 darwin-x64 node-v16.13.2
+@kyso-io/kyso-cli/0.0.7 darwin-x64 node-v16.13.0
 $ kyso-cli --help [COMMAND]
 USAGE
   $ kyso-cli COMMAND
@@ -32,6 +32,7 @@ USAGE
 * [`kyso-cli hello PERSON`](#kyso-cli-hello-person)
 * [`kyso-cli hello world`](#kyso-cli-hello-world)
 * [`kyso-cli help [COMMAND]`](#kyso-cli-help-command)
+* [`kyso-cli import-github-repository`](#kyso-cli-import-github-repository)
 * [`kyso-cli kyso-command`](#kyso-cli-kyso-command)
 * [`kyso-cli login`](#kyso-cli-login)
 * [`kyso-cli plugins`](#kyso-cli-plugins)
@@ -40,6 +41,7 @@ USAGE
 * [`kyso-cli plugins:link PLUGIN`](#kyso-cli-pluginslink-plugin)
 * [`kyso-cli plugins:uninstall PLUGIN...`](#kyso-cli-pluginsuninstall-plugin)
 * [`kyso-cli plugins update`](#kyso-cli-plugins-update)
+* [`kyso-cli pull`](#kyso-cli-pull)
 * [`kyso-cli push`](#kyso-cli-push)
 
 ## `kyso-cli hello PERSON`
@@ -100,6 +102,24 @@ DESCRIPTION
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.1.10/src/commands/help.ts)_
 
+## `kyso-cli import-github-repository`
+
+Import Github repository to Kyso
+
+```
+USAGE
+  $ kyso-cli import-github-repository -n <value>
+
+FLAGS
+  -n, --name=<value>  (required) name
+
+DESCRIPTION
+  Import Github repository to Kyso
+
+EXAMPLES
+  $ kyso import-github-repository --name <repository name>
+```
+
 ## `kyso-cli kyso-command`
 
 ```
@@ -148,7 +168,7 @@ EXAMPLES
   $ kyso-cli plugins
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.0.12/src/commands/plugins/index.ts)_
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.0.11/src/commands/plugins/index.ts)_
 
 ## `kyso-cli plugins:inspect PLUGIN...`
 
@@ -276,21 +296,39 @@ DESCRIPTION
   Update installed plugins.
 ```
 
-## `kyso-cli push`
+## `kyso-cli pull`
 
-Make login request to the server
+Pull repository from Kyso
 
 ```
 USAGE
-  $ kyso-cli push [-p <value>]
+  $ kyso-cli pull [-p <value>]
 
 FLAGS
   -p, --path=<value>  [default: .] path
 
 DESCRIPTION
-  Make login request to the server
+  Pull repository from Kyso
 
 EXAMPLES
-  $ kyso push --name <name> --main <main file path>
+  $ kyso pull --path <name>
+```
+
+## `kyso-cli push`
+
+Upload local repository to Kyso
+
+```
+USAGE
+  $ kyso-cli push -p <value>
+
+FLAGS
+  -p, --path=<value>  (required) path
+
+DESCRIPTION
+  Upload local repository to Kyso
+
+EXAMPLES
+  $ kyso push --path <name>
 ```
 <!-- commandsstop -->
