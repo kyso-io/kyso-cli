@@ -1,8 +1,8 @@
 import { KysoConfigFile } from '@kyso-io/kyso-model'
 import { createKysoReportAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
-import { readdirSync, readFileSync, statSync } from 'fs'
-import { join } from 'path'
+import { existsSync, readdirSync, readFileSync, statSync } from 'fs'
+import { isAbsolute, join } from 'path'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { KysoCommand } from './kyso-command'
 
@@ -31,8 +31,7 @@ export default class Push extends KysoCommand {
     path: Flags.string({
       char: 'p',
       description: 'path',
-      required: false,
-      default: '.',
+      required: true,
     }),
   }
 
@@ -43,7 +42,14 @@ export default class Push extends KysoCommand {
 
     this.log('Uploading report. Wait...')
     const { flags } = await this.parse(Push)
-    let files: string[] = getAllFiles(flags.path, [])
+
+    if (!existsSync(flags.path)) {
+      this.error('Invalid path')
+    }
+
+    const basePath = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
+
+    let files: string[] = getAllFiles(basePath, [])
 
     let kysoConfig: KysoConfigFile | null = null
     try {
@@ -83,7 +89,7 @@ export default class Push extends KysoCommand {
         organization: kysoConfig!.organization,
         team: kysoConfig!.team,
         filePaths: files,
-        basePath: flags?.path ? flags.path : null,
+        basePath,
       })
     )
     this.log(reportDto.payload as any)
