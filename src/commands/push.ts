@@ -38,10 +38,10 @@ export default class Push extends KysoCommand {
   static args = []
 
   async run(): Promise<void> {
-    console.log("Checking credentials")
+    this.log("Checking credentials")
     this.checkCredentials()
 
-    console.log('Uploading report. Wait...')
+    this.log('Uploading report. Wait...')
     const { flags } = await this.parse(Push)
 
     if (!existsSync(flags.path)) {
@@ -82,7 +82,6 @@ export default class Push extends KysoCommand {
       return true
     })
 
-    console.log("Calling store with:")
     const data = {
       title: kysoConfig!.title,
       description: kysoConfig!.description,
@@ -92,9 +91,7 @@ export default class Push extends KysoCommand {
       filePaths: files,
       basePath,
     };
-    
-    console.log(data)
-    
+        
     const reportDto = await store.dispatch(
       createKysoReportAction({
         title: kysoConfig!.title,
@@ -107,6 +104,7 @@ export default class Push extends KysoCommand {
       })
     )
 
-    this.log(reportDto.payload as any)
+    // this.log(reportDto.payload as any)
+    this.log(`Successfully uploaded report`)
   }
 }

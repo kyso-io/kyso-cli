@@ -24,6 +24,7 @@ export default class ImportGithubRepository extends KysoCommand {
     this.log(`Importing Github repository ${flags.name}. Will take a while...`)
 
     const reportDto = await store.dispatch(importGithubRepositoryAction(flags.name))
-    this.log(reportDto.payload as any)
+    // this.log(reportDto.payload as any)
+    this.log(`Successfully uploaded report`)
   }
 }

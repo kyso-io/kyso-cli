@@ -51,11 +51,11 @@ export abstract class KysoCommand extends Command {
           return
         }
         this.deleteTokenFile()
-        console.log('Session expired. Login again.')
+        // console.log('Session expired. Login again.')
         this.error('Session expired. Login again.')
       } catch {
         this.deleteTokenFile()
-        console.log('Invalid auth.json')
+        // console.log('Invalid auth.json')
         this.error('Invalid auth.json')
       }
     } else {
