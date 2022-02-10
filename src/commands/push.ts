@@ -1,26 +1,11 @@
 import { KysoConfigFile } from '@kyso-io/kyso-model'
 import { createKysoReportAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
-import { existsSync, readdirSync, readFileSync, statSync } from 'fs'
+import { existsSync, readFileSync } from 'fs'
 import { isAbsolute, join } from 'path'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
+import { getAllFiles } from '../helpers/get-all-files'
 import { KysoCommand } from './kyso-command'
-
-const getAllFiles = function (dirPath: string, arrayOfFiles: string[]): string[] {
-  const files: string[] = readdirSync(dirPath)
-  arrayOfFiles = arrayOfFiles || []
-  for (const file of files) {
-    if (file.endsWith('.git') || file.endsWith('.ipynb_checkpoints')) {
-      continue
-    }
-    if (statSync(dirPath + '/' + file).isDirectory()) {
-      arrayOfFiles = getAllFiles(dirPath + '/' + file, arrayOfFiles)
-    } else {
-      arrayOfFiles.push(join(dirPath, '/', file))
-    }
-  }
-  return arrayOfFiles
-}
 
 export default class Push extends KysoCommand {
   static description = 'Upload local repository to Kyso'
@@ -38,7 +23,7 @@ export default class Push extends KysoCommand {
   static args = []
 
   async run(): Promise<void> {
-    this.log("Checking credentials")
+    this.log('Checking credentials')
     this.checkCredentials()
 
     this.log('Uploading report. Wait...')
@@ -82,17 +67,7 @@ export default class Push extends KysoCommand {
       return true
     })
 
-    const data = {
-      title: kysoConfig!.title,
-      description: kysoConfig!.description,
-      tags: kysoConfig!.tags || [],
-      organization: kysoConfig!.organization,
-      team: kysoConfig!.team,
-      filePaths: files,
-      basePath,
-    };
-        
-    const reportDto = await store.dispatch(
+    await store.dispatch(
       createKysoReportAction({
         title: kysoConfig!.title,
         description: kysoConfig!.description,
@@ -104,7 +79,6 @@ export default class Push extends KysoCommand {
       })
     )
 
-    // this.log(reportDto.payload as any)
     this.log(`Successfully uploaded report`)
   }
 }
