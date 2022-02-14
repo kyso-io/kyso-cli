@@ -5,13 +5,18 @@ import { KysoCommand } from './kyso-command'
 export default class ImportGithubRepository extends KysoCommand {
   static description = 'Import Github repository to Kyso'
 
-  static examples = [`$ kyso import-github-repository --name <repository name>`]
+  static examples = [`$ kyso import-github-repository --name <repository name> --branch <branch>`]
 
   static flags = {
     name: Flags.string({
       char: 'n',
       description: 'name',
       required: true,
+    }),
+    branch: Flags.string({
+      char: 'b',
+      description: 'branch',
+      required: false,
     }),
   }
 
@@ -23,8 +28,14 @@ export default class ImportGithubRepository extends KysoCommand {
     const { flags } = await this.parse(ImportGithubRepository)
     this.log(`Importing Github repository ${flags.name}. Will take a while...`)
 
-    const reportDto = await store.dispatch(importGithubRepositoryAction(flags.name))
-    // this.log(reportDto.payload as any)
+    const args: any = {
+      repositoryName: flags.name,
+    }
+    if (flags.branch) {
+      args.branch = flags.branch
+    }
+
+    await store.dispatch(importGithubRepositoryAction(args))
     this.log(`Successfully uploaded report`)
   }
 }
