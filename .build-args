@@ -1,0 +1,5 @@
+# BUILDER_IMG=registry.kyso.io/kyso-io/kyso-cli
+BUILDER_TAG=builder-v1.0.0
+# SERVICE_IMG=registry.kyso.io/docker/node-service
+SERVICE_TAG=16.13.2-alpine3.15
+# NODE_ENV=production
