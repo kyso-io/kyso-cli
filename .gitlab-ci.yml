@@ -1,6 +1,6 @@
 include:
   - project: 'common/gitlab-ci'
-    ref: v0.4.3
+    ref: v0.4.5
     file: '/templates/npm-package-with-container.yml'
 
 variables:
