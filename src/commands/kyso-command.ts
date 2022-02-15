@@ -38,7 +38,7 @@ export abstract class KysoCommand extends Command {
     writeFileSync(this.tokenFilePath, JSON.stringify(kysoCredentials))
   }
 
-  public async checkCredentials(): Promise<void> {
+  public async checkCredentials(): Promise<boolean> {
     // Check token validity
     if (existsSync(this.tokenFilePath)) {
       try {
@@ -48,18 +48,17 @@ export abstract class KysoCommand extends Command {
           store.dispatch(setTokenAuthAction(kysoCredentials.token))
           store.dispatch(setOrganizationAuthAction(kysoCredentials.organization))
           store.dispatch(setTeamAuthAction(kysoCredentials.team))
-          return
+          return true
         }
         this.deleteTokenFile()
-        // console.log('Session expired. Login again.')
-        this.error('Session expired. Login again.')
+        // this.error('Session expired. Login again.')
       } catch {
         this.deleteTokenFile()
-        // console.log('Invalid auth.json')
-        this.error('Invalid auth.json')
+        // this.error('Invalid auth.json')
       }
     } else {
-      this.error('Sign in to Kyso.')
+      // this.error('Sign in to Kyso.')
     }
+    return false
   }
 }

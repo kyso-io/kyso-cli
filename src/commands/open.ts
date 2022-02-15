@@ -35,26 +35,27 @@ export default class Open extends KysoCommand {
     const basePath = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
     const files: string[] = getAllFiles(basePath, [])
 
-    let kysoConfig: KysoConfigFile | null = null
+    let kysoConfigFile: KysoConfigFile | null = null
     try {
-      kysoConfig = findKysoConfigFile(files)
+      const data: { kysoConfigFile: KysoConfigFile; kysoConfigPath: string } = findKysoConfigFile(files)
+      kysoConfigFile = data.kysoConfigFile
     } catch (error: any) {
       this.error(error)
     }
 
-    if (!kysoConfig.hasOwnProperty('organization') || kysoConfig.organization === null || kysoConfig.organization.length === 0) {
+    if (!kysoConfigFile.hasOwnProperty('organization') || kysoConfigFile.organization === null || kysoConfigFile.organization.length === 0) {
       this.error('Kyso file does not defined the organization')
     }
-    if (!kysoConfig.hasOwnProperty('team') || kysoConfig.team === null || kysoConfig.team.length === 0) {
+    if (!kysoConfigFile.hasOwnProperty('team') || kysoConfigFile.team === null || kysoConfigFile.team.length === 0) {
       this.error('Kyso file does not defined the team')
     }
-    if (!kysoConfig.hasOwnProperty('title') || kysoConfig.title === null || kysoConfig.title.length === 0) {
+    if (!kysoConfigFile.hasOwnProperty('title') || kysoConfigFile.title === null || kysoConfigFile.title.length === 0) {
       this.error('Kyso file does not defined the title')
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://kyso.io'
     const domain = new URL(baseUrl)
-    const reportUrl = `${domain.protocol}//${domain.hostname}/${kysoConfig.organization}/${kysoConfig.team}/${slugify(kysoConfig.title)}`
+    const reportUrl = `${domain.protocol}//${domain.hostname}/${kysoConfigFile.organization}/${kysoConfigFile.team}/${slugify(kysoConfigFile.title)}`
     // const reportUrl = `http://localhost:3000/${kysoConfig.organization}/${kysoConfig.team}/${slugify(kysoConfig.title)}`
     this.log(`Opening "${reportUrl}" the in browser...`)
     await open(reportUrl)

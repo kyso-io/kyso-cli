@@ -33,17 +33,18 @@ export default class Push extends KysoCommand {
       files = files.map((file: string) => join(flags.path, file))
     }
 
-    let kysoConfig: KysoConfigFile | null = null
+    let kysoConfigFile: KysoConfigFile | null = null
     try {
-      kysoConfig = findKysoConfigFile(files)
+      const data: { kysoConfigFile: KysoConfigFile; kysoConfigPath: string } = findKysoConfigFile(files)
+      kysoConfigFile = data.kysoConfigFile
     } catch (error: any) {
       this.error(error)
     }
 
     const result = await store.dispatch(
       pullReportAction({
-        teamName: kysoConfig.team,
-        reportName: kysoConfig.title,
+        teamName: kysoConfigFile.team,
+        reportName: kysoConfigFile.title,
       })
     )
     if (!result || !result.payload) {
