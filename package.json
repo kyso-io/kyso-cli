@@ -7,8 +7,8 @@
     "kyso-cli": "./bin/run"
   },
   "dependencies": {
-    "@kyso-io/kyso-model": "0.0.82",
-    "@kyso-io/kyso-store": "0.0.133",
+    "@kyso-io/kyso-model": "0.0.84",
+    "@kyso-io/kyso-store": "0.0.134",
     "@oclif/core": "^1",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.0.1",
@@ -17,6 +17,7 @@
     "dotenv": "^14.3.0",
     "form-data": "^4.0.0",
     "googleapis": "^95.0.0",
+    "inquirer": "^8.2.0",
     "js-yaml": "^4.1.0",
     "jwt-decode": "^3.1.2",
     "open": "^8.4.0",
@@ -29,6 +30,7 @@
     "@types/adm-zip": "^0.4.34",
     "@types/chai": "^4",
     "@types/dotenv": "^8.2.0",
+    "@types/inquirer": "^8.2.0",
     "@types/js-yaml": "^4.0.5",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.9.4",
