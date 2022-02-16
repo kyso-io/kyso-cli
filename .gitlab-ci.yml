@@ -3,5 +3,17 @@ include:
     ref: v0.4.5
     file: '/templates/npm-package-with-container.yml'
 
+npm-package-build:
+  image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.0
+  before_script:
+    - ln -sf /root/node_modules .
+
+npm-package-publish:
+  image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.0
+  before_script:
+    - ln -sf /root/node_modules .
+    - !reference [.git-config, before_script]
+    - !reference [.npm-config, before_script]
+
 variables:
   DOCKER_BUILDKIT: 1
