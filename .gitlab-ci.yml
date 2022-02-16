@@ -6,12 +6,12 @@ include:
 npm-package-build:
   image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.0
   before_script:
-    - ln -sf /root/node_modules .
+    - mv /root/node_modules .
 
 npm-package-publish:
   image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.0
   before_script:
-    - ln -sf /root/node_modules .
+    - mv /root/node_modules .
     - !reference [.git-config, before_script]
     - !reference [.npm-config, before_script]
 
