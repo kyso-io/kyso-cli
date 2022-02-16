@@ -1,0 +1,8 @@
+/build.env
+/dist
+/docker-compose.yml
+/.env*
+/.git
+/node_modules
+/.npmrc*
+/test

@@ -1,0 +1,6 @@
+= kyso-cli builder container image branch
+
+This branch contains the files needed to create a container image with the
+node_modules needed to build the kyso-cli package.
+
+Use the script `bin/update-builder.sh` to update the image.
