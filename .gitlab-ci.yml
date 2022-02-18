@@ -15,5 +15,9 @@ npm-package-publish:
     - !reference [.git-config, before_script]
     - !reference [.npm-config, before_script]
 
+docker-build:
+  dependencies:
+    - npm-package-publish
+
 variables:
   DOCKER_BUILDKIT: 1
