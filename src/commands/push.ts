@@ -1,9 +1,9 @@
-/* eslint-disable complexity */
+/* eslint-disable no-await-in-loop */
 /* eslint-disable no-prototype-builtins */
 import { KysoConfigFile, Login } from '@kyso-io/kyso-model'
 import { createKysoReportAction, loginAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
-import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs'
 import * as jsYaml from 'js-yaml'
 import { isAbsolute, join } from 'path'
 import { v4 as uuidv4 } from 'uuid'
@@ -27,26 +27,10 @@ export default class Push extends KysoCommand {
 
   static args = []
 
-  async run(): Promise<void> {
-    const logged: boolean = await this.checkCredentials()
-    if (!logged) {
-      const login: Login = await interactiveLogin()
-      await store.dispatch(loginAction(login))
-      const { auth } = store.getState()
-      if (auth.token) {
-        this.saveToken(auth.token, null, null)
-      } else {
-        this.error('An error occurred making login request')
-      }
-    }
-
-    const { flags } = await this.parse(Push)
-
-    if (!existsSync(flags.path)) {
-      this.error('Invalid path')
-    }
-
-    const basePath = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
+  private async uploadReport(basePath: string): Promise<void> {
+    const parts: string[] = basePath.split('/')
+    const folderName: string = parts[parts.length - 1]
+    this.log(`Uploading report '${folderName}'`)
 
     let files: string[] = getAllFiles(basePath, [])
 
@@ -112,7 +96,7 @@ export default class Push extends KysoCommand {
       }
     }
 
-    this.log(`\nUploading ${files.length} files:\n`)
+    this.log(`Report has ${files.length} ${files.length > 1 ? 'files' : 'file'}:`)
     for (const file of files) {
       let formatedFilePath = file.replace(basePath, '')
       if (formatedFilePath.startsWith('/')) {
@@ -120,7 +104,6 @@ export default class Push extends KysoCommand {
       }
       this.log(`${formatedFilePath}`)
     }
-    this.log('\n')
 
     const result = await store.dispatch(
       createKysoReportAction({
@@ -134,9 +117,46 @@ export default class Push extends KysoCommand {
       })
     )
     if (result?.payload) {
-      this.log(`Successfully uploaded report`)
+      this.log(`Successfully uploaded report '${folderName}'\n`)
     } else {
-      this.error(`An error occurred while uploading report`)
+      this.error(`An error occurred uploading report '${folderName}'\n`)
+    }
+  }
+
+  async run(): Promise<void> {
+    const logged: boolean = await this.checkCredentials()
+    if (!logged) {
+      const login: Login = await interactiveLogin()
+      await store.dispatch(loginAction(login))
+      const { auth } = store.getState()
+      if (auth.token) {
+        this.saveToken(auth.token, null, null)
+      } else {
+        this.error('An error occurred making login request')
+      }
+    }
+
+    const { flags } = await this.parse(Push)
+
+    if (!existsSync(flags.path)) {
+      this.error('Invalid path')
+    }
+
+    const basePath = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
+
+    let filesBasePath: string[] = readdirSync(basePath).map((file: string) => join(basePath, file))
+    const mainData: { kysoConfigFile: KysoConfigFile; kysoConfigPath: string } = findKysoConfigFile(filesBasePath)
+    if (mainData.kysoConfigFile?.reports && Array.isArray(mainData.kysoConfigFile.reports) && mainData.kysoConfigFile.reports.length > 0) {
+      filesBasePath = filesBasePath.filter((file: string) => {
+        const parts: string[] = file.split('/')
+        const fileName: string = parts[parts.length - 1]
+        return mainData.kysoConfigFile.reports!.includes(fileName)
+      })
+      for (const reportBasePath of filesBasePath) {
+        await this.uploadReport(reportBasePath)
+      }
+    } else {
+      await this.uploadReport(basePath)
     }
   }
 }
