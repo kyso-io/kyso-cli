@@ -5,7 +5,7 @@ import * as http from 'http'
 import * as open from 'open'
 const destroyer = require('server-destroy')
 
-const PORT = process.env.PORT || 3000
+const PORT = process.env.AUTH_SERVER_PORT || 3000
 const serverBaseUrl = `http://localhost:${PORT}`
 
 // GOOGLE
@@ -47,6 +47,9 @@ export const authenticateWithGoogle = async (): Promise<any> => {
 }
 
 // GITHUB
+// https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps
+// Check headers to see what OAuth scopes you have, and what the API action accepts:
+// curl -H "Authorization: token token" https://api.github.com/users/codertocat -I
 const githubAuthCallback = `${serverBaseUrl}${process.env.AUTH_GITHUB_REDIRECT_URL}`
 
 export const authenticateWithGithub = async (): Promise<string | null> => {
@@ -70,7 +73,7 @@ export const authenticateWithGithub = async (): Promise<string | null> => {
       }
     })
     .listen(PORT, () => {
-      open(`https://github.com/login/oauth/authorize?client_id=${process.env.AUTH_GITHUB_CLIENT_ID}&redirect_uri=${githubAuthCallback}`, { wait: false }).then(cp => cp.unref())
+      open(`https://github.com/login/oauth/authorize?client_id=${process.env.AUTH_GITHUB_CLIENT_ID}&redirect_uri=${githubAuthCallback}&scope=user%20repo`, { wait: false }).then(cp => cp.unref())
     })
     destroyer(server)
   })
