@@ -5,7 +5,7 @@ import { Login as LoginModel, LoginProviderEnum } from '@kyso-io/kyso-model'
 import { loginAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import { interactiveLogin } from '../helpers/interactive-login'
-import { authenticateWithGithub, authenticateWithGoogle } from '../helpers/oauths'
+import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGoogle } from '../helpers/oauths'
 import { KysoCommand } from './kyso-command'
 
 export default class Login extends KysoCommand {
@@ -17,6 +17,7 @@ export default class Login extends KysoCommand {
     `$ kyso login --provider kyso --username <username> --token <password> --organization <organization name> --team <team name>`,
     `$ kyso login --provider google --username <username> --organization <organization name> --team <team name>`,
     `$ kyso login --provider github --username <username> --organization <organization name> --team <team name>`,
+    `$ kyso login --provider bitbucket --username <username> --organization <organization name> --team <team name>`,
   ]
 
   static flags = {
@@ -24,7 +25,7 @@ export default class Login extends KysoCommand {
       char: 'r',
       description: 'provider',
       required: false,
-      options: [LoginProviderEnum.KYSO, LoginProviderEnum.GOOGLE, LoginProviderEnum.GITHUB],
+      options: [LoginProviderEnum.KYSO, LoginProviderEnum.GOOGLE, LoginProviderEnum.GITHUB, LoginProviderEnum.BITBUCKET],
     }),
     username: Flags.string({
       char: 'u',
@@ -110,6 +111,22 @@ export default class Login extends KysoCommand {
             password: code,
             provider: LoginProviderEnum.GITHUB,
             payload: null,
+          }
+          break
+        case LoginProviderEnum.BITBUCKET:
+          try {
+            const code: string | null = await authenticateWithBitbucket()
+            if (!code) {
+              this.error('Authentication failed')
+            }
+            loginModel = {
+              username: flags.username!,
+              password: code,
+              provider: LoginProviderEnum.BITBUCKET,
+              payload: null,
+            }
+          } catch (error: any) {
+            this.error(error)
           }
           break
         default:

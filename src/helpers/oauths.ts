@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 /* eslint-disable unicorn/prefer-module */
 /* eslint-disable camelcase */
 import { google } from 'googleapis'
@@ -21,27 +22,27 @@ export const authenticateWithGoogle = async (): Promise<any> => {
       scope: googleScopes.join(' '),
     })
     const server: http.Server = http
-    .createServer(async (req, res) => {
-      try {
-        if (req && req.url && req.url.includes(process.env.AUTH_GOOGLE_REDIRECT_URL!)) {
-          const qs = new URL(req.url, serverBaseUrl).searchParams
-          res.end('Authentication successful! Please return to the console.')
-          server.close()
-          // eslint-disable-next-line semi-style
-          ;(server as any).destroy()
-          const getTokenResponse = await oauth2Client.getToken(qs.get('code')!)
-          resolve(getTokenResponse.tokens)
-        } else {
-          resolve(null)
+      .createServer(async (req, res) => {
+        try {
+          if (req && req.url && req.url.includes(process.env.AUTH_GOOGLE_REDIRECT_URL!)) {
+            const qs = new URL(req.url, serverBaseUrl).searchParams
+            res.end('Authentication successful! Please return to the console.')
+            server.close()
+            // eslint-disable-next-line semi-style
+            ;(server as any).destroy()
+            const getTokenResponse = await oauth2Client.getToken(qs.get('code')!)
+            resolve(getTokenResponse.tokens)
+          } else {
+            resolve(null)
+          }
+        } catch (error) {
+          console.log(error)
+          reject(error)
         }
-      } catch (error) {
-        console.log(error)
-        reject(error)
-      }
-    })
-    .listen(PORT, () => {
-      open(authorizeUrl, { wait: false }).then(cp => cp.unref())
-    })
+      })
+      .listen(PORT, () => {
+        open(authorizeUrl, { wait: false }).then(cp => cp.unref())
+      })
     destroyer(server)
   })
 }
@@ -55,26 +56,58 @@ const githubAuthCallback = `${serverBaseUrl}${process.env.AUTH_GITHUB_REDIRECT_U
 export const authenticateWithGithub = async (): Promise<string | null> => {
   return new Promise<string | null>((resolve, reject) => {
     const server: http.Server = http
-    .createServer(async (req, res) => {
-      try {
-        if (req && req.url && req.url.includes(process.env.AUTH_GITHUB_REDIRECT_URL!)) {
-          const qs = new URL(req.url, serverBaseUrl).searchParams
-          res.end('Authentication successful! Please return to the console.')
-          server.close()
-          // eslint-disable-next-line semi-style
-          ;(server as any).destroy()
-          resolve(qs.get('code')!)
-        } else {
-          resolve(null)
+      .createServer(async (req, res) => {
+        try {
+          if (req && req.url && req.url.includes(process.env.AUTH_GITHUB_REDIRECT_URL!)) {
+            const qs = new URL(req.url, serverBaseUrl).searchParams
+            res.end('Authentication successful! Please return to the console.')
+            server.close()
+            // eslint-disable-next-line semi-style
+            ;(server as any).destroy()
+            resolve(qs.get('code')!)
+          } else {
+            resolve(null)
+          }
+        } catch (error) {
+          console.log(error)
+          reject(error)
         }
-      } catch (error) {
-        console.log(error)
-        reject(error)
-      }
-    })
-    .listen(PORT, () => {
-      open(`https://github.com/login/oauth/authorize?client_id=${process.env.AUTH_GITHUB_CLIENT_ID}&redirect_uri=${githubAuthCallback}&scope=user%20repo`, { wait: false }).then(cp => cp.unref())
-    })
+      })
+      .listen(PORT, () => {
+        open(`https://github.com/login/oauth/authorize?client_id=${process.env.AUTH_GITHUB_CLIENT_ID}&redirect_uri=${githubAuthCallback}&scope=user%20repo`, { wait: false }).then(cp => cp.unref())
+      })
+    destroyer(server)
+  })
+}
+
+// BITBUCKET
+// https://support.atlassian.com/bitbucket-cloud/docs/use-oauth-on-bitbucket-cloud/
+// const bitbucketAuthCallback = `${serverBaseUrl}${process.env.AUTH_BITBUCKET_REDIRECT_URL}`
+export const authenticateWithBitbucket = async (): Promise<string | null> => {
+  return new Promise<string | null>((resolve, reject) => {
+    const server: http.Server = http
+      .createServer(async (req, res) => {
+        try {
+          if (req && req.url && req.url.includes(process.env.AUTH_BITBUCKET_REDIRECT_URL!)) {
+            const qs = new URL(req.url, serverBaseUrl).searchParams
+            res.end('Authentication successful! Please return to the console.')
+            server.close()
+            // eslint-disable-next-line semi-style
+            ;(server as any).destroy()
+            resolve(qs.get('code')!)
+          } else {
+            resolve(null)
+          }
+        } catch (error) {
+          console.log(error)
+          reject(error)
+        }
+      })
+      .listen(PORT, () => {
+        open(`https://bitbucket.org/site/oauth2/authorize?client_id=${process.env.AUTH_BITBUCKET_CLIENT_ID}&response_type=code`, { wait: false }).then(cp =>
+          cp.unref()
+        )
+      })
     destroyer(server)
   })
 }

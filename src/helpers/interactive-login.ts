@@ -1,7 +1,7 @@
 /* eslint-disable indent */
 /* eslint-disable no-case-declarations */
 import { Login, LoginProviderEnum } from '@kyso-io/kyso-model'
-import { authenticateWithGithub, authenticateWithGoogle } from './oauths'
+import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGoogle } from './oauths'
 import inquirer = require('inquirer')
 
 export const interactiveLogin = async (): Promise<Login> => {
@@ -21,6 +21,7 @@ export const interactiveLogin = async (): Promise<Login> => {
         { name: 'Access token', value: LoginProviderEnum.KYSO_ACCESS_TOKEN },
         { name: 'Google', value: LoginProviderEnum.GOOGLE },
         { name: 'Github', value: LoginProviderEnum.GITHUB },
+        { name: 'Bitbucket', value: LoginProviderEnum.BITBUCKET },
       ],
     },
   ])
@@ -84,11 +85,18 @@ export const interactiveLogin = async (): Promise<Login> => {
       }
       break
     case LoginProviderEnum.GITHUB:
-      const code: string | null = await authenticateWithGithub()
-      if (!code) {
+      const githubCode: string | null = await authenticateWithGithub()
+      if (!githubCode) {
         throw new Error('Authentication failed')
       }
-      login.password = code
+      login.password = githubCode
+      break
+    case LoginProviderEnum.BITBUCKET:
+      const bitbucketCode: string | null = await authenticateWithBitbucket()
+      if (!bitbucketCode) {
+        throw new Error('Authentication failed')
+      }
+      login.password = bitbucketCode
       break
   }
   return login
