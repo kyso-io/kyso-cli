@@ -7,8 +7,8 @@
     "kyso-cli": "./bin/run"
   },
   "dependencies": {
-    "@kyso-io/kyso-model": "0.0.93",
-    "@kyso-io/kyso-store": "0.0.143",
+    "@kyso-io/kyso-model": "0.0.98",
+    "@kyso-io/kyso-store": "0.0.151",
     "@oclif/core": "^1",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.0.1",
