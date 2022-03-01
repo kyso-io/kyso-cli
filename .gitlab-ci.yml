@@ -1,23 +1,42 @@
 include:
   - project: 'common/gitlab-ci'
-    ref: v0.4.12
+    ref: v0.4.13
     file: '/templates/npm-package-with-container.yml'
 
 npm-package-build:
-  image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.0
+  image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.2
   before_script:
     - mv /root/node_modules .
 
 npm-package-publish:
-  image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.0
+  image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.2
   before_script:
     - mv /root/node_modules .
     - !reference [.git-config, before_script]
     - !reference [.npm-config, before_script]
+  after_script:
+    - npm pack
+    - TGZ_FILE="kyso-io-kyso-cli-$CI_COMMIT_TAG.tgz"
+    - curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file \
+        "${TGZ_FILE}" "${PACKAGE_REGISTRY_URL}/${TGZ_FILE}"
 
 docker-build:
   dependencies:
     - npm-package-publish
+
+release_tag:
+  dependencies:
+    - npm-package-publish
+  rules:
+    - if: '$CI_COMMIT_TAG'
+  script:
+    - echo "running release_tag"
+    - TGZ_FILE="kyso-io-kyso-cli-$CI_COMMIT_TAG.tgz"
+    - release-cli create --name "Release $CI_COMMIT_TAG" \
+        --description "Created using the release-cli"
+        --tag-name "$CI_COMMIT_TAG" \
+        --ref "$CI_COMMIT_TAG" \
+        --assets-link "{\"name\":\"${TGZ_FILE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${TGZ_FILE}\"}" \
 
 variables:
   DOCKER_BUILDKIT: 1

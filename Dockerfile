@@ -1,6 +1,6 @@
 # Global Dockerfile Arguments (in our CI can be overriden in ./.build-args)
 ARG SERVICE_IMG=registry.kyso.io/docker/node
-ARG SERVICE_TAG=latest
+ARG SERVICE_TAG=fixme
 
 # Production image
 FROM ${SERVICE_IMG}:${SERVICE_TAG} AS service
@@ -14,6 +14,7 @@ ENV NODE_ENV=${NODE_ENV}
 WORKDIR /root
 # Install package
 RUN --mount=type=secret,id=npmrc,target=/root/.npmrc,required\
+ npm update -g npm &&\
  npm install -g @kyso-io/kyso-cli@$UPDATED_PACKAGE_VERSION
 # Container command
 CMD ["/bin/sh"]

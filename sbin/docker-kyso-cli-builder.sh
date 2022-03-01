@@ -7,13 +7,10 @@ set -e
 RELPATH_TO_WORKDIR=".."
 
 # Variables
-IMAGE_NAME="k3d-registry.lo.kyso.io:5000/kyso-cli"
-CONTAINER_NAME="kyso-cli"
-BUILD_ARGS=""
-BUILD_SECRETS=""
+IMAGE_NAME=""
+CONTAINER_NAME="kyso-cli-builder"
 NPMRC_KYSO=".npmrc.kyso"
 NPMRC_DOCKER=".npmrc.docker"
-CONTAINER_VARS=""
 
 # ---------
 # FUNCTIONS
@@ -78,56 +75,12 @@ docker_setup() {
 //gitlab.kyso.io/api/v4/packages/npm/:_authToken=${PACKAGE_READER_TOKEN}
 EOF
   fi
-}
-
-docker_build() {
-  PACKAGE_VERSION="$1"
-  if [ -z "$PACKAGE_VERSION" ]; then
-    PACKAGE_VERSION="$(
-      git ls-remote -tq --sort=v:refname\
-        | sed -ne 's%^.*refs/tags/\([0-9.]*\)$%\1%p' | tail -1
-    )"
-  fi
-  if [ ! -f "./.npmrc.kyso" ]; then
-    echo "Missing file '.npmrc.kyso', call $0 init to create it"
-    exit 1
-  fi
   # Prepare .npmrc.docker
   if [ -f ".npmrc" ]; then
     cat ".npmrc" "$NPMRC_KYSO" >"$NPMRC_DOCKER"
   else
     cat "$NPMRC_KYSO" >"$NPMRC_DOCKER"
   fi
-  # Compute build args
-  if [ -f "./.build-args" ]; then
-    BUILD_ARGS="$(
-      awk '!/^#/ { printf(" --build-arg \"%s\"", $0); }' "./.build-args"
-    )"
-  fi
-  BUILD_ARGS="$BUILD_ARGS --build-arg =$PACKAGE_VERSION"
-  # Compute build secrets if there is a .build_secrets file
-  if [ -f "./.build-secrets" ]; then
-    BUILD_SECRETS="$(
-      awk -f- "./.build-secrets" <<EOF
-!/^#/{
-  sub("src=.npmrc","src=$NPMRC_DOCKER",\$0);
-  printf(" --secret \"%s\"", \$0);
-}
-EOF
-    )"
-  fi
-  BUILD_TAG="$IMAGE_NAME:$PACKAGE_VERSION"
-  DOCKER_COMMAND="$(
-    printf "%s" \
-      "DOCKER_BUILDKIT=1 docker build${BUILD_ARGS}${BUILD_SECRETS}" \
-      " --build-arg 'UPDATED_PACKAGE_VERSION=$PACKAGE_VERSION'" \
-      " --tag '$BUILD_TAG' ."
-  )"
-  eval "$DOCKER_COMMAND"
-}
-
-docker_build_prune() {
-  DOCKER_BUILDKIT=1 docker builder prune -af
 }
 
 docker_rm() {
@@ -135,27 +88,17 @@ docker_rm() {
 }
 
 docker_run() {
-  PACKAGE_VERSION="$1"
-  if [ -z "$PACKAGE_VERSION" ]; then
-    PACKAGE_VERSION="$(
-      git ls-remote -tq --sort=v:refname\
-        | sed -ne 's%^.*refs/tags/\([0-9.]*\)$%\1%p' | tail -1
-    )"
-  fi
   if [ "$(docker_status)" ]; then
     docker rm "$CONTAINER_NAME"
   fi
-  BUILD_TAG="$IMAGE_NAME:$PACKAGE_VERSION"
   DOCKER_COMMAND="$(
     printf "%s" \
-      "docker run -ti --rm --name '$CONTAINER_NAME' $CONTAINER_VARS" \
-      " '$BUILD_TAG'"
+      "docker run -ti --rm --name '$CONTAINER_NAME' " \
+      " --workdir /root" \
+      " -v $(pwd):/src -v $(pwd)/.npmrc.docker:/root/.npmrc:ro" \
+      " $IMAGE_NAME /bin/sh"
   )"
   eval "$DOCKER_COMMAND"
-}
-
-docker_sh() {
-  docker exec -ti "$CONTAINER_NAME" /bin/sh
 }
 
 docker_status() {
@@ -174,11 +117,8 @@ Usage: $0 CMND [ARGS]
 
 Where CMND can be one of:
 - setup: prepare local files (.npmrc.kyso & .env.docker)
-- build: create container using the passed package version
-- build-prune: cleanup builder caché
-- run: run container in daemon mode with the right settings
+- run: run shell in container with the right settings
 - stop|status|rm|logs: operations on the container
-- sh: execute interactive shell (/bin/sh) on the running container
 EOF
 }
 
@@ -190,14 +130,12 @@ cd_to_workdir
 echo "WORKING DIRECTORY = '$(pwd)'"
 echo ""
 
+IMAGE_NAME="$(sed -ne '/builder-v/ { s/^.*image: //p; q }' .gitlab-ci.yml)"
+
 case "$1" in
-build) shift && docker_build "$@";;
-build-prune) docker_build_prune ;;
-logs) shift && docker_logs "$@" ;;
 rm) docker_rm ;;
 setup) docker_setup ;;
-sh) docker_sh ;;
-run) shift && docker_run "$@";;
+run) docker_run ;;
 status) docker_status ;;
 stop) docker_stop ;;
 *) usage ;;
