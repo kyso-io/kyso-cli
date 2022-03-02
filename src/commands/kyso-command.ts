@@ -45,9 +45,9 @@ export abstract class KysoCommand extends Command {
         const kysoCredentials: KysoCredentials = JSON.parse(readFileSync(this.tokenFilePath, 'utf8').toString())
         const decoded: { payload: any; iat: number; exp: number } = jwtDecode(kysoCredentials.token)
         if (decoded.exp * 1000 >= new Date().getTime()) {
-          store.dispatch(setTokenAuthAction(kysoCredentials.token))
-          store.dispatch(setOrganizationAuthAction(kysoCredentials.organization))
-          store.dispatch(setTeamAuthAction(kysoCredentials.team))
+          (store as any).dispatch(setTokenAuthAction(kysoCredentials.token))
+          (store as any).dispatch(setOrganizationAuthAction(kysoCredentials.organization))
+          (store as any).dispatch(setTeamAuthAction(kysoCredentials.team))
           return true
         }
         this.deleteTokenFile()

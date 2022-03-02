@@ -52,10 +52,10 @@ export default class Push extends KysoCommand {
     }
 
     if (kysoConfigFile?.organization && kysoConfigFile.organization.length > 0) {
-      store.dispatch(setOrganizationAuthAction(kysoConfigFile.organization))
+      (store as any).dispatch(setOrganizationAuthAction(kysoConfigFile.organization))
     }
     if (kysoConfigFile?.team && kysoConfigFile.team.length > 0) {
-      store.dispatch(setTeamAuthAction(kysoConfigFile.team))
+      (store as any).dispatch(setTeamAuthAction(kysoConfigFile.team))
     }
 
     const gitIgnores: any[] = files.filter((file: string) => file.endsWith('.gitignore') || file.endsWith('.kysoignore'))
@@ -111,7 +111,7 @@ export default class Push extends KysoCommand {
       mainFile = kysoConfigFile.main
     }
 
-    const result: any = await store.dispatch(
+    const result: any = await (store as any).dispatch(
       createKysoReportAction({
         title: kysoConfigFile!.title,
         description: kysoConfigFile!.description,
@@ -134,7 +134,7 @@ export default class Push extends KysoCommand {
     const logged: boolean = await this.checkCredentials()
     if (!logged) {
       const login: Login = await interactiveLogin()
-      await store.dispatch(loginAction(login))
+      await (store as any).dispatch(loginAction(login))
       const { auth } = store.getState()
       if (auth.token) {
         this.saveToken(auth.token, null, null)

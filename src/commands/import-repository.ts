@@ -38,7 +38,7 @@ export default class ImportRepository extends KysoCommand {
     const logged: boolean = await this.checkCredentials()
     if (!logged) {
       const login: Login = await interactiveLogin()
-      await store.dispatch(loginAction(login))
+      await (store as any).dispatch(loginAction(login))
       const { auth } = store.getState()
       if (auth.token) {
         this.saveToken(auth.token, null, null)
@@ -60,10 +60,10 @@ export default class ImportRepository extends KysoCommand {
     let result: any = null
     switch (flags.provider) {
       case RepositoryProvider.GITHUB:
-        result = await store.dispatch(importGithubRepositoryAction(args))
+        result = await (store as any).dispatch(importGithubRepositoryAction(args))
         break
       case RepositoryProvider.BITBUCKET:
-        result = await store.dispatch(importBitbucketRepositoryAction(args))
+        result = await (store as any).dispatch(importBitbucketRepositoryAction(args))
         break
     }
     if (result?.error) {
