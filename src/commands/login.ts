@@ -2,7 +2,7 @@
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable indent */
 import { Login as LoginModel, LoginProviderEnum } from '@kyso-io/kyso-model'
-import { loginAction, store } from '@kyso-io/kyso-store'
+import { loginAction, store} from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import { interactiveLogin } from '../helpers/interactive-login'
 import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGoogle } from '../helpers/oauths'
