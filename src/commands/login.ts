@@ -116,11 +116,12 @@ export default class Login extends KysoCommand {
       }
     }
 
-    await store.dispatch(
-      loginAction(
-        loginModel
+    await (store as any)
+      .dispatch(
+        loginAction(
+          loginModel
+        )
       )
-    )
     const { auth } = store.getState()
     if (auth.token) {
       this.saveToken(auth.token, flags.organization || null, flags.team || null)
