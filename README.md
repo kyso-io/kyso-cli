@@ -20,7 +20,7 @@ $ npm install -g @kyso-io/kyso-cli
 $ kyso-cli COMMAND
 running command...
 $ kyso-cli (--version)
-@kyso-io/kyso-cli/0.0.7 darwin-x64 node-v16.13.2
+@kyso-io/kyso-cli/0.0.7 darwin-x64 node-v16.14.0
 $ kyso-cli --help [COMMAND]
 USAGE
   $ kyso-cli COMMAND
