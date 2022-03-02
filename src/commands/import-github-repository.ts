@@ -35,7 +35,7 @@ export default class ImportGithubRepository extends KysoCommand {
       args.branch = flags.branch
     }
 
-    await (store as any).dispatch(importGithubRepositoryAction(args))
+    await store.dispatch(importGithubRepositoryAction(args))
     this.log(`Successfully uploaded report`)
   }
 }

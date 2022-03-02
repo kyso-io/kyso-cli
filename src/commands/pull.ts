@@ -41,7 +41,7 @@ export default class Push extends KysoCommand {
       this.error(error)
     }
 
-    const result = await (store as any).dispatch(
+    const result = await store.dispatch(
       pullReportAction({
         teamName: kysoConfigFile.team,
         reportName: kysoConfigFile.title,
