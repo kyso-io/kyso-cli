@@ -20,7 +20,7 @@ $ npm install -g @kyso-io/kyso-cli
 $ kyso-cli COMMAND
 running command...
 $ kyso-cli (--version)
-@kyso-io/kyso-cli/0.0.7 darwin-x64 node-v16.13.0
+@kyso-io/kyso-cli/0.0.7 darwin-x64 node-v16.13.2
 $ kyso-cli --help [COMMAND]
 USAGE
   $ kyso-cli COMMAND
@@ -29,12 +29,12 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`kyso-cli hello PERSON`](#kyso-cli-hello-person)
-* [`kyso-cli hello world`](#kyso-cli-hello-world)
 * [`kyso-cli help [COMMAND]`](#kyso-cli-help-command)
 * [`kyso-cli import-github-repository`](#kyso-cli-import-github-repository)
+* [`kyso-cli import-repository`](#kyso-cli-import-repository)
 * [`kyso-cli kyso-command`](#kyso-cli-kyso-command)
 * [`kyso-cli login`](#kyso-cli-login)
+* [`kyso-cli open`](#kyso-cli-open)
 * [`kyso-cli plugins`](#kyso-cli-plugins)
 * [`kyso-cli plugins:inspect PLUGIN...`](#kyso-cli-pluginsinspect-plugin)
 * [`kyso-cli plugins:install PLUGIN...`](#kyso-cli-pluginsinstall-plugin)
@@ -43,44 +43,6 @@ USAGE
 * [`kyso-cli plugins update`](#kyso-cli-plugins-update)
 * [`kyso-cli pull`](#kyso-cli-pull)
 * [`kyso-cli push`](#kyso-cli-push)
-
-## `kyso-cli hello PERSON`
-
-Say hello
-
-```
-USAGE
-  $ kyso-cli hello [PERSON] -f <value>
-
-ARGUMENTS
-  PERSON  Person to say hello to
-
-FLAGS
-  -f, --from=<value>  (required) Whom is saying hello
-
-DESCRIPTION
-  Say hello
-
-EXAMPLES
-  $ oex hello friend --from oclif
-  hello friend from oclif! (./src/commands/hello/index.ts)
-```
-
-## `kyso-cli hello world`
-
-Say hello world
-
-```
-USAGE
-  $ kyso-cli hello world
-
-DESCRIPTION
-  Say hello world
-
-EXAMPLES
-  $ oex hello world
-  hello world! (./src/commands/hello/world.ts)
-```
 
 ## `kyso-cli help [COMMAND]`
 
@@ -108,16 +70,40 @@ Import Github repository to Kyso
 
 ```
 USAGE
-  $ kyso-cli import-github-repository -n <value>
+  $ kyso-cli import-github-repository -n <value> [-b <value>]
 
 FLAGS
-  -n, --name=<value>  (required) name
+  -b, --branch=<value>  branch
+  -n, --name=<value>    (required) name
 
 DESCRIPTION
   Import Github repository to Kyso
 
 EXAMPLES
-  $ kyso import-github-repository --name <repository name>
+  $ kyso import-github-repository --name <repository name> --branch <branch>
+```
+
+## `kyso-cli import-repository`
+
+Import repository to Kyso
+
+```
+USAGE
+  $ kyso-cli import-repository -p bitbucket|github -n <value> [-b <value>]
+
+FLAGS
+  -b, --branch=<value>     branch
+  -n, --name=<value>       (required) name
+  -p, --provider=<option>  (required) provider
+                           <options: bitbucket|github>
+
+DESCRIPTION
+  Import repository to Kyso
+
+EXAMPLES
+  $ kyso import-repository --provider github --name <repository name> --branch <branch>
+
+  $ kyso import-repository --provider bitbucket --name workspace/repository-name --branch <branch>
 ```
 
 ## `kyso-cli kyso-command`
@@ -133,21 +119,51 @@ Make login request to the server
 
 ```
 USAGE
-  $ kyso-cli login -u <value> -p <value> -r <value> [-o <value>] [-t <value>]
+  $ kyso-cli login [-r kyso|google|github|bitbucket] [-u <value>] [-k <value>] [-p <value>] [-o <value>]
+    [-t <value>]
 
 FLAGS
+  -k, --token=<value>         token
   -o, --organization=<value>  organization
-  -p, --password=<value>      (required) password
-  -r, --provider=<value>      (required) provider
+  -p, --password=<value>      password
+  -r, --provider=<option>     provider
+                              <options: kyso|google|github|bitbucket>
   -t, --team=<value>          team
-  -u, --username=<value>      (required) username
+  -u, --username=<value>      username
 
 DESCRIPTION
   Make login request to the server
 
 EXAMPLES
-  $ kyso login --username <username> --password <password> --provider <provider> --organization <organization name> --team <team name>
-      Logged successfully
+  $ kyso login --organization <organization name> --team <team name>
+
+  $ kyso login --provider kyso --username <username> --password <password> --organization <organization name> --team <team name>
+
+  $ kyso login --provider kyso --username <username> --token <password> --organization <organization name> --team <team name>
+
+  $ kyso login --provider google --username <username> --organization <organization name> --team <team name>
+
+  $ kyso login --provider github --username <username> --organization <organization name> --team <team name>
+
+  $ kyso login --provider bitbucket --username <username> --organization <organization name> --team <team name>
+```
+
+## `kyso-cli open`
+
+Open a report in the browser
+
+```
+USAGE
+  $ kyso-cli open [-p <value>]
+
+FLAGS
+  -p, --path=<value>  [default: .] path
+
+DESCRIPTION
+  Open a report in the browser
+
+EXAMPLES
+  $ kyso open --path <project_path>
 ```
 
 ## `kyso-cli plugins`
@@ -168,7 +184,7 @@ EXAMPLES
   $ kyso-cli plugins
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.0.11/src/commands/plugins/index.ts)_
+_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.0.12/src/commands/plugins/index.ts)_
 
 ## `kyso-cli plugins:inspect PLUGIN...`
 
