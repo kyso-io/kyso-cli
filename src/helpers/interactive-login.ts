@@ -5,12 +5,8 @@ import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGoog
 import inquirer = require('inquirer')
 
 export const interactiveLogin = async (): Promise<Login> => {
-  const login: Login = {
-    username: '',
-    password: '',
-    provider: LoginProviderEnum.KYSO,
-    payload: null,
-  }
+  const login: Login = new Login('', LoginProviderEnum.KYSO, '', null)
+    
   const providerResponse: { provider: LoginProviderEnum } = await inquirer.prompt([
     {
       name: 'provider',

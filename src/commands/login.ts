@@ -59,12 +59,7 @@ export default class Login extends KysoCommand {
   async run(): Promise<void> {
     const { flags } = await this.parse(Login)
 
-    let loginModel: LoginModel = {
-      username: '',
-      password: '',
-      provider: LoginProviderEnum.KYSO,
-      payload: null,
-    }
+    let loginModel: LoginModel = new LoginModel ('', LoginProviderEnum.KYSO, '', null)
 
     if (flags?.provider && flags.provider !== '') {
       if (!flags.hasOwnProperty('username')) {
@@ -81,22 +76,12 @@ export default class Login extends KysoCommand {
           } else {
             this.error('You must provide a password or a token')
           }
-          loginModel = {
-            username: flags.username!,
-            password: flags.password!,
-            provider: flags.provider,
-            payload: null,
-          }
+          loginModel = new LoginModel(flags.password!, flags.provider, flags.username!, null)
           break
         case LoginProviderEnum.GOOGLE:
           try {
             const googleResult = await authenticateWithGoogle()
-            loginModel = {
-              username: flags.username!,
-              password: googleResult.access_token,
-              provider: LoginProviderEnum.GOOGLE,
-              payload: googleResult,
-            }
+            loginModel = new LoginModel(googleResult.access_token, LoginProviderEnum.GOOGLE, flags.username!, googleResult)
           } catch (error: any) {
             this.error(error)
           }
@@ -106,12 +91,7 @@ export default class Login extends KysoCommand {
           if (!code) {
             this.error('Authentication failed')
           }
-          loginModel = {
-            username: flags.username!,
-            password: code,
-            provider: LoginProviderEnum.GITHUB,
-            payload: null,
-          }
+          loginModel = new LoginModel(code, LoginProviderEnum.GITHUB, flags.username!, null)
           break
         case LoginProviderEnum.BITBUCKET:
           try {
@@ -119,12 +99,7 @@ export default class Login extends KysoCommand {
             if (!code) {
               this.error('Authentication failed')
             }
-            loginModel = {
-              username: flags.username!,
-              password: code,
-              provider: LoginProviderEnum.BITBUCKET,
-              payload: null,
-            }
+            loginModel = new LoginModel(code, LoginProviderEnum.BITBUCKET, flags.username!, null)
           } catch (error: any) {
             this.error(error)
           }
