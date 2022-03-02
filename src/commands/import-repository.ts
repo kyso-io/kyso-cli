@@ -57,14 +57,19 @@ export default class ImportRepository extends KysoCommand {
       args.branch = flags.branch
     }
 
+    let result: any = null
     switch (flags.provider) {
       case RepositoryProvider.GITHUB:
-        await store.dispatch(importGithubRepositoryAction(args))
+        result = await store.dispatch(importGithubRepositoryAction(args))
         break
       case RepositoryProvider.BITBUCKET:
-        await store.dispatch(importBitbucketRepositoryAction(args))
+        result = await store.dispatch(importBitbucketRepositoryAction(args))
         break
     }
-    this.log(`Successfully uploaded report`)
+    if (result?.error) {
+      this.error(result.error.message)
+    } else {
+      this.log(`Successfully uploaded report`)
+    }
   }
 }

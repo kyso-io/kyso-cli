@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-prototype-builtins */
 import { KysoConfigFile, Login } from '@kyso-io/kyso-model'
@@ -105,7 +106,12 @@ export default class Push extends KysoCommand {
       this.log(`${formatedFilePath}`)
     }
 
-    const result = await store.dispatch(
+    let mainFile = null
+    if (kysoConfigFile?.main && kysoConfigFile.main.length > 0) {
+      mainFile = kysoConfigFile.main
+    }
+
+    const result: any = await store.dispatch(
       createKysoReportAction({
         title: kysoConfigFile!.title,
         description: kysoConfigFile!.description,
@@ -114,12 +120,13 @@ export default class Push extends KysoCommand {
         team: kysoConfigFile!.team,
         filePaths: files,
         basePath,
+        mainFile,
       })
     )
-    if (result?.payload) {
-      this.log(`Successfully uploaded report '${folderName}'\n`)
+    if (result?.payload?.isAxiosError) {
+      this.error(`${result.payload.response.data.statusCode} ${result.payload.response.data.message}`)
     } else {
-      this.error(`An error occurred uploading report '${folderName}'\n`)
+      this.log(`Successfully uploaded report '${folderName}'\n`)
     }
   }
 
