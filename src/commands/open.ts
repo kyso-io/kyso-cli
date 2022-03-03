@@ -57,10 +57,10 @@ export default class Open extends KysoCommand {
     let baseUrl = null
     let reportUrl = null
     if (process.env.NODE_ENV === 'development') {
-      baseUrl = process.env.NEXT_URL || 'http://localhost:3000'
+      baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
       reportUrl = `${baseUrl}/${kysoConfigFile.organization}/${kysoConfigFile.team}/${slugify(kysoConfigFile.title)}`
     } else {
-      baseUrl = process.env.NEXT_URL || 'https://kyso.io'
+      baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://kyso.io'
       const domain = new URL(baseUrl)
       reportUrl = `${domain.protocol}//${domain.hostname}/${kysoConfigFile.organization}/${kysoConfigFile.team}/${slugify(kysoConfigFile.title)}`
     }
