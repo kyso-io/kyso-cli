@@ -1,6 +1,6 @@
 include:
   - project: 'common/gitlab-ci'
-    ref: v0.4.13
+    ref: v0.4.14
     file: '/templates/npm-package-with-container.yml'
 
 npm-package-build:
@@ -14,17 +14,36 @@ npm-package-publish:
     - mv /root/node_modules .
     - !reference [.git-config, before_script]
     - !reference [.npm-config, before_script]
-  after_script:
-    - PACKAGES_DIR="kyso-cli-packages-$CI_COMMIT_TAG"
-    - PACKAGE_URLS="$PACKAGES_DIR/package-urls.txt"
-    - mkdir "$PACKAGES_DIR"
-    - npm view "@kyso-io/kyso-cli@$CI_COMMIT_TAG" > "$PACKAGE_URLS"
+  script:
+    - !reference [.npm-package-publish, script]
+    - |
+      PKG_NAME="kyso-cli-installer"
+      PKG_VERS="$CI_COMMIT_TAG"
+      PKGS_DIR="$PKG_NAME-$PKG_VERS"
+      PKGS_TGZ="$PKG_NAME-$PKG_VERS.tgz"
+      UPL_BASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
+      TGZ_UPLOAD_URL="$UPL_BASE_URL/$PKG_NAME/$PKG_VERS/$PKGS_TGZ"
+    - TGZ_URLS="$(npm view "@kyso-io/kyso-cli@$CI_COMMIT_TAG" dist.tarball)"
     - |
       for pkg_ref in $(
-        sed -n -e 's%^.*"\(@kyso-io/.*\)": "\(.*\)".*$%"\1@\2"%p' package.json
+        sed -n -e 's%^.*"\(@kyso-io/.*\)": "\(.*\)".*$%\1@\2%p' package.json
       ); do
-        npm view "$pkg_ref" >> "$PACKAGE_URLS"
+        TGZ_URLS="$TGZ_URLS $(npm view "$pkg_ref" dist.tarball)"
       done
+    - mkdir "$PKGS_DIR" && cd "$PKGS_DIR"
+    - |
+      HEADER='Authorization: Bearer ${CI_JOB_TOKEN}'
+      for tgz_url in $TGZ_URLS; do curl -s -H "$HEADER" "$tgz_url" -O; done
+      echo '#!/bin/sh' > install.sh
+      echo 'npm install -g *.tgz' >> install.sh
+      chmod +x install.sh
+      cd ..
+    - tar cvf $PKGS_TGZ $PKGS_DIR
+    - |
+      curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "$PKGS_TGZ" \
+        "$TGZ_UPLOAD_URL"
+    - rm -rf "$PKGS_TGZ" "$PKGS_DIR"
+
 docker-build:
   dependencies:
     - npm-package-publish
@@ -36,28 +55,17 @@ release_tag:
     - if: '$CI_COMMIT_TAG'
   script:
     - echo "running release_tag"
-    - PACKAGES_DIR="kyso-cli-packages-$CI_COMMIT_TAG"
-    - cd "$PACKAGES_DIR"
     - |
-      for pkg_url in $(cat package-urls.txt); do
-        curl -s -H "Authorization: Bearer ${CI_JOB_TOKEN}" "$pkg_url" -O
-      done
-    - rm package-urls.txt
-    - echo '#!/bin/sh' > install.sh
-    - echo 'npm install -g *.tgz' >> install.sh
-    - chmod +x install.sh
-    - cd ..
-    - tar cf $PACKAGES_TGZ $PACKAGES_DIR
+      PKG_NAME="kyso-cli-installer"
+      PKG_VERS="$CI_COMMIT_TAG"
+      PKGS_TGZ="$PKG_NAME-$PKG_VERS.tgz"
+      UPL_BASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
+      TGZ_UPLOAD_URL="$UPL_BASE_URL/$PKG_NAME/$PKG_VERS/$PKGS_TGZ"
     - |
-      curl --header "Authorization: Bearer ${CI_JOB_TOKEN}" \
-           --upload-file "${PACKAGES_TGZ}" \
-           "${PACKAGE_REGISTRY_URL}"
-    - rm -rf "$PACKAGES_TGZ" "$PACKAGES_DIR"
-    - release-cli create --name "Release $CI_COMMIT_TAG" \
-        --description "Created using the release-cli"
+      release-cli create --name "Release $CI_COMMIT_TAG" \
+        --description "kyso-cli release $CI_COMMIT_TAG" \
         --tag-name "$CI_COMMIT_TAG" \
-        --ref "$CI_COMMIT_TAG" \
-        --assets-link "{\"name\":\"${PACKAGES_TGZ}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGES_TGZ}\"}"
+        --assets-link "{\"name\":\"${PKGS_TGZ}\",\"url\":\"${TGZ_UPLOAD_URL}\"}"
   release:
 
 variables:
