@@ -14,14 +14,6 @@ npm-package-publish:
     - mv /root/node_modules .
     - !reference [.git-config, before_script]
     - !reference [.npm-config, before_script]
-  after_script:
-    - npm pack
-    - TGZ_FILE="kyso-io-kyso-cli-$CI_COMMIT_TAG.tgz"
-    - |
-      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
-           --upload-file "${TGZ_FILE}" \
-           "${PACKAGE_REGISTRY_URL}"
-
 docker-build:
   dependencies:
     - npm-package-publish
@@ -33,12 +25,35 @@ release_tag:
     - if: '$CI_COMMIT_TAG'
   script:
     - echo "running release_tag"
-    - TGZ_FILE="kyso-io-kyso-cli-$CI_COMMIT_TAG.tgz"
+    - PACKAGE_URLS="$(npm view "@kyso-io/kyso-cli@$CI_COMMIT_TAG")"
+    - |
+      for pkg_ref in $(\
+        sed -n -e 's%^.*"\(@kyso-io/.*\)": "\(.*\)".*$%"\1@\2"%p' package.json\
+      ); do
+         PACKAGE_URLS="$PACKAGE_URLS $(npm view "$pkg_ref")"
+      done
+    - PACKAGES_DIR="kyso-cli-packages-$CI_COMMIT_TAG"
+    - PACKAGES_TGZ="$PACKAGES_DIR.tgz"
+    - mkdir $PACKAGES_DIR
+    - cd $PACKAGES_DIR
+    - |
+      for pkg_url in $PACKAGE_URLS; do \
+        curl -H "Authorization: Bearer ${CI_JOB_TOKEN}" "$pkg_url" -O
+      done
+      echo '#!/bin/sh' > install.sh
+      echo 'npm install -g *.tgz' >> install.sh
+      chmod +x install.sh
+    - cd ..
+    - tar cf $PACKAGES_TGZ $PACKAGES_DIR
+    - curl --header "Authorization: Bearer ${CI_JOB_TOKEN}" \
+           --upload-file "${PACKAGES_TGZ}" \
+           "${PACKAGE_REGISTRY_URL}"
+    - rm -rf $PACKAGES_TGZ $PACKAGES_DIR
     - release-cli create --name "Release $CI_COMMIT_TAG" \
         --description "Created using the release-cli"
         --tag-name "$CI_COMMIT_TAG" \
         --ref "$CI_COMMIT_TAG" \
-        --assets-link "{\"name\":\"${TGZ_FILE}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${TGZ_FILE}\"}"
+        --assets-link "{\"name\":\"${PACKAGES_TGZ}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGES_TGZ}\"}"
   release:
 
 variables:
