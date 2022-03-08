@@ -42,11 +42,14 @@ npm-package-publish:
     - |
       curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "$PKGS_TGZ" \
         "$TGZ_UPLOAD_URL"
-    - rm -rf "$PKGS_TGZ" "$PKGS_DIR"
+    - rm -rf "$PKGS_DIR"
+    - mv "$PKGS_TGZ" "kyso-cli-installer.tgz"
 
 docker-build:
   dependencies:
     - npm-package-publish
+  after_script:
+    - rm -f kyso-cli-installer.tgz
 
 release_tag:
   dependencies:
