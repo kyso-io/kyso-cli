@@ -38,7 +38,7 @@ npm-package-publish:
       echo 'npm install -g *.tgz' >> install.sh
       chmod +x install.sh
       cd ..
-    - tar cvf $PKGS_TGZ $PKGS_DIR
+    - tar czvf $PKGS_TGZ $PKGS_DIR
     - |
       curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "$PKGS_TGZ" \
         "$TGZ_UPLOAD_URL"
