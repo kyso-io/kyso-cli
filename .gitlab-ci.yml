@@ -32,7 +32,7 @@ npm-package-publish:
       done
     - mkdir "$PKGS_DIR" && cd "$PKGS_DIR"
     - |
-      HEADER='Authorization: Bearer ${CI_JOB_TOKEN}'
+      HEADER="Authorization: Bearer ${CI_JOB_TOKEN}"
       for tgz_url in $TGZ_URLS; do curl -s -H "$HEADER" "$tgz_url" -O; done
       echo '#!/bin/sh' > install.sh
       echo 'npm install -g *.tgz' >> install.sh
