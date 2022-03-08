@@ -96,7 +96,7 @@ docker_run() {
       "docker run -ti --rm --name '$CONTAINER_NAME' " \
       " --workdir /root" \
       " -v $(pwd):/src -v $(pwd)/.npmrc.docker:/root/.npmrc:ro" \
-      " $IMAGE_NAME /bin/sh"
+      " $IMAGE_NAME $*"
   )"
   eval "$DOCKER_COMMAND"
 }
@@ -116,6 +116,7 @@ usage() {
 Usage: $0 CMND [ARGS]
 
 Where CMND can be one of:
+- binst: build installer tgz
 - setup: prepare local files (.npmrc.kyso & .env.docker)
 - run: run shell in container with the right settings
 - stop|status|rm|logs: operations on the container
@@ -133,9 +134,10 @@ echo ""
 IMAGE_NAME="$(sed -ne '/builder-v/ { s/^.*image: //p; q }' .gitlab-ci.yml)"
 
 case "$1" in
+binst) docker_run /src/sbin/build-installer.sh "$2" ;;
 rm) docker_rm ;;
 setup) docker_setup ;;
-run) docker_run ;;
+run) docker_run /bin/sh ;;
 status) docker_status ;;
 stop) docker_stop ;;
 *) usage ;;

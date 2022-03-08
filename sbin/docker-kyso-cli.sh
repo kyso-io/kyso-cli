@@ -13,7 +13,8 @@ BUILD_ARGS=""
 BUILD_SECRETS=""
 NPMRC_KYSO=".npmrc.kyso"
 NPMRC_DOCKER=".npmrc.docker"
-CONTAINER_VARS=""
+KYSO_DIR="$HOME/.kyso"
+CONTAINER_VARS="-v $KYSO_DIR:/home/.kyso"
 
 # ---------
 # FUNCTIONS
@@ -88,8 +89,21 @@ docker_build() {
         | sed -ne 's%^.*refs/tags/\([0-9.]*\)$%\1%p' | tail -1
     )"
   fi
+  INSTALLER="kyso-cli-installer.tgz"
+  if [ ! -f "$INSTALLER" ]; then
+    echo "Missing file '$INSTALLER'"
+    echo "Call $(pwd)/docker-kyso-cli-builder.sh $PACKAGE_VERSION to create it"
+    exit 1
+  else
+    INSTALLER_DIR="$(tar --exclude='*/*' -tzf kyso-cli-installer.tgz)"
+    if [ "${INSTALLER_DIR}" != "kyso-cli-installer-$PACKAGE_VERSION/" ]; then
+      echo "Wrong '$INSTALLER', it contains the '${INSTALLER_DIR}' folder"
+      echo "Call $(pwd)/docker-kyso-cli-builder.sh $PACKAGE_VERSION to update"
+      exit 1
+    fi
+  fi
   if [ ! -f "./.npmrc.kyso" ]; then
-    echo "Missing file '.npmrc.kyso', call $0 init to create it"
+    echo "Missing file '.npmrc.kyso', call '$0 setup' to create it"
     exit 1
   fi
   # Prepare .npmrc.docker
@@ -104,7 +118,6 @@ docker_build() {
       awk '!/^#/ { printf(" --build-arg \"%s\"", $0); }' "./.build-args"
     )"
   fi
-  BUILD_ARGS="$BUILD_ARGS --build-arg =$PACKAGE_VERSION"
   # Compute build secrets if there is a .build_secrets file
   if [ -f "./.build-secrets" ]; then
     BUILD_SECRETS="$(
@@ -146,6 +159,7 @@ docker_run() {
     docker rm "$CONTAINER_NAME"
   fi
   BUILD_TAG="$IMAGE_NAME:$PACKAGE_VERSION"
+  [ -d "$KYSO_HOME" ] || mkdir "$KYSO_HOME"
   DOCKER_COMMAND="$(
     printf "%s" \
       "docker run -ti --rm --name '$CONTAINER_NAME' $CONTAINER_VARS" \
