@@ -17,7 +17,8 @@ RUN --mount=type=secret,id=kyso-cli,target=/root/kyso-cli-installer.tgz\
  npm update -g npm &&\
  tar xvzf kyso-cli-installer.tgz &&\
  DIR="kyso-cli-installer-$UPDATED_PACKAGE_VERSION" &&\
- cd $DIR && sh -x install.sh && cd .. && rm -rf "$DIR"
+ cd $DIR && sh -x install.sh && cd .. && rm -rf "$DIR" &&\
+ rm -rf ~/.npm ~/.gnupg
 # Copy entrypoint
 COPY ./container/entrypoint.sh /entrypoint.sh
 # Use it
