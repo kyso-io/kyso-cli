@@ -81,7 +81,50 @@ EOF
   fi
 }
 
+check_installer_tgz() {
+  PKG_VERS="$1"
+  PKG_NAME="kyso-cli-installer"
+  INSTALLER="$PKG_NAME.tgz"
+  if [ ! -f "$INSTALLER" ]; then
+    echo "Missing file '$INSTALLER'"
+  else
+    INSTALLER_DIR="$(tar --exclude='*/*' -tzf "$INSTALLER")"
+    if [ "${INSTALLER_DIR}" != "$PKG_NAME-$PKG_VERS/" ]; then
+      echo "Wrong '$INSTALLER', it contains the '${INSTALLER_DIR}' folder"
+    else
+      return 0
+    fi
+  fi
+  PKG_TGZ="$PKG_NAME-$PKG_VERS.tgz"
+  SRC_PRJ_ID="8" # Id of https://gitlab.kyso.io/kyso-io/kyso-cli
+  TOKEN="$(sed -ne 's/^.*_authToken=//p' ./.npmrc.kyso | tail -1)"
+  PROJECTS_API_URL="https://gitlab.kyso.io/api/v4/projects"
+  GENERIC_SRC_URL="$PROJECTS_API_URL/$SRC_PRJ_ID/packages/generic"
+  TGZ_SRC_URL="$GENERIC_SRC_URL/$PKG_NAME/$PKG_VERS/$PKG_TGZ"
+  echo "Trying to download the installer package for version '$PKG_VERS'"
+  curl -s -H "PRIVATE-TOKEN: $TOKEN" "$TGZ_SRC_URL" -o "$PKG_TGZ" || true
+  if [ ! -f "$PKG_TGZ" ]; then
+    echo "Package could not be downloaded"
+    echo "Call $(pwd)/docker-kyso-cli-builder.sh $PACKAGE_VERSION to create it"
+    exit 1
+  else
+    echo "Package could not be downloaded or wrong version"
+    PKG_TGZ_DIR="$(tar --exclude='*/*' -tzf "$PKG_TGZ" 2> /dev/null)" || true
+    if [ "${PKG_TGZ_DIR}" != "$PKG_NAME-$PKG_VERS/" ]; then
+      rm -f "$PKG_TGZ"
+      echo "Call $(pwd)/docker-kyso-cli-builder.sh $PACKAGE_VERSION to update"
+      exit 1
+    fi
+  fi
+  echo "Package succesfully downloaded"
+  mv "$PKG_TGZ" "$INSTALLER"
+}
+
 docker_build() {
+  if [ ! -f "./.npmrc.kyso" ]; then
+    echo "Missing file '.npmrc.kyso', call '$0 setup' to create it"
+    exit 1
+  fi
   PACKAGE_VERSION="$1"
   if [ -z "$PACKAGE_VERSION" ]; then
     PACKAGE_VERSION="$(
@@ -89,23 +132,7 @@ docker_build() {
         | sed -ne 's%^.*refs/tags/\([0-9.]*\)$%\1%p' | tail -1
     )"
   fi
-  INSTALLER="kyso-cli-installer.tgz"
-  if [ ! -f "$INSTALLER" ]; then
-    echo "Missing file '$INSTALLER'"
-    echo "Call $(pwd)/docker-kyso-cli-builder.sh $PACKAGE_VERSION to create it"
-    exit 1
-  else
-    INSTALLER_DIR="$(tar --exclude='*/*' -tzf kyso-cli-installer.tgz)"
-    if [ "${INSTALLER_DIR}" != "kyso-cli-installer-$PACKAGE_VERSION/" ]; then
-      echo "Wrong '$INSTALLER', it contains the '${INSTALLER_DIR}' folder"
-      echo "Call $(pwd)/docker-kyso-cli-builder.sh $PACKAGE_VERSION to update"
-      exit 1
-    fi
-  fi
-  if [ ! -f "./.npmrc.kyso" ]; then
-    echo "Missing file '.npmrc.kyso', call '$0 setup' to create it"
-    exit 1
-  fi
+  check_installer_tgz "$PACKAGE_VERSION"
   # Prepare .npmrc.docker
   if [ -f ".npmrc" ]; then
     cat ".npmrc" "$NPMRC_KYSO" >"$NPMRC_DOCKER"
