@@ -2,7 +2,7 @@
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable indent */
 import { Login as LoginModel, LoginProviderEnum } from '@kyso-io/kyso-model'
-import { loginAction, store} from '@kyso-io/kyso-store'
+import { loginAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import { interactiveLogin } from '../helpers/interactive-login'
 import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGoogle } from '../helpers/oauths'
@@ -59,7 +59,7 @@ export default class Login extends KysoCommand {
   async run(): Promise<void> {
     const { flags } = await this.parse(Login)
 
-    let loginModel: LoginModel = new LoginModel ('', LoginProviderEnum.KYSO, '', null)
+    let loginModel: LoginModel = new LoginModel('', LoginProviderEnum.KYSO, '', null)
 
     if (flags?.provider && flags.provider !== '') {
       if (!flags.hasOwnProperty('username')) {
@@ -81,7 +81,7 @@ export default class Login extends KysoCommand {
         case LoginProviderEnum.GOOGLE:
           try {
             const googleResult = await authenticateWithGoogle()
-            loginModel = new LoginModel(googleResult.access_token, LoginProviderEnum.GOOGLE, flags.username!, googleResult)
+            loginModel = new LoginModel(googleResult.id_token, LoginProviderEnum.GOOGLE, '', googleResult)
           } catch (error: any) {
             this.error(error)
           }
@@ -91,7 +91,7 @@ export default class Login extends KysoCommand {
           if (!code) {
             this.error('Authentication failed')
           }
-          loginModel = new LoginModel(code, LoginProviderEnum.GITHUB, flags.username!, null)
+          loginModel = new LoginModel(code, LoginProviderEnum.GITHUB, '', null)
           break
         case LoginProviderEnum.BITBUCKET:
           try {
@@ -99,7 +99,7 @@ export default class Login extends KysoCommand {
             if (!code) {
               this.error('Authentication failed')
             }
-            loginModel = new LoginModel(code, LoginProviderEnum.BITBUCKET, flags.username!, null)
+            loginModel = new LoginModel(code, LoginProviderEnum.BITBUCKET, '', null)
           } catch (error: any) {
             this.error(error)
           }
@@ -116,12 +116,7 @@ export default class Login extends KysoCommand {
       }
     }
 
-    await store
-      .dispatch(
-        loginAction(
-          loginModel
-        )
-      )
+    await store.dispatch(loginAction(loginModel))
     const { auth } = store.getState()
     if (auth.token) {
       this.saveToken(auth.token, flags.organization || null, flags.team || null)
