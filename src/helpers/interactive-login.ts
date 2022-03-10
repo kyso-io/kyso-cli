@@ -17,7 +17,7 @@ export const interactiveLogin = async (): Promise<Login> => {
         { name: 'Access token', value: LoginProviderEnum.KYSO_ACCESS_TOKEN },
         { name: 'Google', value: LoginProviderEnum.GOOGLE },
         { name: 'Github', value: LoginProviderEnum.GITHUB },
-        { name: 'Bitbucket', value: LoginProviderEnum.BITBUCKET },
+        // { name: 'Bitbucket', value: LoginProviderEnum.BITBUCKET },
       ],
     },
   ])
