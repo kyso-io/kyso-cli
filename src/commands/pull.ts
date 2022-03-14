@@ -19,6 +19,18 @@ export default class Push extends KysoCommand {
       required: false,
       default: '.',
     }),
+    team: Flags.string({
+      char: 't',
+      description: 'team',
+      required: false,
+      default: '',
+    }),
+    report: Flags.string({
+      char: 'r',
+      description: 'report',
+      required: false,
+      default: '',
+    }),
   }
 
   static args = []
@@ -29,18 +41,47 @@ export default class Push extends KysoCommand {
     this.log('Pulling report. Wait...')
     const { flags } = await this.parse(Push)
     let files: string[] = readdirSync(flags.path)
-    if (flags?.path) {
-      files = files.map((file: string) => join(flags.path, file))
+    
+    if(flags?.team && flags?.report) {
+      await this.extractReport(flags.team, flags.report, flags.path);
+    } else {
+      if (flags?.path) {
+        files = files.map((file: string) => join(flags.path, file))
+      }
+  
+      let kysoConfigFile: KysoConfigFile | null = null
+      try {
+        const data: { kysoConfigFile: KysoConfigFile; kysoConfigPath: string } = findKysoConfigFile(files)
+        kysoConfigFile = data.kysoConfigFile
+      } catch (error: any) {
+        this.error(error)
+      }
+
+      this.extractReport(kysoConfigFile.team, kysoConfigFile.title, flags.path)
+    }
+  }
+
+  async extractReport(team, report, path) {
+    const result = await store.dispatch(
+      pullReportAction({
+        teamName: team,
+        reportName: report,
+      })
+    )
+    if (!result || !result.payload) {
+      this.error('Error pulling report')
     }
 
-    let kysoConfigFile: KysoConfigFile | null = null
-    try {
-      const data: { kysoConfigFile: KysoConfigFile; kysoConfigPath: string } = findKysoConfigFile(files)
-      kysoConfigFile = data.kysoConfigFile
-    } catch (error: any) {
-      this.error(error)
-    }
+    const zip: AdmZip = new AdmZip(result.payload as Buffer)
+    zip.extractAllTo(path, true)
+    this.log('Already up to date.')
+  }
+}
 
+
+  /*
+
+  async extractReport() {
     const result = await store.dispatch(
       pullReportAction({
         teamName: kysoConfigFile.team,
@@ -56,3 +97,4 @@ export default class Push extends KysoCommand {
     this.log('Already up to date.')
   }
 }
+*/
