@@ -1,6 +1,6 @@
 /* eslint-disable indent */
 import { Login, RepositoryProvider } from '@kyso-io/kyso-model'
-import { importBitbucketRepositoryAction, importGithubRepositoryAction, loginAction, store } from '@kyso-io/kyso-store'
+import { importBitbucketRepositoryAction, importGithubRepositoryAction, importGitlabRepositoryAction, loginAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import { interactiveLogin } from '../helpers/interactive-login'
 import { KysoCommand } from './kyso-command'
@@ -10,7 +10,8 @@ export default class ImportRepository extends KysoCommand {
 
   static examples = [
     `$ kyso import-repository --provider github --name <repository name> --branch <branch>`,
-    `$ kyso import-repository --provider bitbucket --name workspace/repository-name --branch <branch>`,
+    `$ kyso import-repository --provider bitbucket --name <workspace/repository-name> --branch <branch>`,
+    `$ kyso import-repository --provider gitlab --name <id | name_with_namespace> --branch <branch>`,
   ]
 
   static flags = {
@@ -18,7 +19,7 @@ export default class ImportRepository extends KysoCommand {
       char: 'p',
       description: 'provider',
       required: true,
-      options: [RepositoryProvider.BITBUCKET, RepositoryProvider.GITHUB],
+      options: [RepositoryProvider.BITBUCKET, RepositoryProvider.GITLAB, RepositoryProvider.GITHUB],
     }),
     name: Flags.string({
       char: 'n',
@@ -64,6 +65,9 @@ export default class ImportRepository extends KysoCommand {
         break
       case RepositoryProvider.BITBUCKET:
         result = await store.dispatch(importBitbucketRepositoryAction(args))
+        break
+      case RepositoryProvider.GITLAB:
+        result = await store.dispatch(importGitlabRepositoryAction(args))
         break
     }
     if (result?.error) {

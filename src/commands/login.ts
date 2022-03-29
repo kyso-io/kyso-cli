@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 /* eslint-disable no-case-declarations */
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable indent */
@@ -5,7 +6,7 @@ import { Login as LoginModel, LoginProviderEnum } from '@kyso-io/kyso-model'
 import { loginAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import { interactiveLogin } from '../helpers/interactive-login'
-import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGoogle } from '../helpers/oauths'
+import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitlab, authenticateWithGoogle, gitlabAuthCallback } from '../helpers/oauths'
 import { KysoCommand } from './kyso-command'
 
 export default class Login extends KysoCommand {
@@ -15,9 +16,10 @@ export default class Login extends KysoCommand {
     `$ kyso login --organization <organization name> --team <team name>`,
     `$ kyso login --provider kyso --username <username> --password <password> --organization <organization name> --team <team name>`,
     `$ kyso login --provider kyso --username <username> --token <password> --organization <organization name> --team <team name>`,
-    `$ kyso login --provider google --username <username> --organization <organization name> --team <team name>`,
-    `$ kyso login --provider github --username <username> --organization <organization name> --team <team name>`,
-    `$ kyso login --provider bitbucket --username <username> --organization <organization name> --team <team name>`,
+    `$ kyso login --provider google --organization <organization name> --team <team name>`,
+    `$ kyso login --provider github --organization <organization name> --team <team name>`,
+    // `$ kyso login --provider bitbucket --organization <organization name> --team <team name>`,
+    `$ kyso login --provider gitlab --organization <organization name> --team <team name>`,
   ]
 
   static flags = {
@@ -26,7 +28,7 @@ export default class Login extends KysoCommand {
       description: 'provider',
       required: false,
       // options: [LoginProviderEnum.KYSO, LoginProviderEnum.GOOGLE, LoginProviderEnum.GITHUB, LoginProviderEnum.BITBUCKET],
-      options: [LoginProviderEnum.KYSO, LoginProviderEnum.GOOGLE, LoginProviderEnum.GITHUB],
+      options: [LoginProviderEnum.KYSO, LoginProviderEnum.GOOGLE, LoginProviderEnum.GITHUB, LoginProviderEnum.GITLAB],
     }),
     username: Flags.string({
       char: 'u',
@@ -63,12 +65,12 @@ export default class Login extends KysoCommand {
     let loginModel: LoginModel = new LoginModel('', LoginProviderEnum.KYSO, '', null)
 
     if (flags?.provider && flags.provider !== '') {
-      if (!flags.hasOwnProperty('username')) {
-        this.error('Username is required when provider is specified')
-      }
       // NON-INTERACTIVE MODE
       switch (flags.provider) {
         case LoginProviderEnum.KYSO:
+          if (!flags.hasOwnProperty('username')) {
+            this.error('Username is required when provider is specified')
+          }
           if (flags.hasOwnProperty('password')) {
             loginModel.password = flags.password!
           } else if (flags.hasOwnProperty('token')) {
@@ -101,6 +103,17 @@ export default class Login extends KysoCommand {
               this.error('Authentication failed')
             }
             loginModel = new LoginModel(code, LoginProviderEnum.BITBUCKET, '', null)
+          } catch (error: any) {
+            this.error(error)
+          }
+          break
+        case LoginProviderEnum.GITLAB:
+          try {
+            const code: string | null = await authenticateWithGitlab()
+            if (!code) {
+              this.error('Authentication failed')
+            }
+            loginModel = new LoginModel(code, LoginProviderEnum.GITLAB, '', gitlabAuthCallback)
           } catch (error: any) {
             this.error(error)
           }

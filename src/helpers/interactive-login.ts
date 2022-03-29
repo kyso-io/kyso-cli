@@ -1,7 +1,7 @@
 /* eslint-disable indent */
 /* eslint-disable no-case-declarations */
 import { Login, LoginProviderEnum } from '@kyso-io/kyso-model'
-import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGoogle } from './oauths'
+import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitlab, authenticateWithGoogle, gitlabAuthCallback } from './oauths'
 import inquirer = require('inquirer')
 
 export const interactiveLogin = async (): Promise<Login> => {
@@ -15,9 +15,10 @@ export const interactiveLogin = async (): Promise<Login> => {
       choices: [
         { name: 'Kyso', value: LoginProviderEnum.KYSO },
         { name: 'Access token', value: LoginProviderEnum.KYSO_ACCESS_TOKEN },
-        { name: 'Google', value: LoginProviderEnum.GOOGLE },
-        { name: 'Github', value: LoginProviderEnum.GITHUB },
         // { name: 'Bitbucket', value: LoginProviderEnum.BITBUCKET },
+        { name: 'Github', value: LoginProviderEnum.GITHUB },
+        { name: 'Gitlab', value: LoginProviderEnum.GITLAB },
+        { name: 'Google', value: LoginProviderEnum.GOOGLE },
       ],
     },
   ])
@@ -98,6 +99,14 @@ export const interactiveLogin = async (): Promise<Login> => {
         throw new Error('Authentication failed')
       }
       login.password = bitbucketCode
+      break
+    case LoginProviderEnum.GITLAB:
+      const gitlabCode: string | null = await authenticateWithGitlab()
+      if (!gitlabCode) {
+        throw new Error('Authentication failed')
+      }
+      login.password = gitlabCode
+      login.payload = gitlabAuthCallback
       break
   }
   return login

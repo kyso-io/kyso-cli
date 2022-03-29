@@ -104,9 +104,38 @@ export const authenticateWithBitbucket = async (): Promise<string | null> => {
         }
       })
       .listen(PORT, () => {
-        open(`https://bitbucket.org/site/oauth2/authorize?client_id=${process.env.AUTH_BITBUCKET_CLIENT_ID}&response_type=code`, { wait: false }).then(cp =>
-          cp.unref()
-        )
+        open(`https://bitbucket.org/site/oauth2/authorize?client_id=${process.env.AUTH_BITBUCKET_CLIENT_ID}&response_type=code`, { wait: false }).then(cp => cp.unref())
+      })
+    destroyer(server)
+  })
+}
+
+// GITLAB
+// https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html
+export const gitlabAuthCallback = `${serverBaseUrl}${process.env.AUTH_GITLAB_REDIRECT_URL}`
+
+export const authenticateWithGitlab = async (): Promise<string | null> => {
+  return new Promise<string | null>((resolve, reject) => {
+    const server: http.Server = http
+      .createServer(async (req, res) => {
+        try {
+          if (req && req.url && req.url.includes(process.env.AUTH_GITLAB_REDIRECT_URL!)) {
+            const qs = new URL(req.url, serverBaseUrl).searchParams
+            res.end('Authentication successful! Please return to the console.')
+            server.close()
+            // eslint-disable-next-line semi-style
+            ;(server as any).destroy()
+            resolve(qs.get('code')!)
+          } else {
+            resolve(null)
+          }
+        } catch (error) {
+          console.log(error)
+          reject(error)
+        }
+      })
+      .listen(PORT, () => {
+        open(`https://gitlab.com/oauth/authorize?client_id=${process.env.AUTH_GITLAB_CLIENT_ID}&redirect_uri=${gitlabAuthCallback}&response_type=code`, { wait: false }).then(cp => cp.unref())
       })
     destroyer(server)
   })
