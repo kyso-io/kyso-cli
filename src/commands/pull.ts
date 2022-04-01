@@ -1,3 +1,4 @@
+/* eslint-disable max-params */
 import { KysoConfigFile, Login } from '@kyso-io/kyso-model'
 import { loginAction, pullReportAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
@@ -11,7 +12,7 @@ import { KysoCommand } from './kyso-command'
 export default class Push extends KysoCommand {
   static description = 'Pull repository from Kyso'
 
-  static examples = [`$ kyso pull --path <name>`]
+  static examples = [`$ kyso pull --path <destination_folder> --organization <organization> --team <team> --report <report_name> --version <version>`]
 
   static flags = {
     path: Flags.string({
@@ -38,6 +39,11 @@ export default class Push extends KysoCommand {
       required: false,
       default: '',
     }),
+    version: Flags.integer({
+      char: 'v',
+      description: 'version',
+      required: false,
+    }),
   }
 
   static args = []
@@ -60,7 +66,7 @@ export default class Push extends KysoCommand {
     let files: string[] = readdirSync(flags.path)
 
     if (flags?.organization && flags?.team && flags?.report) {
-      await this.extractReport(flags.organization, flags.team, flags.report, flags.path)
+      await this.extractReport(flags.organization, flags.team, flags.report, flags.version, flags.path)
     } else {
       if (flags?.path) {
         files = files.map((file: string) => join(flags.path, file))
@@ -72,19 +78,21 @@ export default class Push extends KysoCommand {
       } catch (error: any) {
         this.error(error)
       }
-      this.extractReport(kysoConfigFile.organization, kysoConfigFile.team, kysoConfigFile.title, flags.path)
+      this.extractReport(kysoConfigFile.organization, kysoConfigFile.team, kysoConfigFile.title, flags.version, flags.path)
     }
   }
 
-  async extractReport(organization: string, team: string, report: string, path: string): Promise<void> {
+  async extractReport(organization: string, team: string, report: string, version: number | null, path: string): Promise<void> {
     await store.dispatch(setOrganizationAuthAction(organization))
     await store.dispatch(setTeamAuthAction(team))
-    const result = await store.dispatch(
-      pullReportAction({
-        teamName: team,
-        reportName: report,
-      })
-    )
+    const data: any = {
+      teamName: team,
+      reportName: report,
+    }
+    if (version && version > 0) {
+      data.version = version
+    }
+    const result = await store.dispatch(pullReportAction(data))
     if (!result || !result.payload) {
       this.error('Error pulling report')
     }
