@@ -10,9 +10,10 @@ import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitl
 import { KysoCommand } from './kyso-command'
 
 export default class Login extends KysoCommand {
-  static description = 'Make login request to the server'
+  static description = 'Login into Kyso'
 
   static examples = [
+    `$ kyso login <-- Will prompt a guided login`,
     `$ kyso login --organization <organization name> --team <team name>`,
     `$ kyso login --provider kyso --username <username> --password <password> --organization <organization name> --team <team name>`,
     `$ kyso login --provider kyso --username <username> --token <password> --organization <organization name> --team <team name>`,
