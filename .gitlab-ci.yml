@@ -42,6 +42,22 @@ npm-package-publish:
     - |
       curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "$PKGS_TGZ" \
         "$TGZ_UPLOAD_URL"
+    - |
+      if [ "$NPMJS_TOKEN" ]; then
+        cd "$PKGS_DIR"
+        echo "@kyso-io:registry=https://registry.npmjs.org" >".npmrc"
+        echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" >>".npmrc"
+        failed=""
+        for _tgz in $(ls -tr *.tgz); do
+          npm publish --userconfig ".npmrc" --access public "$_tgz" ||
+            failed="$failed $_tgz"
+        done
+        cd ..
+        for _tgz in $failed; do
+          echo "Publication of the '$_tgz' package failed!"
+          echo "Check if it was already published or something else is wrong"
+        done
+      fi
     - rm -rf "$PKGS_DIR"
     - mv "$PKGS_TGZ" "kyso-cli-installer.tgz"
   artifacts:
