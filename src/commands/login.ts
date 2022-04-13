@@ -13,48 +13,56 @@ export default class Login extends KysoCommand {
   static description = 'Login into Kyso'
 
   static examples = [
-    `$ kyso login <-- Will prompt a guided login`,
-    `$ kyso login --organization <organization name> --team <team name>`,
-    `$ kyso login --provider kyso --username <username> --password <password> --organization <organization name> --team <team name>`,
-    `$ kyso login --provider kyso --username <username> --token <password> --organization <organization name> --team <team name>`,
-    `$ kyso login --provider google --organization <organization name> --team <team name>`,
-    `$ kyso login --provider github --organization <organization name> --team <team name>`,
-    // `$ kyso login --provider bitbucket --organization <organization name> --team <team name>`,
-    `$ kyso login --provider gitlab --organization <organization name> --team <team name>`,
+    `** NOTE: If you plan to use kyso-cli inside a CI/CD pipeline, we strongly recommend to use access tokens **`,
+    `# To use the interactive login
+    $ kyso login`,
+    `# Direct login using kyso provider and password
+    $ kyso login --provider kyso --username <your_username> --password <your_password>`,
+    `# Direct login using kyso provider and access token
+    $ kyso login --provider kyso --username <your_username> --token <your_access_token>`,
+    `# Login using github provider (will prompt a browser window to log in). The same behavior happens using the rest of external providers 
+    $ kyso login --provider github`
   ]
 
   static flags = {
     provider: Flags.string({
       char: 'r',
-      description: 'provider',
+      description: 'Authentication provider',
       required: false,
       // options: [LoginProviderEnum.KYSO, LoginProviderEnum.GOOGLE, LoginProviderEnum.GITHUB, LoginProviderEnum.BITBUCKET],
       options: [LoginProviderEnum.KYSO, LoginProviderEnum.GOOGLE, LoginProviderEnum.GITHUB, LoginProviderEnum.GITLAB],
     }),
     username: Flags.string({
       char: 'u',
-      description: 'username',
+      description: 'Your username',
       required: false,
+      multiple: false
     }),
     token: Flags.string({
       char: 'k',
-      description: 'token',
+      description: 'Your access token',
       required: false,
+      multiple: false
     }),
     password: Flags.string({
       char: 'p',
-      description: 'password',
+      description: 'Your password',
       required: false,
+      multiple: false
     }),
+    // Should we give that option? Hidden 
     organization: Flags.string({
       char: 'o',
-      description: 'organization',
+      description: 'Your organization',
       required: false,
+      hidden: true
     }),
+    // Should we give that option? Hidden 
     team: Flags.string({
       char: 't',
-      description: 'team',
+      description: 'Your team',
       required: false,
+      hidden: true
     }),
   }
 
@@ -131,13 +139,17 @@ export default class Login extends KysoCommand {
       }
     }
 
-    await store.dispatch(loginAction(loginModel))
-    const { auth } = store.getState()
+    const r = await store.dispatch(
+      loginAction(loginModel)
+    )
+
+    const { auth, error } = store.getState()
     if (auth.token) {
       this.saveToken(auth.token, flags.organization || null, flags.team || null)
       this.log('Logged successfully')
     } else {
-      this.error('An error occurred making login request')
+      this.log(error.text)
+      this.error('An error occurred making login request')     
     }
   }
 }

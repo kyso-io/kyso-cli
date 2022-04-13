@@ -12,13 +12,14 @@ import { KysoCommand } from './kyso-command'
 export default class Push extends KysoCommand {
   static description = 'Upload local repository to Kyso'
 
-  static examples = [`$ kyso push --path <name>`]
+  static examples = [`$ kyso push --path <report_folder>`]
 
   static flags = {
     path: Flags.string({
       char: 'p',
-      description: 'path',
-      required: true,
+      description: 'Path to root folder of the report to push',
+      required: false,
+      default: "."
     }),
   }
 
@@ -62,13 +63,13 @@ export default class Push extends KysoCommand {
       return true
     })
 
-    this.log(`Report has ${files.length} ${files.length > 1 ? 'files' : 'file'}:`)
+    this.log(`\nFounded ${files.length} ${files.length > 1 ? 'files' : 'file'}:`)
     for (const file of files) {
       let formatedFilePath = file.replace(basePath, '')
       if (formatedFilePath.startsWith('/')) {
         formatedFilePath = formatedFilePath.slice(1)
       }
-      this.log(`${formatedFilePath}`)
+      this.log(`Processing ${file}`)
     }
 
     const result: any = await store.dispatch(
@@ -78,9 +79,9 @@ export default class Push extends KysoCommand {
       })
     )
     if (result?.payload?.isAxiosError) {
-      this.error(`${result.payload.response.data.statusCode} ${result.payload.response.data.message}`)
+      this.error(`😞 Something went wrong: ${result.payload.response.data.statusCode} ${result.payload.response.data.message}`)
     } else {
-      this.log(`Successfully uploaded report '${folderName}'\n`)
+      this.log(`\n🎉🎉🎉 '${folderName}' report was uploaded successfully 🎉🎉🎉\n`)
     }
   }
 

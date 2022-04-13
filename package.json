@@ -7,7 +7,7 @@
     "kyso-cli": "./bin/run"
   },
   "dependencies": {
-    "@kyso-io/kyso-model": "1.0.32",
+    "@kyso-io/kyso-model": "1.0.33",
     "@kyso-io/kyso-store": "1.0.32",
     "@oclif/core": "^1",
     "@oclif/plugin-help": "^5",
@@ -63,7 +63,7 @@
   ],
   "homepage": "https://kyso.io",
   "keywords": [
-    "oclif"
+    "kyso", "cli"
   ],
   "license": "MIT",
   "main": "dist/index.js",
@@ -84,9 +84,6 @@
   "repository": {
     "type": "git",
     "url": "https://gitlab.kyso.io/kyso-io/kyso-cli.git"
-  },
-  "publishConfig": {
-    "registry": "https://gitlab.kyso.io/api/v4/projects/8/packages/npm/"
   },
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",

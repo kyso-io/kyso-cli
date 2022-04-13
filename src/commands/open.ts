@@ -18,7 +18,7 @@ export default class Open extends KysoCommand {
   static flags = {
     path: Flags.string({
       char: 'p',
-      description: 'path',
+      description: "folder's path in which kyso.json, yaml or yml file is placed",
       required: false,
       default: '.',
     }),

@@ -17,31 +17,28 @@ export default class Push extends KysoCommand {
   static flags = {
     path: Flags.string({
       char: 'p',
-      description: 'path',
+      description: 'Destination folder in which the report will be pulled',
       required: false,
       default: '.',
     }),
     organization: Flags.string({
       char: 'o',
-      description: 'organization',
-      required: false,
-      default: '',
+      description: 'Organization slug name which the report belongs to. i.e: for organization "Kyso Inc" the organization slug is "kyso-inc".',
+      required: true,
     }),
     team: Flags.string({
       char: 't',
-      description: 'team',
-      required: false,
-      default: '',
+      description: 'Team slug name which the report belongs to. i.e: for team "My Awesome Team" the team slug is "my-awesome-team".',
+      required: true,
     }),
     report: Flags.string({
       char: 'r',
-      description: 'report',
-      required: false,
-      default: '',
+      description: 'Report slug name to be pulled. i.e: for report with name "The Great Report" the report slug if "the-great-report"',
+      required: true,
     }),
     version: Flags.integer({
       char: 'v',
-      description: 'version',
+      description: 'Version of the report to be pulled. Latest version is pulled if not set',
       required: false,
     }),
   }
