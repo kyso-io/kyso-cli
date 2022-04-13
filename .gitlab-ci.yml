@@ -45,10 +45,12 @@ npm-package-publish:
     - |
       if [ "$NPMJS_TOKEN" ]; then
         cd "$PKGS_DIR"
-        echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" >".npmrc"
+        echo "@kyso-io:registry=https://registry.npmjs.org" >".npmrc"
+        echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" >>".npmrc"
         failed=""
         for _tgz in $(ls -tr *.tgz); do
-          npm publish --access public "$_tgz" || failed="$failed $_tgz"
+          npm publish --userconfig ".npmrc" --access public "$_tgz" ||
+            failed="$failed $_tgz"
         done
         cd ..
         for _tgz in $failed; do
