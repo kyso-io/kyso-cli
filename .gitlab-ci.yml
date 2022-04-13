@@ -55,7 +55,7 @@ npm-package-publish:
         cd ..
         for _tgz in $failed; do
           echo "Publication of the '$_tgz' package failed!"
-          echo "Check if it was already prublished or something else is wrong"
+          echo "Check if it was already published or something else is wrong"
         done
       fi
     - rm -rf "$PKGS_DIR"
