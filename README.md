@@ -112,4 +112,3 @@ Now all the operations of Kyso CLI will affect to the defined instance
 ### Using bash terminal
 
 Repeat the same steps than for zsh terminal, but editing the file **~/.bashrc** instead
-
