@@ -4,7 +4,7 @@ import { loginAction, pullReportAction, setOrganizationAuthAction, setTeamAuthAc
 import { Flags } from '@oclif/core'
 import * as AdmZip from 'adm-zip'
 import { readdirSync } from 'fs'
-import { join } from 'path'
+import { join, resolve } from 'path'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { interactiveLogin } from '../helpers/interactive-login'
 import { KysoCommand } from './kyso-command'
@@ -95,6 +95,6 @@ export default class Push extends KysoCommand {
     }
     const zip: AdmZip = new AdmZip(result.payload as Buffer)
     zip.extractAllTo(path, true)
-    this.log('Already up to date.')
+    this.log(`\n🎉🎉🎉 Success! Report downloaded to ${resolve(path)} 🎉🎉🎉\n`)
   }
 }
