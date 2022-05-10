@@ -17,11 +17,11 @@ export default class Login extends KysoCommand {
     `# To use the interactive login
     $ kyso login`,
     `# Direct login using kyso provider and password
-    $ kyso login --provider kyso --username <your_username> --password <your_password>`,
+    $ kyso login --provider kyso --username <your_email> --password <your_password>`,
     `# Direct login using kyso provider and access token
-    $ kyso login --provider kyso --username <your_username> --token <your_access_token>`,
+    $ kyso login --provider kyso --username <your_email> --token <your_access_token>`,
     `# Login using github provider (will prompt a browser window to log in). The same behavior happens using the rest of external providers 
-    $ kyso login --provider github`
+    $ kyso login --provider github`,
   ]
 
   static flags = {
@@ -34,35 +34,35 @@ export default class Login extends KysoCommand {
     }),
     username: Flags.string({
       char: 'u',
-      description: 'Your username',
+      description: 'Your email',
       required: false,
-      multiple: false
+      multiple: false,
     }),
     token: Flags.string({
       char: 'k',
       description: 'Your access token',
       required: false,
-      multiple: false
+      multiple: false,
     }),
     password: Flags.string({
       char: 'p',
       description: 'Your password',
       required: false,
-      multiple: false
+      multiple: false,
     }),
-    // Should we give that option? Hidden 
+    // Should we give that option? Hidden
     organization: Flags.string({
       char: 'o',
       description: 'Your organization',
       required: false,
-      hidden: true
+      hidden: true,
     }),
-    // Should we give that option? Hidden 
+    // Should we give that option? Hidden
     team: Flags.string({
       char: 't',
       description: 'Your team',
       required: false,
-      hidden: true
+      hidden: true,
     }),
   }
 
@@ -139,9 +139,7 @@ export default class Login extends KysoCommand {
       }
     }
 
-    const r = await store.dispatch(
-      loginAction(loginModel)
-    )
+    await store.dispatch(loginAction(loginModel))
 
     const { auth, error } = store.getState()
     if (auth.token) {
@@ -149,7 +147,7 @@ export default class Login extends KysoCommand {
       this.log('Logged successfully')
     } else {
       this.log(error.text)
-      this.error('An error occurred making login request')     
+      this.error('An error occurred making login request')
     }
   }
 }

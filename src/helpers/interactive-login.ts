@@ -26,20 +26,20 @@ export const interactiveLogin = async (): Promise<Login> => {
   switch (login.provider) {
     case LoginProviderEnum.KYSO:
     case LoginProviderEnum.KYSO_ACCESS_TOKEN:
-      const usernameResponse: { username: string } = await inquirer.prompt([
+      const emailResponse: { email: string } = await inquirer.prompt([
         {
-          name: 'username',
-          message: 'What is your username?',
+          name: 'email',
+          message: 'What is your email?',
           type: 'input',
           validate: function (password: string) {
             if (password === '') {
-              return 'Username cannot be empty'
+              return 'Email cannot be empty'
             }
             return true
           },
         },
       ])
-      login.username = usernameResponse.username
+      login.email = emailResponse.email
       break
   }
   switch (providerResponse.provider) {
