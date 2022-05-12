@@ -6,7 +6,7 @@ import { Login as LoginModel, LoginProviderEnum } from '@kyso-io/kyso-model'
 import { loginAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import { interactiveLogin } from '../helpers/interactive-login'
-import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitlab, authenticateWithGoogle, gitlabAuthCallback } from '../helpers/oauths'
+import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitlab, authenticateWithGoogle } from '../helpers/oauths'
 import { KysoCommand } from './kyso-command'
 
 export default class Login extends KysoCommand {
@@ -30,7 +30,8 @@ export default class Login extends KysoCommand {
       description: 'Authentication provider',
       required: false,
       // options: [LoginProviderEnum.KYSO, LoginProviderEnum.GOOGLE, LoginProviderEnum.GITHUB, LoginProviderEnum.BITBUCKET],
-      options: [LoginProviderEnum.KYSO, LoginProviderEnum.GOOGLE, LoginProviderEnum.GITHUB, LoginProviderEnum.GITLAB],
+      // options: [LoginProviderEnum.KYSO, LoginProviderEnum.GOOGLE, LoginProviderEnum.GITHUB, LoginProviderEnum.GITLAB],
+      options: [LoginProviderEnum.KYSO, LoginProviderEnum.GOOGLE, LoginProviderEnum.GITLAB],
     }),
     username: Flags.string({
       char: 'u',
@@ -92,8 +93,12 @@ export default class Login extends KysoCommand {
           break
         case LoginProviderEnum.GOOGLE:
           try {
-            const googleResult = await authenticateWithGoogle()
-            loginModel = new LoginModel(googleResult.id_token, LoginProviderEnum.GOOGLE, '', googleResult)
+            const googleResult: { code: string; redirectUrl: string } | null = await authenticateWithGoogle()
+            if (!googleResult) {
+              this.error('Google authentication failed')
+              break
+            }
+            loginModel = new LoginModel(googleResult.code, LoginProviderEnum.GOOGLE, '', googleResult.redirectUrl)
           } catch (error: any) {
             this.error(error)
           }
@@ -118,11 +123,11 @@ export default class Login extends KysoCommand {
           break
         case LoginProviderEnum.GITLAB:
           try {
-            const code: string | null = await authenticateWithGitlab()
-            if (!code) {
+            const gitlabResult: { code: string; redirectUrl: string } | null = await authenticateWithGitlab()
+            if (!gitlabResult) {
               this.error('Authentication failed')
             }
-            loginModel = new LoginModel(code, LoginProviderEnum.GITLAB, '', gitlabAuthCallback)
+            loginModel = new LoginModel(gitlabResult.code, LoginProviderEnum.GITLAB, '', gitlabResult.redirectUrl)
           } catch (error: any) {
             this.error(error)
           }

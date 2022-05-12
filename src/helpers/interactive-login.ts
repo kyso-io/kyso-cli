@@ -1,7 +1,7 @@
 /* eslint-disable indent */
 /* eslint-disable no-case-declarations */
 import { Login, LoginProviderEnum } from '@kyso-io/kyso-model'
-import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitlab, authenticateWithGoogle, gitlabAuthCallback } from './oauths'
+import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitlab, authenticateWithGoogle } from './oauths'
 import inquirer = require('inquirer')
 
 export const interactiveLogin = async (): Promise<Login> => {
@@ -16,7 +16,7 @@ export const interactiveLogin = async (): Promise<Login> => {
         { name: 'Kyso', value: LoginProviderEnum.KYSO },
         { name: 'Access token', value: LoginProviderEnum.KYSO_ACCESS_TOKEN },
         // { name: 'Bitbucket', value: LoginProviderEnum.BITBUCKET },
-        { name: 'Github', value: LoginProviderEnum.GITHUB },
+        // { name: 'Github', value: LoginProviderEnum.GITHUB },
         { name: 'Gitlab', value: LoginProviderEnum.GITLAB },
         { name: 'Google', value: LoginProviderEnum.GOOGLE },
       ],
@@ -79,9 +79,12 @@ export const interactiveLogin = async (): Promise<Login> => {
       break
     case LoginProviderEnum.GOOGLE:
       try {
-        const googleResult = await authenticateWithGoogle()
-        login.password = googleResult.id_token
-        login.payload = googleResult
+        const googleResult: { code: string; redirectUrl: string } | null = await authenticateWithGoogle()
+        if (!googleResult) {
+          throw new Error('Authentication failed')
+        }
+        login.password = googleResult.code
+        login.payload = googleResult.redirectUrl
       } catch (error: any) {
         throw new Error(error)
       }
@@ -101,12 +104,12 @@ export const interactiveLogin = async (): Promise<Login> => {
       login.password = bitbucketCode
       break
     case LoginProviderEnum.GITLAB:
-      const gitlabCode: string | null = await authenticateWithGitlab()
+      const gitlabCode: { code: string; redirectUrl: string } | null = await authenticateWithGitlab()
       if (!gitlabCode) {
         throw new Error('Authentication failed')
       }
-      login.password = gitlabCode
-      login.payload = gitlabAuthCallback
+      login.password = gitlabCode.code
+      login.payload = gitlabCode.redirectUrl
       break
   }
   return login
