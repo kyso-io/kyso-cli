@@ -72,6 +72,8 @@ export default class Push extends KysoCommand {
       this.log(`Processing ${file}`)
     }
 
+    this.log('\nUploading files. Wait a moment..\n')
+
     const result: any = await store.dispatch(
       createKysoReportAction({
         filePaths: files,
@@ -104,21 +106,7 @@ export default class Push extends KysoCommand {
       this.error('Invalid path')
     }
 
-    const basePath = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
-
-    let filesBasePath: string[] = readdirSync(basePath).map((file: string) => join(basePath, file))
-    const mainData: { kysoConfigFile: KysoConfigFile; kysoConfigPath: string } = findKysoConfigFile(filesBasePath)
-    if (mainData.kysoConfigFile?.reports && Array.isArray(mainData.kysoConfigFile.reports) && mainData.kysoConfigFile.reports.length > 0) {
-      filesBasePath = filesBasePath.filter((file: string) => {
-        const parts: string[] = file.split('/')
-        const fileName: string = parts[parts.length - 1]
-        return mainData.kysoConfigFile.reports!.includes(fileName)
-      })
-      for (const reportBasePath of filesBasePath) {
-        await this.uploadReport(reportBasePath)
-      }
-    } else {
-      await this.uploadReport(basePath)
-    }
+    const basePath: string = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
+    await this.uploadReport(basePath)
   }
 }
