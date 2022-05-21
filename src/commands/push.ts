@@ -59,6 +59,9 @@ export default class Push extends KysoCommand {
         if (file.endsWith(ignoredFile)) {
           return false
         }
+        if (file.startsWith(ignoredFile)) {
+          return false
+        }
       }
       return true
     })
