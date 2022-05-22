@@ -33,6 +33,12 @@ export default class Login extends KysoCommand {
       // options: [LoginProviderEnum.KYSO, LoginProviderEnum.GOOGLE, LoginProviderEnum.GITHUB, LoginProviderEnum.GITLAB],
       options: [LoginProviderEnum.KYSO, LoginProviderEnum.GOOGLE, LoginProviderEnum.GITLAB],
     }),
+    kysoInstallUrl: Flags.string({
+      char: 'u',
+      description: 'Url of your Kyso installation',
+      required: false,
+      multiple: false,
+    }),
     username: Flags.string({
       char: 'u',
       description: 'Your email',
@@ -144,11 +150,13 @@ export default class Login extends KysoCommand {
       }
     }
 
+    if (loginModel.kysoInstallUrl) process.env.KYSO_API = `${loginModel.kysoInstallUrl}/api/v1`
+
     await store.dispatch(loginAction(loginModel))
 
     const { auth, error } = store.getState()
     if (auth.token) {
-      this.saveToken(auth.token, flags.organization || null, flags.team || null)
+      this.saveToken(auth.token, flags.organization || null, flags.team || null, loginModel.kysoInstallUrl, loginModel.email)
       this.log('Logged successfully')
     } else {
       this.log(error.text)

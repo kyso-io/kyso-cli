@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@kyso-io/kyso-model": "1.0.45",
-    "@kyso-io/kyso-store": "1.0.48",
+    "@kyso-io/kyso-store": "^1.0.48",
     "@oclif/core": "^1",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.0.1",
@@ -63,7 +63,8 @@
   ],
   "homepage": "https://kyso.io",
   "keywords": [
-    "kyso", "cli"
+    "kyso",
+    "cli"
   ],
   "license": "MIT",
   "main": "dist/index.js",

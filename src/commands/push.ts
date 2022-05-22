@@ -3,6 +3,7 @@ import { KysoConfigFile, Login } from '@kyso-io/kyso-model'
 import { createKysoReportAction, loginAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import { existsSync, readdirSync, readFileSync } from 'fs'
+import slugify from '../helpers/slugify'
 import { isAbsolute, join } from 'path'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { getAllFiles } from '../helpers/get-all-files'
@@ -28,6 +29,7 @@ export default class Push extends KysoCommand {
   private async uploadReport(basePath: string): Promise<void> {
     const parts: string[] = basePath.split('/')
     const folderName: string = parts[parts.length - 1]
+    const kysoCredentials = JSON.parse(readFileSync(this.tokenFilePath, 'utf8').toString())
     this.log(`Uploading report '${folderName}'`)
 
     let files: string[] = getAllFiles(basePath, [])
@@ -59,6 +61,9 @@ export default class Push extends KysoCommand {
         if (file.endsWith(ignoredFile)) {
           return false
         }
+        if (file.startsWith(ignoredFile)) {
+          return false
+        }
       }
       return true
     })
@@ -83,7 +88,8 @@ export default class Push extends KysoCommand {
     if (result?.payload?.isAxiosError) {
       this.error(`😞 Something went wrong: ${result.payload.response.data.statusCode} ${result.payload.response.data.message}`)
     } else {
-      this.log(`\n🎉🎉🎉 '${folderName}' report was uploaded successfully 🎉🎉🎉\n`)
+      const reportUrl = `${kysoCredentials.kysoInstallUrl}/${kysoConfigFile.organization}/${kysoConfigFile.team}/${slugify(kysoConfigFile.title)}`
+      this.log(`\n🎉🎉🎉 Report was uploaded to\n\n${reportUrl}\n\n🎉🎉🎉\n`)
     }
   }
 

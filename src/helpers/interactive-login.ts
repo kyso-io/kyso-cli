@@ -5,7 +5,22 @@ import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitl
 import inquirer = require('inquirer')
 
 export const interactiveLogin = async (): Promise<Login> => {
-  const login: Login = new Login('', LoginProviderEnum.KYSO, '', null)
+  const login: Login = new Login('', LoginProviderEnum.KYSO, '', null, null)
+
+  const kysoApiResponse: { kysoInstallUrl: string } = await inquirer.prompt([
+    {
+      name: 'kysoInstallUrl',
+      message: 'What is the url of your kyso installation?',
+      type: 'input',
+      validate: function (password: string) {
+        if (password === '') {
+          return 'Url cannot be empty'
+        }
+        return true
+      },
+    },
+  ])
+  login.kysoInstallUrl = kysoApiResponse.kysoInstallUrl
 
   const providerResponse: { provider: LoginProviderEnum } = await inquirer.prompt([
     {
@@ -15,10 +30,10 @@ export const interactiveLogin = async (): Promise<Login> => {
       choices: [
         { name: 'Kyso', value: LoginProviderEnum.KYSO },
         { name: 'Access token', value: LoginProviderEnum.KYSO_ACCESS_TOKEN },
-        // { name: 'Bitbucket', value: LoginProviderEnum.BITBUCKET },
-        // { name: 'Github', value: LoginProviderEnum.GITHUB },
         { name: 'Gitlab', value: LoginProviderEnum.GITLAB },
         { name: 'Google', value: LoginProviderEnum.GOOGLE },
+        // { name: 'Bitbucket', value: LoginProviderEnum.BITBUCKET },
+        // { name: 'Github', value: LoginProviderEnum.GITHUB },
       ],
     },
   ])
@@ -64,7 +79,7 @@ export const interactiveLogin = async (): Promise<Login> => {
       const accessTokenResponse: { accessToken: string } = await inquirer.prompt([
         {
           name: 'accessToken',
-          message: 'What is your access token?',
+          message: `What is your access token (Get one from ${login.kysoInstallUrl}/settings )?`,
           type: 'accessToken',
           mask: '*',
           validate: function (accessToken: string) {
