@@ -5,13 +5,13 @@ For more detailed documentation please visit [docs.kyso.io](https://docs.kyso.io
 The Kyso CLI could be installed as a NPM or YARN global package easily, just launching the next commands
 
 ```
-npm install -g @kyso-io/kyso-cli
+npm install -g kyso
 ​```
 
 or
 
 ```​
-yarn global add @kyso-io/kyso-cli
+yarn global add kyso
 ```
 
 Depending on your local configuration, maybe you will need to use **sudo or launch windows' terminal with administrative rights**
@@ -19,14 +19,14 @@ Depending on your local configuration, maybe you will need to use **sudo or laun
 Once installed, check that it's available executing the next command
 
 ```
-kyso-cli
+kyso
 Kyso Client
 ​
 VERSION
-  @kyso-io/kyso-cli/1.0.0 linux-x64 node-v16.13.2
+  kyso/1.0.0 linux-x64 node-v16.13.2
 ​
 USAGE
-  $ kyso-cli [COMMAND]
+  $ kyso [COMMAND]
 ​
 TOPICS
   plugins  List installed plugins.
@@ -48,17 +48,17 @@ Since npm version 5.2.0 you can use npx instead of npm global install. The diffe
 To use NPX just execute the next command
 
 ```
-npx @kyso-io/kyso-cli
+npx kyso
 Need to install the following packages:
-  @kyso-io/kyso-cli
+  kyso
 Ok to proceed? (y) y
 Kyso Client
 ​
 VERSION
-  @kyso-io/kyso-cli/0.0.7 darwin-x64 node-v16.13.2
+  kyso/0.0.7 darwin-x64 node-v16.13.2
 ​
 USAGE
-  $ kyso-cli [COMMAND]
+  $ kyso [COMMAND]
 ​
 TOPICS
   hello    Say hello to the world and others
