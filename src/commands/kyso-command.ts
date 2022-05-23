@@ -14,12 +14,14 @@ dotenv.config({
 interface KysoCredentials {
   token: string
   organization: string | null
-  team: string | null
+  team: string | null,
+  kysoInstallUrl: string | null,
+  username: string | null
 }
 
 export abstract class KysoCommand extends Command {
   private readonly DATA_DIRECTORY = join(homedir(), '.kyso')
-  private tokenFilePath: string
+  public tokenFilePath: string
 
   constructor(argv: string[], config: Config) {
     super(argv, config)
@@ -32,9 +34,9 @@ export abstract class KysoCommand extends Command {
     }
   }
 
-  public saveToken(token: string, organization: string | null, team: string | null): void {
+  public saveToken(token: string, organization: string | null, team: string | null, kysoInstallUrl?: string | null, username?: string | null): void {
     mkdirSync(this.DATA_DIRECTORY, { recursive: true })
-    const kysoCredentials: KysoCredentials = { token, organization, team }
+    const kysoCredentials: KysoCredentials = { token, organization, team, kysoInstallUrl, username }
     writeFileSync(this.tokenFilePath, JSON.stringify(kysoCredentials))
   }
 
@@ -43,6 +45,10 @@ export abstract class KysoCommand extends Command {
     if (existsSync(this.tokenFilePath)) {
       try {
         const kysoCredentials: KysoCredentials = JSON.parse(readFileSync(this.tokenFilePath, 'utf8').toString())
+
+        // hack hack hack - check with fran
+        if (kysoCredentials.kysoInstallUrl) process.env.KYSO_API = `${kysoCredentials.kysoInstallUrl}/api/v1`
+
         const decoded: { payload: any; iat: number; exp: number } = jwtDecode(kysoCredentials.token)
         if (decoded.exp * 1000 >= new Date().getTime()) {
           store.dispatch(setTokenAuthAction(kysoCredentials.token))
