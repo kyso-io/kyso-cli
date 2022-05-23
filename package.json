@@ -63,7 +63,8 @@
   ],
   "homepage": "https://kyso.io",
   "keywords": [
-    "kyso", "cli"
+    "kyso",
+    "cli"
   ],
   "license": "MIT",
   "main": "dist/index.js",

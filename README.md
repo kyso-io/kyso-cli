@@ -107,7 +107,7 @@ https://kyso.io/api/v1
 
 Now all the operations of Kyso CLI will affect to the defined instance
 
-> Remember that you can change the value of NEXT_PUBLIC_API_URL to your On Premise instance of Kyso
+> Remember that you can change the value of KYSO_API to your On Premise instance of Kyso
 
 ### Using bash terminal
 
