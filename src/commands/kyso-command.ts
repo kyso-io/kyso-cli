@@ -1,3 +1,4 @@
+/* eslint-disable max-params */
 import { setOrganizationAuthAction, setTeamAuthAction, setTokenAuthAction, store } from '@kyso-io/kyso-store'
 import { Command, Config } from '@oclif/core'
 import * as dotenv from 'dotenv'

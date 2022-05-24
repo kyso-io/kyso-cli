@@ -2,12 +2,13 @@
 import { KysoConfigFile, Login } from '@kyso-io/kyso-model'
 import { createKysoReportAction, loginAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
-import { existsSync, readdirSync, readFileSync } from 'fs'
-import slugify from '../helpers/slugify'
+import { existsSync, readFileSync } from 'fs'
 import { isAbsolute, join } from 'path'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { getAllFiles } from '../helpers/get-all-files'
+import { getValidFiles } from '../helpers/get-valid-files'
 import { interactiveLogin } from '../helpers/interactive-login'
+import slugify from '../helpers/slugify'
 import { KysoCommand } from './kyso-command'
 
 export default class Push extends KysoCommand {
@@ -49,24 +50,15 @@ export default class Push extends KysoCommand {
       store.dispatch(setTeamAuthAction(kysoConfigFile.team))
     }
 
-    const gitIgnores: any[] = files.filter((file: string) => file.endsWith('.gitignore') || file.endsWith('.kysoignore'))
-    let ignoredFiles: string[] = []
-    for (const gitIgnore of gitIgnores) {
-      const ifs: string[] = readFileSync(gitIgnore, 'utf8').toString().split('\n')
-      // Delete empty lines
-      ignoredFiles = [...ignoredFiles, ...ifs.filter((file: string) => file.length > 0)]
-    }
-    files = files.filter((file: string) => {
-      for (const ignoredFile of ignoredFiles) {
-        if (file.endsWith(ignoredFile)) {
-          return false
-        }
-        if (file.startsWith(ignoredFile)) {
-          return false
-        }
+    if (kysoConfigFile?.reports) {
+      for (const reportFolderName of kysoConfigFile.reports) {
+        const folderBasePath = join(basePath, reportFolderName)
+        const folderFiles: string[] = getValidFiles(folderBasePath)
+        files = [...files, ...folderFiles]
       }
-      return true
-    })
+    } else {
+      files = getValidFiles(basePath)
+    }
 
     this.log(`\nFounded ${files.length} ${files.length > 1 ? 'files' : 'file'}:`)
     for (const file of files) {
@@ -100,7 +92,7 @@ export default class Push extends KysoCommand {
       await store.dispatch(loginAction(login))
       const { auth } = store.getState()
       if (auth.token) {
-        this.saveToken(auth.token, null, null)
+        this.saveToken(auth.token, null, null, login.kysoInstallUrl)
       } else {
         this.error('An error occurred making login request')
       }
