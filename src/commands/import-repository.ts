@@ -9,7 +9,7 @@ export default class ImportRepository extends KysoCommand {
   static description = 'Import repository to Kyso'
 
   static examples = [
-    `$ kyso import-repository --provider github --name <repository name> --branch <branch>`,
+    `$ kyso import-repository --provider github --name <repository_name> --branch <branch>`,
     `$ kyso import-repository --provider bitbucket --name <workspace/repository-name> --branch <branch>`,
     `$ kyso import-repository --provider gitlab --name <id | name_with_namespace> --branch <branch>`,
   ]
@@ -38,11 +38,11 @@ export default class ImportRepository extends KysoCommand {
   async run(): Promise<void> {
     const logged: boolean = await this.checkCredentials()
     if (!logged) {
-      const login: Login = await interactiveLogin()
+      const login: Login = await interactiveLogin(this.getCredentials())
       await store.dispatch(loginAction(login))
       const { auth } = store.getState()
       if (auth.token) {
-        this.saveToken(auth.token, null, null)
+        this.saveToken(auth.token, null, null, login.kysoInstallUrl, null)
       } else {
         this.error('An error occurred making login request')
       }

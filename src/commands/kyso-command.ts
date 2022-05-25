@@ -2,23 +2,16 @@
 import { setOrganizationAuthAction, setTeamAuthAction, setTokenAuthAction, store } from '@kyso-io/kyso-store'
 import { Command, Config } from '@oclif/core'
 import * as dotenv from 'dotenv'
-import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import jwtDecode from 'jwt-decode'
 import { homedir } from 'os'
 import { join } from 'path'
+import { KysoCredentials } from '../types/kyso-credentials'
 
 dotenv.config({
   // eslint-disable-next-line unicorn/prefer-module
   path: join(__dirname, '../../.env'),
 })
-
-interface KysoCredentials {
-  token: string
-  organization: string | null
-  team: string | null,
-  kysoInstallUrl: string | null,
-  username: string | null
-}
 
 export abstract class KysoCommand extends Command {
   private readonly DATA_DIRECTORY = join(homedir(), '.kyso')
@@ -29,10 +22,14 @@ export abstract class KysoCommand extends Command {
     this.tokenFilePath = join(this.DATA_DIRECTORY, 'auth.json')
   }
 
-  private deleteTokenFile(): void {
-    if (existsSync(this.tokenFilePath)) {
-      unlinkSync(this.tokenFilePath)
+  private removeCredentials(kysoCredentials: KysoCredentials | null): void {
+    if (kysoCredentials) {
+      this.saveToken(null, null, null, kysoCredentials.kysoInstallUrl, null)
     }
+  }
+
+  public getCredentials(): KysoCredentials {
+    return existsSync(this.tokenFilePath) ? JSON.parse(readFileSync(this.tokenFilePath, 'utf8').toString()) : null
   }
 
   public saveToken(token: string, organization: string | null, team: string | null, kysoInstallUrl?: string | null, username?: string | null): void {
@@ -42,30 +39,24 @@ export abstract class KysoCommand extends Command {
   }
 
   public async checkCredentials(): Promise<boolean> {
-    // Check token validity
-    if (existsSync(this.tokenFilePath)) {
-      try {
-        const kysoCredentials: KysoCredentials = JSON.parse(readFileSync(this.tokenFilePath, 'utf8').toString())
-
-        // hack hack hack - check with fran
-        if (kysoCredentials.kysoInstallUrl) process.env.KYSO_API = `${kysoCredentials.kysoInstallUrl}/api/v1`
-
-        const decoded: { payload: any; iat: number; exp: number } = jwtDecode(kysoCredentials.token)
-        if (decoded.exp * 1000 >= new Date().getTime()) {
-          store.dispatch(setTokenAuthAction(kysoCredentials.token))
-          store.dispatch(setOrganizationAuthAction(kysoCredentials.organization))
-          store.dispatch(setTeamAuthAction(kysoCredentials.team))
-          return true
-        }
-        this.deleteTokenFile()
-        // this.error('Session expired. Login again.')
-      } catch {
-        this.deleteTokenFile()
-        // this.error('Invalid auth.json')
-      }
-    } else {
-      // this.error('Sign in to Kyso.')
+    const kysoCredentials: KysoCredentials = this.getCredentials()
+    if (!kysoCredentials) {
+      return false
     }
+    try {
+      if (kysoCredentials.kysoInstallUrl) {
+        process.env.KYSO_API = `${kysoCredentials.kysoInstallUrl}/api/v1`
+      }
+      // Check token validity
+      const decoded: { payload: any; iat: number; exp: number } = jwtDecode(kysoCredentials.token)
+      if (decoded.exp * 1000 >= new Date().getTime()) {
+        store.dispatch(setTokenAuthAction(kysoCredentials.token))
+        store.dispatch(setOrganizationAuthAction(kysoCredentials.organization))
+        store.dispatch(setTeamAuthAction(kysoCredentials.team))
+        return true
+      }
+    } catch {}
+    this.removeCredentials(kysoCredentials)
     return false
   }
 }
