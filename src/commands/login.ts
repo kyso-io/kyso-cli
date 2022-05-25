@@ -17,9 +17,9 @@ export default class Login extends KysoCommand {
     `# To use the interactive login
     $ kyso login`,
     `# Direct login using kyso provider and password
-    $ kyso login --provider kyso --username <your_email> --password <your_password>`,
+    $ kyso login --kysoInstallUrl <kyso_installation_url> --provider kyso --username <your_email> --password <your_password>`,
     `# Direct login using kyso provider and access token
-    $ kyso login --provider kyso --username <your_email> --token <your_access_token>`,
+    $ kyso login --kysoInstallUrl <kyso_installation_url> --provider kyso --username <your_email> --token <your_access_token>`,
     `# Login using github provider (will prompt a browser window to log in). The same behavior happens using the rest of external providers 
     $ kyso login --provider github`,
   ]
@@ -34,7 +34,7 @@ export default class Login extends KysoCommand {
       options: [LoginProviderEnum.KYSO, LoginProviderEnum.GOOGLE, LoginProviderEnum.GITLAB],
     }),
     kysoInstallUrl: Flags.string({
-      char: 'u',
+      char: 'y',
       description: 'Url of your Kyso installation',
       required: false,
       multiple: false,
@@ -84,8 +84,11 @@ export default class Login extends KysoCommand {
       // NON-INTERACTIVE MODE
       switch (flags.provider) {
         case LoginProviderEnum.KYSO:
+          if (!flags.hasOwnProperty('kysoInstallUrl')) {
+            this.error('KysoInstallUrl is required when provider is kyso')
+          }
           if (!flags.hasOwnProperty('username')) {
-            this.error('Username is required when provider is specified')
+            this.error('Username is required when provider is kyso')
           }
           if (flags.hasOwnProperty('password')) {
             loginModel.password = flags.password!
@@ -102,7 +105,6 @@ export default class Login extends KysoCommand {
             const googleResult: { code: string; redirectUrl: string } | null = await authenticateWithGoogle()
             if (!googleResult) {
               this.error('Google authentication failed')
-              break
             }
             loginModel = new LoginModel(googleResult.code, LoginProviderEnum.GOOGLE, '', googleResult.redirectUrl)
           } catch (error: any) {
@@ -144,7 +146,7 @@ export default class Login extends KysoCommand {
     } else {
       // INTERACTIVE MODE
       try {
-        loginModel = await interactiveLogin()
+        loginModel = await interactiveLogin(this.getCredentials())
       } catch (error: any) {
         this.error(error)
       }
@@ -156,7 +158,7 @@ export default class Login extends KysoCommand {
 
     const { auth, error } = store.getState()
     if (auth.token) {
-      this.saveToken(auth.token, flags.organization || null, flags.team || null, loginModel.kysoInstallUrl, loginModel.email)
+      this.saveToken(auth.token, flags.organization || null, flags.team || null, loginModel.kysoInstallUrl, loginModel.email || null)
       this.log('Logged successfully')
     } else {
       this.log(error.text)

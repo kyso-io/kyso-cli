@@ -3,8 +3,9 @@
 import { Login, LoginProviderEnum } from '@kyso-io/kyso-model'
 import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitlab, authenticateWithGoogle } from './oauths'
 import inquirer = require('inquirer')
+import { KysoCredentials } from '../types/kyso-credentials'
 
-export const interactiveLogin = async (): Promise<Login> => {
+export const interactiveLogin = async (kysoCredentials: KysoCredentials | null): Promise<Login> => {
   const login: Login = new Login('', LoginProviderEnum.KYSO, '', null, null)
 
   const kysoApiResponse: { kysoInstallUrl: string } = await inquirer.prompt([
@@ -12,6 +13,7 @@ export const interactiveLogin = async (): Promise<Login> => {
       name: 'kysoInstallUrl',
       message: 'What is the url of your kyso installation?',
       type: 'input',
+      default: kysoCredentials?.kysoInstallUrl,
       validate: function (password: string) {
         if (password === '') {
           return 'Url cannot be empty'
