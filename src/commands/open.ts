@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/prefer-ternary */
 /* eslint-disable no-prototype-builtins */
 import { KysoConfigFile } from '@kyso-io/kyso-model'
 import { Flags } from '@oclif/core'
@@ -8,17 +7,18 @@ import { isAbsolute, join } from 'path'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { getAllFiles } from '../helpers/get-all-files'
 import slugify from '../helpers/slugify'
+import { KysoCredentials } from '../types/kyso-credentials'
 import { KysoCommand } from './kyso-command'
 
 export default class Open extends KysoCommand {
   static description = 'Open a report in the browser'
 
-  static examples = [`$ kyso open --path <project_path>`]
+  static examples = [`$ kyso open --path <report_path>`]
 
   static flags = {
     path: Flags.string({
       char: 'p',
-      description: "folder's path in which kyso.json, yaml or yml file is placed",
+      description: "Folder's path in which kyso.json, yaml or yml file is placed",
       required: false,
       default: '.',
     }),
@@ -27,6 +27,11 @@ export default class Open extends KysoCommand {
   static args = []
 
   async run(): Promise<void> {
+    const kysoCredentials: KysoCredentials | null = this.getCredentials()
+    if (!kysoCredentials) {
+      this.log(`No credentials found. Please login first.`)
+    }
+
     const { flags } = await this.parse(Open)
 
     if (!existsSync(flags.path)) {
@@ -54,16 +59,8 @@ export default class Open extends KysoCommand {
       this.error('Kyso file does not defined the title')
     }
 
-    let baseUrl = null
-    let reportUrl = null
-    if (process.env.NODE_ENV === 'development') {
-      baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-      reportUrl = `${baseUrl}/${kysoConfigFile.organization}/${kysoConfigFile.team}/${slugify(kysoConfigFile.title)}`
-    } else {
-      baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://kyso.io'
-      const domain = new URL(baseUrl)
-      reportUrl = `${domain.protocol}//${domain.hostname}/${kysoConfigFile.organization}/${kysoConfigFile.team}/${slugify(kysoConfigFile.title)}`
-    }
+    const domain: URL = new URL(kysoCredentials.kysoInstallUrl)
+    const reportUrl = `${domain.protocol}//${domain.hostname}/${kysoConfigFile.organization}/${kysoConfigFile.team}/${slugify(kysoConfigFile.title)}`
     this.log(`Opening "${reportUrl}" the in browser...`)
     await open(reportUrl)
   }

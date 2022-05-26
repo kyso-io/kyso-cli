@@ -48,11 +48,11 @@ export default class Push extends KysoCommand {
   async run(): Promise<void> {
     const logged: boolean = await this.checkCredentials()
     if (!logged) {
-      const login: Login = await interactiveLogin()
+      const login: Login = await interactiveLogin(this.getCredentials())
       await store.dispatch(loginAction(login))
       const { auth } = store.getState()
       if (auth.token) {
-        this.saveToken(auth.token, null, null)
+        this.saveToken(auth.token, null, null, login.kysoInstallUrl, null)
       } else {
         this.error('An error occurred making login request')
       }

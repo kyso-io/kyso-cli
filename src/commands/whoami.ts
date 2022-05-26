@@ -1,26 +1,21 @@
-/* eslint-disable no-await-in-loop */
-import { Flags } from '@oclif/core'
-import { readFileSync } from 'fs'
+import { User } from '@kyso-io/kyso-model'
+import jwtDecode from 'jwt-decode'
+import { KysoCredentials } from '../types/kyso-credentials'
 import { KysoCommand } from './kyso-command'
 
 export default class Push extends KysoCommand {
-  static description = 'Upload local repository to Kyso'
+  static description = 'Current logged user and platform'
 
-  static examples = [`$ kyso push --path <report_folder>`]
-
-  static flags = {
-    path: Flags.string({
-      char: 'p',
-      description: 'Path to root folder of the report to push',
-      required: false,
-      default: "."
-    }),
-  }
-
-  static args = []
+  static examples = [`$ kyso whoami`]
 
   async run(): Promise<void> {
-    const kysoCredentials = JSON.parse(readFileSync(this.tokenFilePath, 'utf8').toString())
-    this.log(`You are logged into ${kysoCredentials.kysoInstallUrl} as ${kysoCredentials.username}.`)
+    const kysoCredentials: KysoCredentials | null = this.getCredentials()
+    if (kysoCredentials) {
+      const decoded: { payload: any; iat: number; exp: number } = jwtDecode(kysoCredentials.token)
+      const user: User = decoded.payload
+      this.log(`You are logged into ${kysoCredentials.kysoInstallUrl} as ${user.email}.`)
+    } else {
+      this.log(`No credentials found. Please login first.`)
+    }
   }
 }
