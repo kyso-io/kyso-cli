@@ -1,10 +1,10 @@
 {
   "name": "@kyso-io/kyso-cli",
   "description": "Kyso Client",
-  "version": "1.2.0",
+  "version": "1.3.1",
   "author": "Kyso Inc.",
   "bin": {
-    "kyso-cli": "./bin/run"
+    "kyso": "./bin/run"
   },
   "dependencies": {
     "@kyso-io/kyso-model": "^1.0.47",
@@ -70,7 +70,7 @@
   "license": "MIT",
   "main": "dist/index.js",
   "oclif": {
-    "bin": "kyso-cli",
+    "bin": "kyso",
     "commands": "./dist/commands",
     "plugins": [
       "@oclif/plugin-help",
