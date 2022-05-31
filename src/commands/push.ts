@@ -76,8 +76,9 @@ export default class Push extends KysoCommand {
         basePath,
       })
     )
-    if (result?.payload?.isAxiosError) {
-      this.error(`😞 Something went wrong: ${result.payload.response.data.statusCode} ${result.payload.response.data.message}`)
+    if (result?.payload?.isAxiosError || result.payload === null) {
+      console.log("")
+      this.error(`😞 Something went wrong. Please check the console log.`)
     } else {
       const reportUrl = `${kysoCredentials.kysoInstallUrl}/${kysoConfigFile.organization}/${kysoConfigFile.team}/${slugify(kysoConfigFile.title)}`
       this.log(`\n🎉🎉🎉 Report was uploaded to\n\n${reportUrl}\n\n🎉🎉🎉\n`)
