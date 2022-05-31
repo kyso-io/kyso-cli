@@ -90,6 +90,7 @@ export default class Login extends KysoCommand {
           if (!flags.hasOwnProperty('username')) {
             this.error('Username is required when provider is kyso')
           }
+          loginModel.email = flags.username
           if (flags.hasOwnProperty('password')) {
             loginModel.password = flags.password!
           } else if (flags.hasOwnProperty('token')) {
@@ -98,7 +99,6 @@ export default class Login extends KysoCommand {
           } else {
             this.error('You must provide a password or a token')
           }
-          loginModel = new LoginModel(flags.password!, flags.provider, flags.username!, null)
           break
         case LoginProviderEnum.GOOGLE:
           try {
