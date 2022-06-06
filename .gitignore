@@ -13,3 +13,4 @@ oclif.manifest.json
 # Avoid uploading .npmrc-* & .npmrc.* files to git
 /.npmrc-*
 /.npmrc.*
+kyso.yaml
