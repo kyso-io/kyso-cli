@@ -155,7 +155,16 @@ export default class Login extends KysoCommand {
 
     if (loginModel.kysoInstallUrl) process.env.KYSO_API = `${loginModel.kysoInstallUrl}/api/v1`
 
-    await store.dispatch(loginAction(loginModel))
+    /**
+     * WTF?
+     * Argument of type 
+     * 'import("/home/fjbarrena/Projects/kyso/kyso-cli/node_modules/@kyso-io/kyso-model/dist/models/login.model").Login'
+     * is not assignable to parameter of type 
+     * 'import("/home/fjbarrena/Projects/kyso/kyso-cli/node_modules/@kyso-io/kyso-store/node_modules/@kyso-io/kyso-model/dist/models/login.model").Login'.
+     * 
+     * Casting to any for now
+     */
+    await store.dispatch(loginAction(loginModel as any))
 
     const { auth, error } = store.getState()
     if (auth.token) {

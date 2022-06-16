@@ -49,7 +49,16 @@ export default class Push extends KysoCommand {
     const logged: boolean = await this.checkCredentials()
     if (!logged) {
       const login: Login = await interactiveLogin(this.getCredentials())
-      await store.dispatch(loginAction(login))
+      /**
+       * WTF?
+       * Argument of type 
+       * 'import("/home/fjbarrena/Projects/kyso/kyso-cli/node_modules/@kyso-io/kyso-model/dist/models/login.model").Login'
+       * is not assignable to parameter of type 
+       * 'import("/home/fjbarrena/Projects/kyso/kyso-cli/node_modules/@kyso-io/kyso-store/node_modules/@kyso-io/kyso-model/dist/models/login.model").Login'.
+       * 
+       * Casting to any for now
+       */
+      await store.dispatch(loginAction(login as any))
       const { auth } = store.getState()
       if (auth.token) {
         this.saveToken(auth.token, null, null, login.kysoInstallUrl, null)
