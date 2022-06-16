@@ -87,6 +87,7 @@ export default class Login extends KysoCommand {
           if (!flags.hasOwnProperty('kysoInstallUrl')) {
             this.error('KysoInstallUrl is required when provider is kyso')
           }
+          loginModel.kysoInstallUrl = flags.kysoInstallUrl
           if (!flags.hasOwnProperty('username')) {
             this.error('Username is required when provider is kyso')
           }
