@@ -77,8 +77,7 @@ export default class Push extends KysoCommand {
       })
     )
     if (result?.payload?.isAxiosError || result.payload === null) {
-      console.log("")
-      this.error(`😞 Something went wrong. Please check the console log.`)
+      this.error(`\n😞 Something went wrong. Please check the console log.`)
     } else {
       const reportUrl = `${kysoCredentials.kysoInstallUrl}/${kysoConfigFile.organization}/${kysoConfigFile.team}/${slugify(kysoConfigFile.title)}`
       this.log(`\n🎉🎉🎉 Report was uploaded to\n\n${reportUrl}\n\n🎉🎉🎉\n`)
@@ -91,11 +90,11 @@ export default class Push extends KysoCommand {
       const login: Login = await interactiveLogin(this.getCredentials())
       /**
        * WTF?
-       * Argument of type 
+       * Argument of type
        * 'import("/home/fjbarrena/Projects/kyso/kyso-cli/node_modules/@kyso-io/kyso-model/dist/models/login.model").Login'
-       * is not assignable to parameter of type 
+       * is not assignable to parameter of type
        * 'import("/home/fjbarrena/Projects/kyso/kyso-cli/node_modules/@kyso-io/kyso-store/node_modules/@kyso-io/kyso-model/dist/models/login.model").Login'.
-       * 
+       *
        * Casting to any for now
        */
       await store.dispatch(loginAction(login as any))
