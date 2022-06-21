@@ -1,9 +1,9 @@
 /* eslint-disable indent */
 /* eslint-disable no-case-declarations */
 import { Login, LoginProviderEnum } from '@kyso-io/kyso-model'
+import { KysoCredentials } from '../types/kyso-credentials'
 import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitlab, authenticateWithGoogle } from './oauths'
 import inquirer = require('inquirer')
-import { KysoCredentials } from '../types/kyso-credentials'
 
 export const interactiveLogin = async (kysoCredentials: KysoCredentials | null): Promise<Login> => {
   const login: Login = new Login('', LoginProviderEnum.KYSO, '', null, null)
@@ -128,6 +128,9 @@ export const interactiveLogin = async (kysoCredentials: KysoCredentials | null):
       login.password = gitlabCode.code
       login.payload = gitlabCode.redirectUrl
       break
+  }
+  if (login.kysoInstallUrl) {
+    process.env.KYSO_API = `${login.kysoInstallUrl}/api/v1`
   }
   return login
 }
