@@ -1,7 +1,11 @@
+/* eslint-disable max-depth */
+/* eslint-disable no-prototype-builtins */
+/* eslint-disable no-negated-condition */
 import { KysoConfigFile, Login } from '@kyso-io/kyso-model'
 import { createKysoReportAction, loginAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
-import { existsSync, readFileSync } from 'fs'
+import { existsSync, readFileSync, writeFileSync } from 'fs'
+import * as nanoid from 'nanoid'
 import { isAbsolute, join } from 'path'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { getAllFiles } from '../helpers/get-all-files'
@@ -9,11 +13,12 @@ import { getValidFiles } from '../helpers/get-valid-files'
 import { interactiveLogin } from '../helpers/interactive-login'
 import slugify from '../helpers/slugify'
 import { KysoCommand } from './kyso-command'
+import inquirer = require('inquirer')
 
 export default class Push extends KysoCommand {
   static description = 'Upload local repository to Kyso'
 
-  static examples = [`$ kyso push --path <report_folder>`]
+  static examples = [`$ kyso push --path <report_folder> --inlineComments`]
 
   static flags = {
     path: Flags.string({
@@ -22,11 +27,17 @@ export default class Push extends KysoCommand {
       required: false,
       default: '.',
     }),
+    inlineComments: Flags.enum({
+      char: 'i',
+      options: ['y', 'n'],
+      description: 'Inline comments',
+      required: false,
+    }),
   }
 
   static args = []
 
-  private async uploadReport(basePath: string): Promise<void> {
+  private async uploadReport(basePath: string, enabledInlineComments: boolean): Promise<void> {
     const parts: string[] = basePath.split('/')
     const folderName: string = parts[parts.length - 1]
     const kysoCredentials = JSON.parse(readFileSync(this.tokenFilePath, 'utf8').toString())
@@ -60,12 +71,23 @@ export default class Push extends KysoCommand {
     }
 
     this.log(`\nFounded ${files.length} ${files.length > 1 ? 'files' : 'file'}:`)
-    for (const file of files) {
-      let formatedFilePath = file.replace(basePath, '')
-      if (formatedFilePath.startsWith('/')) {
-        formatedFilePath = formatedFilePath.slice(1)
+
+    if (enabledInlineComments) {
+      for (const file of files) {
+        if (file.endsWith('.ipynb') && !file.includes('ipynb_checkpoints')) {
+          let modifiedFile = false
+          const fileContent: any = JSON.parse(readFileSync(file, 'utf8').toString())
+          for (const cell of fileContent.cells) {
+            if (!cell.hasOwnProperty('id')) {
+              cell.id = nanoid(8)
+              modifiedFile = true
+            }
+          }
+          if (modifiedFile) {
+            writeFileSync(file, JSON.stringify(fileContent, null, 2))
+          }
+        }
       }
-      this.log(`Processing ${file}`)
     }
 
     this.log('\nUploading files. Wait a moment..\n')
@@ -107,12 +129,26 @@ export default class Push extends KysoCommand {
     }
 
     const { flags } = await this.parse(Push)
+    let enabledInlineComments = false
+    if (!flags.inlineComments) {
+      const result: { inlineComments: boolean } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'inlineComments',
+          message: 'Do you want to inline comments?',
+          default: true,
+        },
+      ])
+      enabledInlineComments = result.inlineComments
+    } else {
+      enabledInlineComments = flags.inlineComments === 'y'
+    }
 
     if (!existsSync(flags.path)) {
       this.error('Invalid path')
     }
 
     const basePath: string = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
-    await this.uploadReport(basePath)
+    await this.uploadReport(basePath, enabledInlineComments)
   }
 }
