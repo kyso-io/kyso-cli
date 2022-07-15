@@ -11,7 +11,6 @@ BRANCH="develop"
 
 # Files to check
 PACKAGE_JSON="package.json"
-PACKAGE_LOCK="package-lock.json"
 VERSION_FILE="version.txt"
 
 # Regex to remove Kyso packages
@@ -121,13 +120,11 @@ if [ "$FILE_CHANGES" ]; then
   if [ "$(isSelected "${READ_VALUE}")" = 0 ]; then
     git checkout "$PACKAGE_JSON" && exit 0
   fi
-  git show "$BRANCH:$PACKAGE_LOCK" >"$PACKAGE_LOCK"
   echo "$UPDATED_VERSION" >"$VERSION_FILE"
-  (git commit "$PACKAGE_JSON" "$PACKAGE_LOCK" "$VERSION_FILE" \
+  (git commit "$PACKAGE_JSON" "$VERSION_FILE" \
     -m "Updated builder image to $UPDATED_VERSION" && git push &&
     git tag "$UPDATED_VERSION" && git push origin "$UPDATED_VERSION") ||
-    (echo "$CURRENT_VERSION" >"$VERSION_FILE" &&
-      git checkout "$PACKAGE_JSON" "$PACKAGE_LOCK")
+    (echo "$CURRENT_VERSION" >"$VERSION_FILE" && git checkout "$PACKAGE_JSON")
 else
   echo "File '$UPDATED_FILE' is the same as '$PACKAGE_JSON'"
   rm -f "$UPDATED_FILE"
