@@ -17,8 +17,7 @@ npm-package-publish:
   script:
     - !reference [.npm-package-publish, script]
     # Build binaries
-    - oclif pack win
-    - oclif pack tarballs
+    - npm run pack
     # Create and push installer tgz package
     - |
       PKG_NAME="kyso-cli-installer"
