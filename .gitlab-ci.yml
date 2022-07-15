@@ -76,6 +76,9 @@ docker-build:
     - !reference [.docker-config, before_script]
   after_script:
     - rm -f kyso-cli-installer.tgz
+  dependencies:
+    - npm-package-build
+    - npm-package-publish
 
 release_tag:
   dependencies:
