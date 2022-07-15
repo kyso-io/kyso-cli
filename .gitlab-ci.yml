@@ -16,6 +16,10 @@ npm-package-publish:
     - !reference [.npm-config, before_script]
   script:
     - !reference [.npm-package-publish, script]
+    # Build binaries
+    - oclif pack win
+    - oclif pack tarballs
+    # Create and push installer tgz package
     - |
       PKG_NAME="kyso-cli-installer"
       PKG_VERS="$CI_COMMIT_TAG"
@@ -48,8 +52,8 @@ npm-package-publish:
       curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "$PKGS_TGZ" \
         "$TGZ_UPLOAD_URL"
     - |
-      # Push package to npm
-      if [ "$NPMJS_TOKEN" ]; then
+      # Push package to npm; FIXME: disabled for now
+      if [ "$NPMJS_TOKEN" ] && false; then
         cd "$PKGS_DIR"
         echo "@kyso-io:registry=https://registry.npmjs.org" >".npmrc"
         echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" >>".npmrc"
@@ -70,6 +74,8 @@ npm-package-publish:
     paths:
       - .build-args
       - kyso-cli-installer.tgz
+      - dist/*.exe
+      - dist/*.tar.gz
 
 docker-build:
   before_script:
