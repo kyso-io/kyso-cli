@@ -21,7 +21,10 @@ npm-package-build:
     - npm run build
     - echo Publish package and update tag if the version was updated
     - ln -sf .npmrc.publish .npmrc
-    - echo "BEG: .npmrc.publish" && cat .npmrc && echo "END: .npmrc.publish"
+    - |-
+      echo "BEG: .npmrc.publish"
+      cat .npmrc
+      echo "END: .npmrc.publish"
     - npm publish
     - ln -sf .npmrc.install .npmrc
     - |-
