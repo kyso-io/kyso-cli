@@ -1,2 +1,2 @@
 # BUILDER_IMG=registry.kyso.io/docker/node-builder
-BUILDER_TAG=16.15.1-alpine3.16
+BUILDER_TAG=16.16.0-bullseye-slim
