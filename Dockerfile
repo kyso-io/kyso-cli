@@ -14,7 +14,7 @@ ENV NODE_ENV=${NODE_ENV}
 WORKDIR /root
 # Install package
 RUN --mount=type=secret,id=kyso-cli,target=/root/kyso-cli-installer.tgz\
- npm update -g npm &&\
+ npm update --location=global npm &&\
  tar xvzf kyso-cli-installer.tgz &&\
  DIR="kyso-cli-installer-$UPDATED_PACKAGE_VERSION" &&\
  cd $DIR && sh -x install.sh && cd .. && rm -rf "$DIR" &&\
