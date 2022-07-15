@@ -8,39 +8,6 @@ npm-package-build:
   before_script:
     - mv /root/node_modules .
 
-.npm-package-publish-test:
-  script:
-    - npm install
-    - |-
-      # Update package version & add it to the .build-args
-      INITIAL_PACKAGE_VERSION="$(npm pkg get version|tr -d '"')"
-      npm version --allow-same --no-commit-hooks --no-git-tag-version \
-        "$CI_COMMIT_TAG"
-      UPDATED_PACKAGE_VERSION="$(npm pkg get version|tr -d '"')"
-      echo "UPDATED_PACKAGE_VERSION=$UPDATED_PACKAGE_VERSION" >> .build-args
-    - npm run build
-    - echo Publish package and update tag if the version was updated
-    - ln -sf .npmrc.publish .npmrc
-    - |-
-      echo "BEG: .npmrc.publish"
-      cat .npmrc
-      echo "END: .npmrc.publish"
-    - npm publish
-    - ln -sf .npmrc.install .npmrc
-    - |-
-      if [ "$INITIAL_PACKAGE_VERSION" != "$UPDATED_PACKAGE_VERSION" ]; then
-        if [ -n "$CI_GIT_USER" ] && [ -n "$CI_GIT_TOKEN" ]; then
-          git commit -m "Updated version from tag $CI_COMMIT_TAG" package.json
-          git tag -f "$CI_COMMIT_TAG"
-          git push -f -o ci.skip origin "$CI_COMMIT_TAG"
-        else
-          echo "!!! WARNING !!!"
-          echo "The updated tag could not be uploaded."
-          echo "I need the CI_GIT_USER and CI_GIT_TOKEN to be able to push"
-          echo "!!! End WARNING !!!"
-        fi
-      fi
-
 npm-package-publish:
   image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.4
   before_script:
@@ -48,7 +15,7 @@ npm-package-publish:
     - !reference [.git-config, before_script]
     - !reference [.npm-config, before_script]
   script:
-    - !reference [.npm-package-publish-test, script]
+    - !reference [.npm-package-publish, script]
     - |
       PKG_NAME="kyso-cli-installer"
       PKG_VERS="$CI_COMMIT_TAG"
@@ -66,7 +33,12 @@ npm-package-publish:
     - mkdir "$PKGS_DIR" && cd "$PKGS_DIR"
     - |
       HEADER="Authorization: Bearer ${CI_JOB_TOKEN}"
-      for tgz_url in $TGZ_URLS; do curl -s -H "$HEADER" "$tgz_url" -O; done
+      echo "Downloading tar files:"
+      for tgz_url in $TGZ_URLS; do
+        echo "- $tgz_url";
+        curl -s -H "$HEADER" "$tgz_url" -O;
+      done
+      echo "Creating install.sh script"
       echo '#!/bin/sh' > install.sh
       echo 'npm install -g *.tgz' >> install.sh
       chmod +x install.sh
