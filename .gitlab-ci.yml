@@ -48,8 +48,8 @@ npm-package-publish:
       curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "$PKGS_TGZ" \
         "$TGZ_UPLOAD_URL"
     - |
-      # FIXME: Push package to npm, disabled for now, remove && false to enable
-      if [ "$NPMJS_TOKEN" ] && false; then
+      # Push package to npm
+      if [ "$NPMJS_TOKEN" ]; then
         cd "$PKGS_DIR"
         echo "@kyso-io:registry=https://registry.npmjs.org" >".npmrc"
         echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" >>".npmrc"
