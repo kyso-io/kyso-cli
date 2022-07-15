@@ -26,7 +26,7 @@ npm-package-publish:
     - TGZ_URLS="$(npm view "@kyso-io/kyso-cli@$CI_COMMIT_TAG" dist.tarball)"
     - |
       for pkg_ref in $(
-        sed -n -e 's%^.*"\(@kyso-io/.*\)": "\(.*\)".*$%\1@\2%p' package.json
+        sed -n -e 's%^.*"\(@kyso-io/.*\)": "^*\(.*\)".*$%\1@\2%p' package.json
       ); do
         TGZ_URLS="$TGZ_URLS $(npm view "$pkg_ref" dist.tarball)"
       done
