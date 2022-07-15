@@ -4,12 +4,12 @@ include:
     file: '/templates/npm-package-with-container.yml'
 
 npm-package-build:
-  image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.4
+  image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.5
   before_script:
     - mv /root/node_modules .
 
 npm-package-publish:
-  image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.4
+  image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.5
   before_script:
     - mv /root/node_modules .
     - !reference [.git-config, before_script]
