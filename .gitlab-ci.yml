@@ -1,15 +1,15 @@
 include:
   - project: 'common/gitlab-ci'
-    ref: v0.4.16
+    ref: v0.4.19
     file: '/templates/npm-package-with-container.yml'
 
 npm-package-build:
-  image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.3
+  image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.4
   before_script:
     - mv /root/node_modules .
 
 npm-package-publish:
-  image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.3
+  image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.4
   before_script:
     - mv /root/node_modules .
     - !reference [.git-config, before_script]
@@ -43,7 +43,8 @@ npm-package-publish:
       curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "$PKGS_TGZ" \
         "$TGZ_UPLOAD_URL"
     - |
-      if [ "$NPMJS_TOKEN" ]; then
+      # FIXME: Push package to npm, disabled for now, remove && false to enable
+      if [ "$NPMJS_TOKEN" ] && false; then
         cd "$PKGS_DIR"
         echo "@kyso-io:registry=https://registry.npmjs.org" >".npmrc"
         echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" >>".npmrc"
