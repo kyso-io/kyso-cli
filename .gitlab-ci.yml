@@ -77,7 +77,7 @@ npm-package-publish:
       - dist/*.zip
       - dist/*.tar.gz
     expire_in:
-      - 1 day
+      - 1 days
 
 docker-build:
   before_script:
