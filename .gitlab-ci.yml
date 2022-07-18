@@ -147,12 +147,12 @@ push-to-npm:
       PKGS_TGZ="$PKG_NAME-$PKG_VERS.tgz"
       UPL_BASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
       TGZ_UPLOAD_URL="$UPL_BASE_URL/$PKG_NAME/$PKG_VERS/$PKGS_TGZ"
-      curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" "$TGZ_UPLOAD_URL"
+      curl -s -O --header "JOB-TOKEN: $CI_JOB_TOKEN" "$TGZ_UPLOAD_URL"
     - |
-      # Push package to npm; FIXME: disabled for now
-      if [ "$NPMJS_TOKEN" ] && false; then
-        INSTALLER_DIR="kyso-cli-installer-$CI_COMMIT_TAG"
-        tar xzf "kyso-cli-installer.tgz" "$INSTALLER_DIR"
+      # Push package to npm
+      if [ "$NPMJS_TOKEN" ]; then
+        INSTALLER_DIR="$PKG_NAME-$PKG_VERS"
+        tar xzf "$PKGS_TGZ" "$INSTALLER_DIR"
         cd "$INSTALLER_DIR"
         echo "@kyso-io:registry=https://registry.npmjs.org" >".npmrc"
         echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" >>".npmrc"
@@ -162,13 +162,12 @@ push-to-npm:
             failed="$failed $_tgz"
         done
         cd ..
-        rm -rf "$INSTALLER_DIR"
+        rm -rf "$PKGS_TGZ" "$INSTALLER_DIR"
         for _tgz in $failed; do
           echo "Publication of the '$_tgz' package failed!"
           echo "Check if it was already published or something else is wrong"
         done
       fi
-    - rm "$PKGS_TGZ"
 
 variables:
   DOCKER_BUILDKIT: 1
