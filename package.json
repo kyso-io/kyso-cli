@@ -1,5 +1,5 @@
 {
-  "name": "@kyso-io/kyso-cli",
+  "name": "kyso",
   "description": "Kyso Client",
   "version": "1.4.2",
   "author": "Kyso Inc.",
@@ -85,9 +85,6 @@
   "repository": {
     "type": "git",
     "url": "https://gitlab.kyso.io/kyso-io/kyso-cli.git"
-  },
-  "publishConfig": {
-    "registry": "https://gitlab.kyso.io/api/v4/projects/8/packages/npm/"
   },
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
