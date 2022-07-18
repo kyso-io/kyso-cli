@@ -73,8 +73,11 @@ npm-package-publish:
     paths:
       - .build-args
       - kyso-cli-installer.tgz
-      - dist/*.exe
+      - dist/win32/*.exe
+      - dist/*.zip
       - dist/*.tar.gz
+    expire_in:
+      - 1 day
 
 docker-build:
   before_script:
