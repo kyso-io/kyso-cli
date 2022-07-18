@@ -134,9 +134,9 @@ push-to-npm:
     # Copy node_modules, just in case
     - mv /root/node_modules .
     # Run npm publish
-    - |
+    - |-
       echo "Publishing package to registry.npmjs.org using npm publish"
-      if [ -e ".npmrc" ]; then mv ".npmrc" ".npmrc.orig"; done
+      if [ -e ".npmrc" ]; then mv ".npmrc" ".npmrc.orig"; fi
       echo "registry=https://registry.npmjs.org" >".npmrc"
       echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" >>".npmrc"
       cp -a package.json package.json.orig
@@ -153,7 +153,7 @@ push-to-npm:
       echo "Downloading installer '$PKGS_TGZ'"
       curl -s -O --header "JOB-TOKEN: $CI_JOB_TOKEN" "$TGZ_UPLOAD_URL"
     # Push additional modules to https://registry.npmjs.org
-    - |
+    - |-
       INSTALLER_DIR="$PKG_NAME-$PKG_VERS"
       tar xvzf "$PKGS_TGZ" "$INSTALLER_DIR"
       cd "$INSTALLER_DIR"
