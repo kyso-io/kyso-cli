@@ -38,15 +38,15 @@ npm-package-publish:
       for pkg_ref in $(
         sed -n -e 's%^.*"\(@kyso-io/.*\)": "^*\(.*\)".*$%\1@\2%p' package.json
       ); do
-        npm view "$pkg_ref" dist.tarball >>tgz_urls.txt
-      done
-      sort -u tgz_urls.txt > tgz_urls1.txt
+        npm view "$pkg_ref" dist.tarball
+      done >>tgz_urls.txt
+      sort -u tgz_urls.txt >urls_1.txt
       rm -f tgz_urls.txt
     - mkdir "$PKGS_DIR" && cd "$PKGS_DIR"
     - |
       HEADER="Authorization: Bearer ${CI_JOB_TOKEN}"
       echo "Downloading tar files:"
-      for tgz_url in $(cat tgz_urls1.txt); do
+      for tgz_url in $(cat ../urls1.txt); do
         echo "- $tgz_url";
         curl -s -H "$HEADER" "$tgz_url" -O;
       done
@@ -57,13 +57,13 @@ npm-package-publish:
           sort -u
       ); do
         npm view "$pkg_ref" dist.tarball
-      done | sort -u >tgz_urls2.txt
+      done | sort -u >../urls2.txt
       HEADER="Authorization: Bearer ${CI_JOB_TOKEN}"
-      for tgz_url in $(diff tgz_urls1.txt tgz_urls2.txt|sed -ne 's/^> //p'); do
+      for tgz_url in $(diff ../urls1.txt ../urls2.txt | sed -ne 's/^> //p'); do
         echo "- $tgz_url";
         curl -s -H "$HEADER" "$tgz_url" -O;
       done
-      rm -f tgz_urls1.txt tgz_urls2.txt
+      rm -f ../urls1.txt ../urls2.txt
     - |
       echo "Creating install.sh script"
       echo '#!/bin/sh' > install.sh
