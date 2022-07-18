@@ -17,7 +17,15 @@ npm-package-publish:
   script:
     - !reference [.npm-package-publish, script]
     # Build binaries
-    - npm run pack
+    - |
+      npm run packtgz
+      rm -rf tarballs
+      mkdir tarballs
+      mv dist/*.tar.gz tarballs
+      npm run packwin
+      rm -rf win32
+      mv dist/win32 ./win32
+      rm -rf dist
     # Create and push installer tgz package
     - |
       PKG_NAME="kyso-cli-installer"
@@ -73,10 +81,9 @@ npm-package-publish:
     paths:
       - .build-args
       - kyso-cli-installer.tgz
-      - dist/win32/*.exe
-      - dist/*.zip
-      - dist/*.tar.gz
-    expire_in: 1 day
+      - tarballs/*.tar.gz
+      - win32/*.exe
+    expire_in: 1 hour
 
 docker-build:
   before_script:
