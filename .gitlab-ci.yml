@@ -40,7 +40,7 @@ npm-package-publish:
       ); do
         npm view "$pkg_ref" dist.tarball
       done >>tgz_urls.txt
-      sort -u tgz_urls.txt >urls_1.txt
+      sort -u tgz_urls.txt >urls1.txt
       rm -f tgz_urls.txt
     - mkdir "$PKGS_DIR" && cd "$PKGS_DIR"
     - |
