@@ -140,7 +140,7 @@ push-to-npm:
       echo "registry=https://registry.npmjs.org" >".npmrc"
       echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" >>".npmrc"
       cp -a package.json package.json.orig
-      sed -i -e 's/"name": "@kyso-io/kyso-cli"/"name": "kyso"/' package.json
+      sed -i -e 's%"name": "@kyso-io/kyso-cli"%"name": "kyso"%' package.json
       npm publish --access public || true
       mv package.json.orig package.json
     # Download installer
