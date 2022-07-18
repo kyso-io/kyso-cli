@@ -76,8 +76,7 @@ npm-package-publish:
       - dist/win32/*.exe
       - dist/*.zip
       - dist/*.tar.gz
-    expire_in:
-      - 1 days
+    expire_in: 1 day
 
 docker-build:
   before_script:
