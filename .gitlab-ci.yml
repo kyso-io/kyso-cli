@@ -125,6 +125,21 @@ push-to-npm:
   rules:
     - if: '$CI_COMMIT_TAG'
   script:
+    # Execute only if the NPMJS_TOKEN variable is defined
+    - [ "$NPMJS_TOKEN" ] || exit 0
+    # Copy node_modules, just in case
+    - mv /root/node_modules .
+    # Run npm publish
+    - |
+      echo "Publishing package to registry.npmjs.org using npm publish"
+      if [ -e ".npmrc" ]; then mv ".npmrc" ".npmrc.orig"; done
+      echo "registry=https://registry.npmjs.org" >".npmrc"
+      echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" >>".npmrc"
+      cp -a package.json package.json.orig
+      sed -i -e 's/"name": "@kyso-io/kyso-cli"/"name": "kyso"/' package.json
+      npm publish --access public || true
+      mv package.json.orig package.json
+    # Download installer
     - |-
       PKG_NAME="kyso-cli-installer"
       PKG_VERS="$CI_COMMIT_TAG"
@@ -133,28 +148,25 @@ push-to-npm:
       TGZ_UPLOAD_URL="$UPL_BASE_URL/$PKG_NAME/$PKG_VERS/$PKGS_TGZ"
       echo "Downloading installer '$PKGS_TGZ'"
       curl -s -O --header "JOB-TOKEN: $CI_JOB_TOKEN" "$TGZ_UPLOAD_URL"
-    - echo "The NPMJS_TOKEN value is '$NPMJS_TOKEN'"
+    # Push additional modules to https://registry.npmjs.org
     - |
-      # Push package to npm
-      if [ "$NPMJS_TOKEN" ]; then
-        INSTALLER_DIR="$PKG_NAME-$PKG_VERS"
-        tar xvzf "$PKGS_TGZ" "$INSTALLER_DIR"
-        cd "$INSTALLER_DIR"
-        echo "@kyso-io:registry=https://registry.npmjs.org" >".npmrc"
-        echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" >>".npmrc"
-        failed=""
-        for tgz in $(ls -tr *.tgz); do
-          echo "Publishing file '$tgz'"
-          npm publish --userconfig ".npmrc" --access public "$tgz" ||
-            failed="$failed $_tgz"
-        done
-        cd ..
-        rm -rf "$PKGS_TGZ" "$INSTALLER_DIR"
-        for tgz in $failed; do
-          echo "Publication of the '$tgz' package failed!"
-          echo "Check if it was already published or something else is wrong"
-        done
-      fi
+      INSTALLER_DIR="$PKG_NAME-$PKG_VERS"
+      tar xvzf "$PKGS_TGZ" "$INSTALLER_DIR"
+      cd "$INSTALLER_DIR"
+      # Remove cli package (we have installed it with npm)
+      rm -f "kyso-cli-$PKG_VERS.tgz"
+      failed=""
+      for tgz in $(ls -tr *.tgz); do
+        echo "Publishing file '$tgz'"
+        npm publish --access public "$tgz" || failed="$failed $_tgz"
+      done
+      cd ..
+      rm -rf "$PKGS_TGZ" "$INSTALLER_DIR"
+      for tgz in $failed; do
+        echo "Publication of the '$tgz' package failed!"
+        echo "Check if it was already published or something else is wrong"
+      done
+    - if [ -e ".npmrc.orig" ]; then rm ".npmrc"; mv ".npmrc.orig" ".npmrc"; done
 
 release_tag:
   rules:
