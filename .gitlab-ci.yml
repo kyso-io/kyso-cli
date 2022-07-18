@@ -106,7 +106,7 @@ build-binaries:
       npm run packtgz
       rm -rf tarballs
       mkdir tarballs
-      mv dist/*.tar.gz tarballs
+      mv dist/*.tar.xz tarballs
       npm run packwin
       rm -rf win32
       mv dist/win32 ./win32
@@ -147,24 +147,26 @@ push-to-npm:
       PKGS_TGZ="$PKG_NAME-$PKG_VERS.tgz"
       UPL_BASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
       TGZ_UPLOAD_URL="$UPL_BASE_URL/$PKG_NAME/$PKG_VERS/$PKGS_TGZ"
+      echo "Downloading installer '$PKGS_TGZ'"
       curl -s -O --header "JOB-TOKEN: $CI_JOB_TOKEN" "$TGZ_UPLOAD_URL"
     - |
       # Push package to npm
       if [ "$NPMJS_TOKEN" ]; then
         INSTALLER_DIR="$PKG_NAME-$PKG_VERS"
-        tar xzf "$PKGS_TGZ" "$INSTALLER_DIR"
+        tar xvzf "$PKGS_TGZ" "$INSTALLER_DIR"
         cd "$INSTALLER_DIR"
         echo "@kyso-io:registry=https://registry.npmjs.org" >".npmrc"
         echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" >>".npmrc"
         failed=""
-        for _tgz in $(ls -tr *.tgz); do
-          npm publish --userconfig ".npmrc" --access public "$_tgz" ||
+        for tgz in $(ls -tr *.tgz); do
+          echo "Publishing file '$tgz'"
+          npm publish --userconfig ".npmrc" --access public "$tgz" ||
             failed="$failed $_tgz"
         done
         cd ..
         rm -rf "$PKGS_TGZ" "$INSTALLER_DIR"
-        for _tgz in $failed; do
-          echo "Publication of the '$_tgz' package failed!"
+        for tgz in $failed; do
+          echo "Publication of the '$tgz' package failed!"
           echo "Check if it was already published or something else is wrong"
         done
       fi
