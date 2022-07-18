@@ -99,6 +99,8 @@ build-binaries:
     - !reference [.git-config, before_script]
     - !reference [.npm-config, before_script]
   script:
+    # Install missing modules
+    - npm install
     # Build binaries
     - |
       npm run packtgz
