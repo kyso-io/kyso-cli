@@ -67,7 +67,8 @@ npm-package-publish:
     - |
       echo "Creating install.sh script"
       echo '#!/bin/sh' > install.sh
-      echo 'npm install -g *.tgz' >> install.sh
+      echo 'npm cache add *.tgz' >> install.sh
+      echo "npm install -g kyso-cli-$PKG_VERS.tgz" >> install.sh
       chmod +x install.sh
       cd ..
     - tar czvf $PKGS_TGZ $PKGS_DIR
