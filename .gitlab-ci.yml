@@ -33,21 +33,38 @@ npm-package-publish:
       PKGS_TGZ="$PKG_NAME-$PKG_VERS.tgz"
       UPL_BASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
       TGZ_UPLOAD_URL="$UPL_BASE_URL/$PKG_NAME/$PKG_VERS/$PKGS_TGZ"
-    - TGZ_URLS="$(npm view "@kyso-io/kyso-cli@$CI_COMMIT_TAG" dist.tarball)"
+    - npm view "@kyso-io/kyso-cli@$CI_COMMIT_TAG" dist.tarball >tgz_urls.txt
     - |
       for pkg_ref in $(
         sed -n -e 's%^.*"\(@kyso-io/.*\)": "^*\(.*\)".*$%\1@\2%p' package.json
       ); do
-        TGZ_URLS="$TGZ_URLS $(npm view "$pkg_ref" dist.tarball)"
+        npm view "$pkg_ref" dist.tarball >>tgz_urls.txt
       done
+      sort -u tgz_urls.txt > tgz_urls1.txt
+      rm -f tgz_urls.txt
     - mkdir "$PKGS_DIR" && cd "$PKGS_DIR"
     - |
       HEADER="Authorization: Bearer ${CI_JOB_TOKEN}"
       echo "Downloading tar files:"
-      for tgz_url in $TGZ_URLS; do
+      for tgz_url in $(cat tgz_urls1.txt); do
         echo "- $tgz_url";
         curl -s -H "$HEADER" "$tgz_url" -O;
       done
+    - |
+      for pkg_ref in $(
+        for tgz in *tgz; do tar xOaf $tgz package/package.json; done |
+          sed -n -e 's%^.*"\(@kyso-io/.*\)": "^*\(.*\)".*$%\1@\2%p' |
+          sort -u
+      ); do
+        npm view "$pkg_ref" dist.tarball
+      done | sort -u >tgz_urls2.txt
+      HEADER="Authorization: Bearer ${CI_JOB_TOKEN}"
+      for tgz_url in $(diff tgz_urls1.txt tgz_urls2.txt|sed -ne 's/^> //p'); do
+        echo "- $tgz_url";
+        curl -s -H "$HEADER" "$tgz_url" -O;
+      done
+      rm -f tgz_urls1.txt tgz_urls2.txt
+    - |
       echo "Creating install.sh script"
       echo '#!/bin/sh' > install.sh
       echo 'npm install -g *.tgz' >> install.sh
