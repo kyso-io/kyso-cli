@@ -4,10 +4,10 @@ include:
     file: '/templates/npm-package-with-container.yml'
 
 stages:
-  - test
-  - npm_package_build
   - npm_package_publish
   - docker_build
+  - test
+  - npm_package_build
   - build_binaries
   - push_to_npm
   - release_tag
@@ -162,7 +162,7 @@ push-to-npm:
         echo "Adding '$tgz' file to cache"
         npm cache add "$tgz"
         echo "Publishing file"
-        npm publish --access public "$tgz" || failed="$failed $_tgz"
+        npm publish --access public "$tgz" || failed="$failed $tgz"
       done
       cd ..
       rm -rf "$PKGS_TGZ" "$INSTALLER_DIR"
