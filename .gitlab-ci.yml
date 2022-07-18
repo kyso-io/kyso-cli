@@ -126,7 +126,11 @@ push-to-npm:
     - if: '$CI_COMMIT_TAG'
   script:
     # Execute only if the NPMJS_TOKEN variable is defined
-    - [ "$NPMJS_TOKEN" ] || exit 0
+    - |
+      if [ -z "$NPMJS_TOKEN" ]; then
+        echo "Missing NPMJS_TOKEN, maybe the tag must be protected?"
+        exit 0
+      fi
     # Copy node_modules, just in case
     - mv /root/node_modules .
     # Run npm publish
