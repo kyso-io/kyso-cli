@@ -57,32 +57,19 @@ npm-package-publish:
     - |
       curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "$PKGS_TGZ" \
         "$TGZ_UPLOAD_URL"
-    - rm -rf "$PKGS_DIR" "$PKGS_TGZ"
+    - rm -rf "$PKGS_DIR"
+    - mv "$PKGS_TGZ" "kyso-cli-installer.tgz"
   artifacts:
     paths:
       - .build-args
-
-.download-installer-tgz:
-  before_script:
-    - |-
-      PKG_NAME="kyso-cli-installer"
-      PKG_VERS="$CI_COMMIT_TAG"
-      PKGS_TGZ="$PKG_NAME-$PKG_VERS.tgz"
-      UPL_BASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
-      TGZ_UPLOAD_URL="$UPL_BASE_URL/$PKG_NAME/$PKG_VERS/$PKGS_TGZ"
-      curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" "$TGZ_UPLOAD_URL" \
-        -o "kyso-cli-installer.tgz"
-  after_script:
-    - rm -f "kyso-cli-installer.tgz"
+      - kyso-cli-installer.tgz
+    expire_in: 1 hour
 
 docker-build:
+  depends:
+    - npm_package_publish
   rules:
     - if: '$CI_COMMIT_TAG'
-  before_script:
-    - !reference [.docker-config, before_script]
-    - !reference [.download-installer-tgz, before_script]
-  after_script:
-    - !reference [.download-installer-tgz, after_script]
 
 build-binaries:
   stage: build_binaries
@@ -133,9 +120,14 @@ push-to-npm:
   image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.5
   rules:
     - if: '$CI_COMMIT_TAG'
-  before_script:
-    - !reference [.download-installer-tgz, before_script]
   script:
+    - |-
+      PKG_NAME="kyso-cli-installer"
+      PKG_VERS="$CI_COMMIT_TAG"
+      PKGS_TGZ="$PKG_NAME-$PKG_VERS.tgz"
+      UPL_BASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
+      TGZ_UPLOAD_URL="$UPL_BASE_URL/$PKG_NAME/$PKG_VERS/$PKGS_TGZ"
+    - curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" "$TGZ_UPLOAD_URL"
     - |
       # Push package to npm; FIXME: disabled for now
       if [ "$NPMJS_TOKEN" ] && false; then
@@ -156,8 +148,7 @@ push-to-npm:
           echo "Check if it was already published or something else is wrong"
         done
       fi
-  after_script:
-    - !reference [.download-installer-tgz, after_script]
+    - rm "$PKGS_TGZ"
 
 variables:
   DOCKER_BUILDKIT: 1
