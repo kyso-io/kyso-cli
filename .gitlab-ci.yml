@@ -81,7 +81,7 @@ npm-package-publish:
     paths:
       - .build-args
       - kyso-cli-installer.tgz
-    expire_in: 1 hour
+    expire_in: 1 day
 
 docker-build:
   dependencies:
@@ -119,7 +119,7 @@ build-binaries:
     paths:
       - tarballs/*.tar.xz
       - win32/*.exe
-    expire_in: 2 hours
+    expire_in: 1 day
 
 push-to-npm:
   stage: push_to_npm
