@@ -26,7 +26,7 @@ npm-package-publish:
   script:
     - !reference [.npm-package-publish, script]
     # Create and push installer tgz package
-    - |
+    - |-
       PKG_NAME="kyso-cli-installer"
       PKG_VERS="$CI_COMMIT_TAG"
       PKGS_DIR="$PKG_NAME-$PKG_VERS"
@@ -34,7 +34,7 @@ npm-package-publish:
       UPL_BASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
       TGZ_UPLOAD_URL="$UPL_BASE_URL/$PKG_NAME/$PKG_VERS/$PKGS_TGZ"
     - npm view "@kyso-io/kyso-cli@$CI_COMMIT_TAG" dist.tarball >tgz_urls.txt
-    - |
+    - |-
       for pkg_ref in $(
         sed -n -e 's%^.*"\(@kyso-io/.*\)": "^*\(.*\)".*$%\1@\2%p' package.json
       ); do
@@ -43,14 +43,14 @@ npm-package-publish:
       sort -u tgz_urls.txt >urls1.txt
       rm -f tgz_urls.txt
     - mkdir "$PKGS_DIR" && cd "$PKGS_DIR"
-    - |
+    - |-
       HEADER="Authorization: Bearer ${CI_JOB_TOKEN}"
       echo "Downloading tar files:"
       for tgz_url in $(cat ../urls1.txt); do
         echo "- $tgz_url";
         curl -s -H "$HEADER" "$tgz_url" -O;
       done
-    - |
+    - |-
       for pkg_ref in $(
         for tgz in *tgz; do tar xOaf $tgz package/package.json; done |
           sed -n -e 's%^.*"\(@kyso-io/.*\)": "^*\(.*\)".*$%\1@\2%p' |
@@ -64,7 +64,7 @@ npm-package-publish:
         curl -s -H "$HEADER" "$tgz_url" -O;
       done
       rm -f ../urls1.txt ../urls2.txt
-    - |
+    - |-
       echo "Creating install.sh script"
       echo '#!/bin/sh' > install.sh
       echo 'npm cache add *.tgz' >> install.sh
@@ -72,7 +72,7 @@ npm-package-publish:
       chmod +x install.sh
       cd ..
     - tar czvf $PKGS_TGZ $PKGS_DIR
-    - |
+    - |-
       curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "$PKGS_TGZ" \
         "$TGZ_UPLOAD_URL"
     - rm -rf "$PKGS_DIR"
@@ -106,7 +106,7 @@ build-binaries:
     # Install missing modules
     - npm install
     # Build binaries
-    - |
+    - |-
       UPL_BASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
       UPL_BASE_URL="${UPL_BASE_URL}/kyso-cli-binaries/${CI_COMMIT_TAG}"
       npm run packtgz
@@ -134,13 +134,14 @@ build-binaries:
 
 push-to-npm:
   stage: push_to_npm
+  interruptible: false
   allow_failure: true
   image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.5
   rules:
     - if: '$CI_COMMIT_TAG'
   script:
     # Execute only if the NPMJS_TOKEN variable is defined
-    - |
+    - |-
       if [ -z "$NPMJS_TOKEN" ]; then
         echo "Missing NPMJS_TOKEN, maybe the tag must be protected?"
         exit 0
