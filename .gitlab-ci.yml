@@ -18,6 +18,10 @@ npm-package-build:
     - mv /root/node_modules .
 
 npm-package-publish:
+  # XXX: testing
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: never
   image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.5
   before_script:
     - mv /root/node_modules .
@@ -88,8 +92,14 @@ docker-build:
     - npm-package-publish
   rules:
     - if: '$CI_COMMIT_TAG'
+      # XXX: testing
+      when: never
 
 container_scanning:
+  # XXX: testing
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: never
   variables:
     DOCKER_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
 
@@ -98,6 +108,8 @@ build-binaries:
   image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.5
   rules:
     - if: '$CI_COMMIT_TAG'
+      # XXX: testing
+      when: never
   before_script:
     - mv /root/node_modules .
     - !reference [.git-config, before_script]
@@ -138,6 +150,8 @@ push-to-npm:
   image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.5
   rules:
     - if: '$CI_COMMIT_TAG'
+      # XXX: testing
+      when: never
   script:
     # Execute only if the NPMJS_TOKEN variable is defined
     - |
@@ -200,10 +214,23 @@ push-to-npm:
       fi
 
 release_tag:
-  dependencies:
-    - build-binaries
+  # XXX: testing
+  #dependencies:
+  #  - build-binaries
   rules:
     - if: '$CI_COMMIT_TAG'
+  before_script:
+    - |-
+      cat >binaries.txt <<EOF
+      kyso-v1.4.2-b76b7e7-darwin-arm64.tar.xz https://gitlab.kyso.io/api/v4/projects/8/packages/generic/kyso-cli-binaries/1.4.2/kyso-v1.4.2-b76b7e7-darwin-arm64.tar.xz
+      kyso-v1.4.2-b76b7e7-darwin-x64.tar.xz https://gitlab.kyso.io/api/v4/projects/8/packages/generic/kyso-cli-binaries/1.4.2/kyso-v1.4.2-b76b7e7-darwin-x64.tar.xz
+      kyso-v1.4.2-b76b7e7-linux-arm.tar.xz https://gitlab.kyso.io/api/v4/projects/8/packages/generic/kyso-cli-binaries/1.4.2/kyso-v1.4.2-b76b7e7-linux-arm.tar.xz
+      kyso-v1.4.2-b76b7e7-linux-x64.tar.xz https://gitlab.kyso.io/api/v4/projects/8/packages/generic/kyso-cli-binaries/1.4.2/kyso-v1.4.2-b76b7e7-linux-x64.tar.xz
+      kyso-v1.4.2-b76b7e7-win32-x64.tar.xz https://gitlab.kyso.io/api/v4/projects/8/packages/generic/kyso-cli-binaries/1.4.2/kyso-v1.4.2-b76b7e7-win32-x64.tar.xz
+      kyso-v1.4.2-b76b7e7-win32-x86.tar.xz https://gitlab.kyso.io/api/v4/projects/8/packages/generic/kyso-cli-binaries/1.4.2/kyso-v1.4.2-b76b7e7-win32-x86.tar.xz
+      kyso-v1.4.2-b76b7e7-x64.exe https://gitlab.kyso.io/api/v4/projects/8/packages/generic/kyso-cli-binaries/1.4.2/kyso-v1.4.2-b76b7e7-x64.exe
+      kyso-v1.4.2-b76b7e7-x86.exe https://gitlab.kyso.io/api/v4/projects/8/packages/generic/kyso-cli-binaries/1.4.2/kyso-v1.4.2-b76b7e7-x86.exe
+      EOF
   script:
     - echo "running release_tag"
     - |
@@ -218,11 +245,14 @@ release_tag:
         link="$(printf '{"name": "%s", "url", "%s"}' "$name" "$url")"
         LINKS="$LINKS --assets-link '$link'"
       done <binaries.txt
+      echo "LINKS VALUE"
+      echo "$LINKS"
+      echo "END: LINKS VALUE"
     - |
       release-cli create --name "Release $CI_COMMIT_TAG" \
         --description "kyso-cli release $CI_COMMIT_TAG" \
         --tag-name "$CI_COMMIT_TAG" \
-        $LINKS
+        $(echo "$LINKS")
   release:
 
 variables:
