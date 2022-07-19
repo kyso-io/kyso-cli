@@ -189,7 +189,11 @@ push-to-npm:
       npm install
       npm publish --access public || failed="$failed kyso"
       mv package.json.orig package.json
-    - if [ -e ".npmrc.orig" ]; then rm ".npmrc"; mv ".npmrc.orig" ".npmrc"; fi
+    - |-
+      rm -f ".npmrc";
+      if [ -e ".npmrc.orig" ]; then
+        mv ".npmrc.orig" ".npmrc";
+      fi
     - |-
       if [ "$failed" ]; then
         for pkg in $failed; do
