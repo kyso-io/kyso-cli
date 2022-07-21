@@ -2,7 +2,7 @@
 import { KysoConfigFile, Login } from '@kyso-io/kyso-model'
 import { loginAction, pullReportAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
-import * as AdmZip from 'adm-zip'
+import AdmZip from 'adm-zip'
 import { readdirSync } from 'fs'
 import { join, resolve } from 'path'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'

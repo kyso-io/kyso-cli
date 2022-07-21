@@ -2,7 +2,7 @@
 import { KysoConfigFile } from '@kyso-io/kyso-model'
 import { Flags } from '@oclif/core'
 import { existsSync } from 'fs'
-import * as open from 'open'
+import open from 'open'
 import { isAbsolute, join } from 'path'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { getAllFiles } from '../helpers/get-all-files'

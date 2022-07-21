@@ -5,7 +5,7 @@
 import { KysoSetting, KysoSettingsEnum } from '@kyso-io/kyso-model'
 import { fetchPublicKysoSettings, store } from '@kyso-io/kyso-store'
 import * as http from 'http'
-import * as open from 'open'
+import open from 'open'
 const destroyer = require('server-destroy')
 
 const PORT = process.env.AUTH_SERVER_PORT || 3000
