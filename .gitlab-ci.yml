@@ -1,7 +1,16 @@
 include:
   - project: 'common/gitlab-ci'
-    ref: v0.4.19
+    ref: v0.4.20
     file: '/templates/npm-package-with-container.yml'
+
+stages:
+  - npm_package_publish
+  - docker_build
+  - test
+  - npm_package_build
+  - build_binaries
+  - push_to_npm
+  - release_tag
 
 npm-package-build:
   image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.5
@@ -16,95 +25,211 @@ npm-package-publish:
     - !reference [.npm-config, before_script]
   script:
     - !reference [.npm-package-publish, script]
-    # Build binaries
-    - npm run pack
     # Create and push installer tgz package
-    - |
+    - |-
       PKG_NAME="kyso-cli-installer"
       PKG_VERS="$CI_COMMIT_TAG"
       PKGS_DIR="$PKG_NAME-$PKG_VERS"
       PKGS_TGZ="$PKG_NAME-$PKG_VERS.tgz"
       UPL_BASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
       TGZ_UPLOAD_URL="$UPL_BASE_URL/$PKG_NAME/$PKG_VERS/$PKGS_TGZ"
-    - TGZ_URLS="$(npm view "@kyso-io/kyso-cli@$CI_COMMIT_TAG" dist.tarball)"
-    - |
+    - npm view "@kyso-io/kyso-cli@$CI_COMMIT_TAG" dist.tarball >tgz_urls.txt
+    - |-
       for pkg_ref in $(
         sed -n -e 's%^.*"\(@kyso-io/.*\)": "^*\(.*\)".*$%\1@\2%p' package.json
       ); do
-        TGZ_URLS="$TGZ_URLS $(npm view "$pkg_ref" dist.tarball)"
-      done
+        npm view "$pkg_ref" dist.tarball
+      done >>tgz_urls.txt
+      sort -u tgz_urls.txt >urls1.txt
+      rm -f tgz_urls.txt
     - mkdir "$PKGS_DIR" && cd "$PKGS_DIR"
-    - |
+    - |-
       HEADER="Authorization: Bearer ${CI_JOB_TOKEN}"
       echo "Downloading tar files:"
-      for tgz_url in $TGZ_URLS; do
+      for tgz_url in $(cat ../urls1.txt); do
         echo "- $tgz_url";
         curl -s -H "$HEADER" "$tgz_url" -O;
       done
+    - |-
+      for pkg_ref in $(
+        for tgz in *tgz; do tar xOaf $tgz package/package.json; done |
+          sed -n -e 's%^.*"\(@kyso-io/.*\)": "^*\(.*\)".*$%\1@\2%p' |
+          sort -u
+      ); do
+        npm view "$pkg_ref" dist.tarball
+      done | sort -u >../urls2.txt
+      HEADER="Authorization: Bearer ${CI_JOB_TOKEN}"
+      for tgz_url in $(diff ../urls1.txt ../urls2.txt | sed -ne 's/^> //p'); do
+        echo "- $tgz_url";
+        curl -s -H "$HEADER" "$tgz_url" -O;
+      done
+      rm -f ../urls1.txt ../urls2.txt
+    - |-
       echo "Creating install.sh script"
       echo '#!/bin/sh' > install.sh
-      echo 'npm install -g *.tgz' >> install.sh
+      echo 'npm cache add *.tgz' >> install.sh
+      echo "npm install -g kyso-cli-$PKG_VERS.tgz" >> install.sh
       chmod +x install.sh
       cd ..
     - tar czvf $PKGS_TGZ $PKGS_DIR
-    - |
+    - |-
       curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "$PKGS_TGZ" \
         "$TGZ_UPLOAD_URL"
-    - |
-      # Push package to npm; FIXME: disabled for now
-      if [ "$NPMJS_TOKEN" ] && false; then
-        cd "$PKGS_DIR"
-        echo "@kyso-io:registry=https://registry.npmjs.org" >".npmrc"
-        echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" >>".npmrc"
-        failed=""
-        for _tgz in $(ls -tr *.tgz); do
-          npm publish --userconfig ".npmrc" --access public "$_tgz" ||
-            failed="$failed $_tgz"
-        done
-        cd ..
-        for _tgz in $failed; do
-          echo "Publication of the '$_tgz' package failed!"
-          echo "Check if it was already published or something else is wrong"
-        done
-      fi
     - rm -rf "$PKGS_DIR"
     - mv "$PKGS_TGZ" "kyso-cli-installer.tgz"
   artifacts:
     paths:
       - .build-args
       - kyso-cli-installer.tgz
-      - dist/win32/*.exe
-      - dist/*.zip
-      - dist/*.tar.gz
     expire_in: 1 day
 
 docker-build:
-  before_script:
-    - !reference [.docker-config, before_script]
-  after_script:
-    - rm -f kyso-cli-installer.tgz
-  dependencies:
-    - npm-package-build
-    - npm-package-publish
-
-release_tag:
   dependencies:
     - npm-package-publish
   rules:
     - if: '$CI_COMMIT_TAG'
+
+container_scanning:
+  variables:
+    DOCKER_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+
+build-binaries:
+  stage: build_binaries
+  image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.5
+  rules:
+    - if: '$CI_COMMIT_TAG'
+  before_script:
+    - mv /root/node_modules .
+    - !reference [.git-config, before_script]
+    - !reference [.npm-config, before_script]
   script:
-    - echo "running release_tag"
-    - |
+    # Install missing modules
+    - npm install
+    # Build binaries
+    - |-
+      UPL_BASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
+      UPL_BASE_URL="${UPL_BASE_URL}/kyso-cli-binaries/${CI_COMMIT_TAG}"
+      npm run packtgz
+      rm -f binaries.txt
+      cd dist
+      for txz in *.tar.xz; do
+        url="${UPL_BASE_URL}/$txz"
+        curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "$txz" "$url"
+        echo "$txz $url" >>../binaries.txt
+      done
+      cd ..
+      npm run packwin
+      cd dist/win32
+      for exe in *.exe; do
+        url="${UPL_BASE_URL}/$exe"
+        curl -s --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file "$exe" "$url"
+        echo "$exe $url" >>../../binaries.txt
+      done
+      cd ../..
+      rm -rf dist
+  artifacts:
+    paths:
+      - binaries.txt
+    expire_in: 1 day
+
+push-to-npm:
+  stage: push_to_npm
+  interruptible: false
+  allow_failure: true
+  image: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.5
+  rules:
+    - if: '$CI_COMMIT_TAG'
+  script:
+    # Execute only if the NPMJS_TOKEN variable is defined
+    - |-
+      if [ -z "$NPMJS_TOKEN" ]; then
+        echo "Missing NPMJS_TOKEN, maybe the tag must be protected?"
+        exit 0
+      fi
+    # Copy node_modules
+    - mv /root/node_modules .
+    - |-
+      echo "Prepare .npmrc to push and pull modules to registry.npmjs.org"
+      if [ -e ".npmrc" ]; then mv ".npmrc" ".npmrc.orig"; fi
+      echo "registry=https://registry.npmjs.org" >".npmrc"
+      echo "@kyso-io:registry=https://registry.npmjs.org" >>".npmrc"
+      echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" >>".npmrc"
+      echo "The .npmrc file now contains the following:"
+      cat .npmrc
+      echo ""
+    # Download installer
+    - |-
       PKG_NAME="kyso-cli-installer"
       PKG_VERS="$CI_COMMIT_TAG"
       PKGS_TGZ="$PKG_NAME-$PKG_VERS.tgz"
       UPL_BASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
       TGZ_UPLOAD_URL="$UPL_BASE_URL/$PKG_NAME/$PKG_VERS/$PKGS_TGZ"
-    - |
-      release-cli create --name "Release $CI_COMMIT_TAG" \
-        --description "kyso-cli release $CI_COMMIT_TAG" \
-        --tag-name "$CI_COMMIT_TAG" \
-        --assets-link "{\"name\":\"${PKGS_TGZ}\",\"url\":\"${TGZ_UPLOAD_URL}\"}"
+      echo "Downloading installer '$PKGS_TGZ'"
+      curl -s -O --header "JOB-TOKEN: $CI_JOB_TOKEN" "$TGZ_UPLOAD_URL"
+    # Push modules to https://registry.npmjs.org
+    - failed=""
+    - |-
+      INSTALLER_DIR="$PKG_NAME-$PKG_VERS"
+      tar xvzf "$PKGS_TGZ" "$INSTALLER_DIR"
+      cd "$INSTALLER_DIR"
+      # Remove cli package (we have installed it with npm)
+      rm -f "kyso-cli-$PKG_VERS.tgz"
+      for tgz in $(ls -tr *.tgz); do
+        echo "Adding '$tgz' file to cache"
+        npm cache add "$tgz"
+        echo "Publishing file"
+        npm publish --access public "$tgz" || failed="$failed $tgz"
+      done
+      cd ..
+      rm -rf "$PKGS_TGZ" "$INSTALLER_DIR"
+    # Run npm publish
+    - |-
+      echo "Publishing package to registry.npmjs.org using npm publish"
+      cp -a package.json package.json.orig
+      sed -i -e 's%"name": "@kyso-io/kyso-cli"%"name": "kyso"%' package.json
+      npm install
+      npm publish --access public || failed="$failed kyso"
+      mv package.json.orig package.json
+    - |-
+      rm -f ".npmrc";
+      if [ -e ".npmrc.orig" ]; then
+        mv ".npmrc.orig" ".npmrc";
+      fi
+    - |-
+      if [ "$failed" ]; then
+        for pkg in $failed; do
+          echo "Publication of the '$pkg' package failed!"
+          echo "Check if it was already published or something else is wrong"
+        done
+        exit 1
+      fi
+
+release_tag:
+  dependencies:
+    - build-binaries
+  rules:
+    - if: '$CI_COMMIT_TAG'
+  script:
+    - echo "running release_tag"
+    - |-
+      PKG_NAME="kyso-cli-installer"
+      PKG_VERS="$CI_COMMIT_TAG"
+      TGZ="$PKG_NAME-$PKG_VERS.tgz"
+      UPL_BASE_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic"
+      TGZ_URL="$UPL_BASE_URL/kyso-cli-installer/$CI_COMMIT_TAG/$TGZ"
+      link="$(printf '{"name":"%s","url":"%s"}' "$TGZ" "$TGZ_URL")"
+      LINKS="--assets-link='$link'"
+      while read -r name url; do
+        link="$(printf '{"name":"%s","url":"%s"}' "$name" "$url")"
+        LINKS="$LINKS --assets-link='$link'"
+      done <binaries.txt
+    - |-
+      CMND="release-cli create --name 'Release $CI_COMMIT_TAG'"
+      CMND="$CMND --description 'kyso-cli release $CI_COMMIT_TAG'"
+      CMND="$CMND --tag-name '$CI_COMMIT_TAG'"
+      CMND="$CMND $LINKS"
+      echo "Executing command: $CMND"
+      eval "$CMND"
   release:
 
 variables:

@@ -86,13 +86,11 @@
     "type": "git",
     "url": "https://gitlab.kyso.io/kyso-io/kyso-cli.git"
   },
-  "publishConfig": {
-    "registry": "https://gitlab.kyso.io/api/v4/projects/8/packages/npm/"
-  },
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
     "lint": "eslint . --ext .ts --config .eslintrc",
-	"pack": "oclif pack win && oclif pack tarballs",
+    "packtgz": "oclif pack tarballs",
+    "packwin": "oclif pack win",
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "npm run lint",
     "prepack": "npm run build && oclif manifest && oclif readme",
