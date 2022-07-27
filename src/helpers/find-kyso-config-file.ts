@@ -24,5 +24,11 @@ export const findKysoConfigFile = (files: string[]): { kysoConfigFile: KysoConfi
   if (!kysoConfigFile) {
     throw new Error('kyso.{json,yml,yaml} not found')
   }
+
+  // To allow the possibility to rename team to channel
+  if(kysoConfigFile.channel && !kysoConfigFile.team) {
+    kysoConfigFile.team = kysoConfigFile.channel;
+  }
+
   return { kysoConfigFile, kysoConfigPath: files[index] }
 }

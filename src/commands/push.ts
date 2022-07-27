@@ -23,14 +23,14 @@ export default class Push extends KysoCommand {
   static flags = {
     path: Flags.string({
       char: 'p',
-      description: 'Path to root folder of the report to push',
+      description: 'Path to root folder of the report to push. Default is "."',
       required: false,
       default: '.',
     }),
     inlineComments: Flags.enum({
       char: 'i',
       options: ['y', 'n'],
-      description: 'Inline comments',
+      description: 'Postprocess the .ipynb files to allow inline comments',
       required: false,
     }),
   }
