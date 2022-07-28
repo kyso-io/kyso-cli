@@ -13,12 +13,8 @@ ENV NODE_ENV=${NODE_ENV}
 # Change the workdir to the root home
 WORKDIR /root
 # Install package
-RUN --mount=type=secret,id=kyso-cli,target=/root/kyso-cli-installer.tgz\
- npm update --location=global npm &&\
- tar xvzf kyso-cli-installer.tgz &&\
- DIR="kyso-cli-installer-$UPDATED_PACKAGE_VERSION" &&\
- cd $DIR && sh -x install.sh && cd .. && rm -rf "$DIR" &&\
- rm -rf ~/.npm ~/.gnupg
+RUN npm update --location=global npm &&\
+ npm install --location=global kyso@$UPDATED_PACKAGE_VERSION
 # Copy entrypoint
 COPY ./container/entrypoint.sh /entrypoint.sh
 # Use it
