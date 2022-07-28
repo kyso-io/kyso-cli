@@ -20,12 +20,12 @@
     "inquirer": "^8.2.0",
     "js-yaml": "^4.1.0",
     "jwt-decode": "^3.1.2",
-    "nanoid": "^2.1.11",
     "open": "^8.4.0",
     "server-destroy": "^1.0.1",
     "sha256-file": "^1.0.0",
+    "slugify": "^1.6.5",
     "trim-newlines": "3.0.1",
-    "slugify": "^1.6.5"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@oclif/test": "^2",
@@ -96,7 +96,6 @@
     "test": "mocha --forbid-only \"test/**/*.test.ts\"",
     "version": "oclif readme && git add README.md",
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\""
-
   },
   "types": "dist/index.d.ts"
 }

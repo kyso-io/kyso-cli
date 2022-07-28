@@ -5,7 +5,6 @@ import { KysoConfigFile, Login } from '@kyso-io/kyso-model'
 import { createKysoReportAction, loginAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
-import * as nanoid from 'nanoid'
 import { isAbsolute, join } from 'path'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { getAllFiles } from '../helpers/get-all-files'
@@ -14,6 +13,7 @@ import { interactiveLogin } from '../helpers/interactive-login'
 import slugify from '../helpers/slugify'
 import { KysoCommand } from './kyso-command'
 import inquirer = require('inquirer')
+import { v4 as uuidv4 } from 'uuid';
 
 export default class Push extends KysoCommand {
   static description = 'Upload local repository to Kyso'
@@ -79,7 +79,8 @@ export default class Push extends KysoCommand {
           const fileContent: any = JSON.parse(readFileSync(file, 'utf8').toString())
           for (const cell of fileContent.cells) {
             if (!cell.hasOwnProperty('id')) {
-              cell.id = nanoid(8)
+              cell.id = (uuidv4() as string).substring(0, 8);
+              console.log(cell.id);
               modifiedFile = true
             }
           }
@@ -129,23 +130,38 @@ export default class Push extends KysoCommand {
     }
 
     const { flags } = await this.parse(Push)
-    let enabledInlineComments = false
-    if (!flags.inlineComments) {
+    
+    if (!existsSync(flags.path)) {
+      this.error('Invalid path')
+    }
+
+    let enabledInlineComments = false;
+
+    const files = getValidFiles(flags.path)
+    const hasIpynbFiles = files.filter((x:string) => x.includes(".ipynb")).length > 0 ? true : false;
+    
+    if (!flags.inlineComments && hasIpynbFiles) {
       const result: { inlineComments: boolean } = await inquirer.prompt([
         {
           type: 'confirm',
           name: 'inlineComments',
-          message: 'Do you want to inline comments?',
+          message: 
+`🤔 Seems that you are uploading Jupyter Notebook files 🤔
+          
+Inline comments are only available if your cells are identified, but before Jupyter 4.5 this don't happens. 
+          
+🤯 However, we can allow inline comments at Kyso even if your current Jupyter Notebook has no cell identifiers!! 🤯
+          
+If you press 'Yes', we will process all your cells and set a random id automatically for you, without any side effect in your report
+          
+These changes will modify your ipynb file in your local filesystem, do you want to continue?`,
+
           default: true,
         },
       ])
       enabledInlineComments = result.inlineComments
     } else {
       enabledInlineComments = flags.inlineComments === 'y'
-    }
-
-    if (!existsSync(flags.path)) {
-      this.error('Invalid path')
     }
 
     const basePath: string = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
