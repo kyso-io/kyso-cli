@@ -1,7 +1,7 @@
 {
   "name": "@kyso-io/kyso-cli",
   "description": "Kyso Client",
-  "version": "1.5.4",
+  "version": "1.5.5",
   "author": "Kyso Inc.",
   "bin": {
     "kyso": "./bin/run"
@@ -24,7 +24,8 @@
     "open": "^8.4.0",
     "server-destroy": "^1.0.1",
     "sha256-file": "^1.0.0",
-    "trim-newlines": "3.0.1"
+    "trim-newlines": "3.0.1",
+    "slugify": "^1.6.5"
   },
   "devDependencies": {
     "@oclif/test": "^2",
@@ -45,7 +46,6 @@
     "oclif": "^2.0.0-main.10",
     "prettier": "^2.5.1",
     "shx": "^0.3.3",
-    "slugify": "^1.6.5",
     "ts-node": "^10.2.1",
     "tslib": "^2.3.1",
     "typescript": "^4.4.3"
