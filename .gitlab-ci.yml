@@ -6,6 +6,7 @@ include:
 stages:
   - test
   - npm_package_build
+  - npm_package_publish
   - build_binaries
   - push_to_npm
   - docker_build
