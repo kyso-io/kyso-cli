@@ -1,6 +1,6 @@
 include:
   - project: 'common/gitlab-ci'
-    ref: v0.4.20
+    ref: v0.4.24
     file: '/templates/npm-package-with-container.yml'
 
 stages:
