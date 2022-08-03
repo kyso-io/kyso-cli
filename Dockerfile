@@ -5,7 +5,7 @@ ARG SERVICE_TAG=fixme
 # Production image
 FROM ${SERVICE_IMG}:${SERVICE_TAG} AS service
 # Set the PACKAGE_VERSION value from the args
-ARG UPDATED_PACKAGE_VERSION=invalid
+ARG PACKAGE_VERSION=invalid
 # Set the NODE_ENV value from the args
 ARG NODE_ENV=production
 # Export the NODE_ENV to the container environment
@@ -14,7 +14,7 @@ ENV NODE_ENV=${NODE_ENV}
 WORKDIR /root
 # Install package
 RUN npm update --location=global npm &&\
- npm install --location=global kyso@$UPDATED_PACKAGE_VERSION
+ npm install --location=global kyso@${PACKAGE_VERSION}
 # Copy entrypoint
 COPY ./container/entrypoint.sh /entrypoint.sh
 # Use it

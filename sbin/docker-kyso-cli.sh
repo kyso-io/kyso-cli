@@ -90,7 +90,7 @@ EOF
   DOCKER_COMMAND="$(
     printf "%s" \
       "DOCKER_BUILDKIT=1 docker build${BUILD_ARGS}${BUILD_SECRETS}" \
-      " --build-arg 'UPDATED_PACKAGE_VERSION=$PACKAGE_VERSION'" \
+      " --build-arg \"PACKAGE_VERSION=$PACKAGE_VERSION\"" \
       " --tag '$BUILD_TAG' ."
   )"
   eval "$DOCKER_COMMAND"

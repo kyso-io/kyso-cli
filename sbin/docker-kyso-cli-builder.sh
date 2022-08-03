@@ -134,7 +134,6 @@ echo ""
 IMAGE_NAME="$(sed -ne '/builder-v/ { s/^.*image: //p; q }' .gitlab-ci.yml)"
 
 case "$1" in
-binst) docker_run /src/sbin/build-installer.sh "$2" ;;
 rm) docker_rm ;;
 setup) docker_setup ;;
 run) docker_run /bin/sh ;;
