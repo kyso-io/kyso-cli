@@ -11,10 +11,7 @@ IMAGE_NAME="k3d-registry.lo.kyso.io:5000/kyso-cli"
 CONTAINER_NAME="kyso-cli"
 BUILD_ARGS=""
 BUILD_SECRETS=""
-NPMRC_KYSO=".npmrc.kyso"
-NPMRC_DOCKER=".npmrc.docker"
-KYSO_DIR="$HOME/.kyso"
-CONTAINER_VARS="-v $KYSO_DIR:/home/.kyso"
+CONTAINER_VARS="-v $HOME:/kyso -u $(id -u):$(id -g)"
 
 # ---------
 # FUNCTIONS
@@ -64,80 +61,13 @@ cd_to_workdir() {
   fi
 }
 
-docker_setup() {
-  if [ ! -f "$NPMRC_KYSO" ]; then
-    PACKAGE_READER_TOKEN=""
-    echo "Please, create a personal access token with read_api scope"
-    echo "URL: https://gitlab.kyso.io/-/profile/personal_access_tokens"
-    while [ -z "$PACKAGE_READER_TOKEN" ]; do
-      printf "Token value: "
-      read -r PACKAGE_READER_TOKEN
-    done
-    cat >"$NPMRC_KYSO" <<EOF
-
-@kyso-io:registry=https://gitlab.kyso.io/api/v4/packages/npm/
-//gitlab.kyso.io/api/v4/packages/npm/:_authToken=${PACKAGE_READER_TOKEN}
-EOF
-  fi
-}
-
-check_installer_tgz() {
-  PKG_VERS="$1"
-  PKG_NAME="kyso-cli-installer"
-  INSTALLER="$PKG_NAME.tgz"
-  if [ ! -f "$INSTALLER" ]; then
-    echo "Missing file '$INSTALLER'"
-  else
-    INSTALLER_DIR="$(tar --exclude='*/*' -tzf "$INSTALLER")"
-    if [ "${INSTALLER_DIR}" != "$PKG_NAME-$PKG_VERS/" ]; then
-      echo "Wrong '$INSTALLER', it contains the '${INSTALLER_DIR}' folder"
-    else
-      return 0
-    fi
-  fi
-  PKG_TGZ="$PKG_NAME-$PKG_VERS.tgz"
-  SRC_PRJ_ID="8" # Id of https://gitlab.kyso.io/kyso-io/kyso-cli
-  TOKEN="$(sed -ne 's/^.*_authToken=//p' ./.npmrc.kyso | tail -1)"
-  PROJECTS_API_URL="https://gitlab.kyso.io/api/v4/projects"
-  GENERIC_SRC_URL="$PROJECTS_API_URL/$SRC_PRJ_ID/packages/generic"
-  TGZ_SRC_URL="$GENERIC_SRC_URL/$PKG_NAME/$PKG_VERS/$PKG_TGZ"
-  echo "Trying to download the installer package for version '$PKG_VERS'"
-  curl -s -H "PRIVATE-TOKEN: $TOKEN" "$TGZ_SRC_URL" -o "$PKG_TGZ" || true
-  if [ ! -f "$PKG_TGZ" ]; then
-    echo "Package could not be downloaded"
-    echo "Call $(pwd)/docker-kyso-cli-builder.sh $PACKAGE_VERSION to create it"
-    exit 1
-  else
-    echo "Package could not be downloaded or wrong version"
-    PKG_TGZ_DIR="$(tar --exclude='*/*' -tzf "$PKG_TGZ" 2> /dev/null)" || true
-    if [ "${PKG_TGZ_DIR}" != "$PKG_NAME-$PKG_VERS/" ]; then
-      rm -f "$PKG_TGZ"
-      echo "Call $(pwd)/docker-kyso-cli-builder.sh $PACKAGE_VERSION to update"
-      exit 1
-    fi
-  fi
-  echo "Package succesfully downloaded"
-  mv "$PKG_TGZ" "$INSTALLER"
-}
-
 docker_build() {
-  if [ ! -f "./.npmrc.kyso" ]; then
-    echo "Missing file '.npmrc.kyso', call '$0 setup' to create it"
-    exit 1
-  fi
   PACKAGE_VERSION="$1"
   if [ -z "$PACKAGE_VERSION" ]; then
     PACKAGE_VERSION="$(
       git ls-remote -tq --sort=v:refname\
         | sed -ne 's%^.*refs/tags/\([0-9.]*\)$%\1%p' | tail -1
     )"
-  fi
-  check_installer_tgz "$PACKAGE_VERSION"
-  # Prepare .npmrc.docker
-  if [ -f ".npmrc" ]; then
-    cat ".npmrc" "$NPMRC_KYSO" >"$NPMRC_DOCKER"
-  else
-    cat "$NPMRC_KYSO" >"$NPMRC_DOCKER"
   fi
   # Compute build args
   if [ -f "./.build-args" ]; then
@@ -186,7 +116,6 @@ docker_run() {
     docker rm "$CONTAINER_NAME"
   fi
   BUILD_TAG="$IMAGE_NAME:$PACKAGE_VERSION"
-  [ -d "$KYSO_HOME" ] || mkdir "$KYSO_HOME"
   DOCKER_COMMAND="$(
     printf "%s" \
       "docker run -ti --rm --name '$CONTAINER_NAME' $CONTAINER_VARS" \
