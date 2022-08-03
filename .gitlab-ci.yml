@@ -129,13 +129,14 @@ push-to-npm:
       PKG_NAME="kyso-cli-deps"
       PKG_VERS="$CI_COMMIT_TAG"
       PKGS_DIR="$PKG_NAME-$PKG_VERS"
-      mkdir "$PKGS_DIR" && cd "$PKGS_DIR"
+    - mkdir "$PKGS_DIR"
     - |-
       for pkg_ref in $(
         sed -n -e 's%^.*"\(@kyso-io/.*\)": "^*\(.*\)".*$%\1@\2%p' package.json
       ); do
         npm view "$pkg_ref" dist.tarball
-      done | sort -u >urls1.txt
+      done | sort -u >"$PKGS_DIR/urls1.txt"
+    - cd "$PKGS_DIR"
     - |-
       HEADER="Authorization: Bearer ${CI_JOB_TOKEN}"
       echo "Downloading tar files:"
@@ -150,7 +151,7 @@ push-to-npm:
           sort -u
       ); do
         npm view "$pkg_ref" dist.tarball
-      done | sort -u > urls2.txt
+      done | sort -u >urls2.txt
       HEADER="Authorization: Bearer ${CI_JOB_TOKEN}"
       for tgz_url in $(diff urls1.txt urls2.txt | sed -ne 's/^> //p'); do
         echo "- $tgz_url";
