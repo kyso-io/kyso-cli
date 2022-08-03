@@ -115,36 +115,27 @@ push-to-npm:
       fi
     # Copy node_modules
     - mv /root/node_modules .
-    - |-
-      echo "Prepare .npmrc to push and pull modules to registry.npmjs.org"
-      if [ -e ".npmrc" ]; then mv ".npmrc" ".npmrc.orig"; fi
-      echo "registry=https://registry.npmjs.org" >".npmrc"
-      echo "@kyso-io:registry=https://registry.npmjs.org" >>".npmrc"
-      echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" >>".npmrc"
-      echo "The .npmrc file now contains the following:"
-      cat .npmrc
-      echo ""
     # Get dependencies
     - |-
+      echo "Getting package dependencies"
       PKG_NAME="kyso-cli-deps"
       PKG_VERS="$CI_COMMIT_TAG"
       PKGS_DIR="$PKG_NAME-$PKG_VERS"
-    - mkdir "$PKGS_DIR"
+      mkdir "$PKGS_DIR"
     - |-
       for pkg_ref in $(
         sed -n -e 's%^.*"\(@kyso-io/.*\)": "^*\(.*\)".*$%\1@\2%p' package.json
       ); do
         npm view "$pkg_ref" dist.tarball
       done | sort -u >"$PKGS_DIR/urls1.txt"
-    - cd "$PKGS_DIR"
     - |-
-      HEADER="Authorization: Bearer ${CI_JOB_TOKEN}"
       echo "Downloading tar files:"
+      cd "$PKGS_DIR"
+      HEADER="Authorization: Bearer ${CI_JOB_TOKEN}"
       for tgz_url in $(cat urls1.txt); do
         echo "- $tgz_url";
         curl -s -H "$HEADER" "$tgz_url" -O;
       done
-    - |-
       for pkg_ref in $(
         for tgz in *tgz; do tar xOaf $tgz package/package.json; done |
           sed -n -e 's%^.*"\(@kyso-io/.*\)": "^*\(.*\)".*$%\1@\2%p' |
@@ -158,6 +149,17 @@ push-to-npm:
         curl -s -H "$HEADER" "$tgz_url" -O;
       done
       rm -f urls1.txt urls2.txt
+    - |-
+      echo "Prepare .npmrc to push and pull modules to registry.npmjs.org"
+      cd ..
+      if [ -e ".npmrc" ]; then mv ".npmrc" ".npmrc.orig"; fi
+      echo "registry=https://registry.npmjs.org" >".npmrc"
+      echo "@kyso-io:registry=https://registry.npmjs.org" >>".npmrc"
+      echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" >>".npmrc"
+      echo "The .npmrc file now contains the following:"
+      cat .npmrc
+      echo ""
+      cd "$PKGS_DIR"
     # Push modules to https://registry.npmjs.org
     - failed=""
     - |-
