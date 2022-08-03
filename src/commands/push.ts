@@ -9,7 +9,7 @@ import { isAbsolute, join } from 'path'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { getAllFiles } from '../helpers/get-all-files'
 import { getValidFiles } from '../helpers/get-valid-files'
-import { interactiveLogin } from '../helpers/interactive-login'
+import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login'
 import slugify from '../helpers/slugify'
 import { KysoCommand } from './kyso-command'
 import inquirer = require('inquirer')
@@ -30,7 +30,7 @@ export default class Push extends KysoCommand {
     inlineComments: Flags.enum({
       char: 'i',
       options: ['y', 'n'],
-      description: 'Postprocess the .ipynb files to allow inline comments',
+      description: 'Postprocess the .ipynb files to allow inline comments at Kyso',
       required: false,
     }),
   }
@@ -40,7 +40,7 @@ export default class Push extends KysoCommand {
   private async uploadReport(basePath: string, enabledInlineComments: boolean): Promise<void> {
     const parts: string[] = basePath.split('/')
     const folderName: string = parts[parts.length - 1]
-    const kysoCredentials = JSON.parse(readFileSync(this.tokenFilePath, 'utf8').toString())
+    const kysoCredentials = JSON.parse(readFileSync(KysoCommand.tokenFilePath, 'utf8').toString())
     this.log(`Uploading report '${folderName}'`)
 
     let files: string[] = getAllFiles(basePath, [])
@@ -108,27 +108,8 @@ export default class Push extends KysoCommand {
   }
 
   async run(): Promise<void> {
-    const logged: boolean = await this.checkCredentials()
-    if (!logged) {
-      const login: Login = await interactiveLogin(this.getCredentials())
-      /**
-       * WTF?
-       * Argument of type
-       * 'import("/home/fjbarrena/Projects/kyso/kyso-cli/node_modules/@kyso-io/kyso-model/dist/models/login.model").Login'
-       * is not assignable to parameter of type
-       * 'import("/home/fjbarrena/Projects/kyso/kyso-cli/node_modules/@kyso-io/kyso-store/node_modules/@kyso-io/kyso-model/dist/models/login.model").Login'.
-       *
-       * Casting to any for now
-       */
-      await store.dispatch(loginAction(login as any))
-      const { auth } = store.getState()
-      if (auth.token) {
-        this.saveToken(auth.token, null, null, login.kysoInstallUrl, null)
-      } else {
-        this.error('An error occurred making login request')
-      }
-    }
-
+    await launchInteractiveLoginIfNotLogged()
+    
     const { flags } = await this.parse(Push)
     
     if (!existsSync(flags.path)) {
@@ -146,15 +127,11 @@ export default class Push extends KysoCommand {
           type: 'confirm',
           name: 'inlineComments',
           message: 
-`🤔 Seems that you are uploading Jupyter Notebook files 🤔
+`Uploading Jupyter notebook files ... 🤔
           
-Inline comments are only available if your cells are identified, but before Jupyter 4.5 this don't happens. 
-          
-🤯 However, we can allow inline comments at Kyso even if your current Jupyter Notebook has no cell identifiers!! 🤯
-          
-If you press 'Yes', we will process all your cells and set a random id automatically for you, without any side effect in your report
-          
-These changes will modify your ipynb file in your local filesystem, do you want to continue?`,
+Jupyter notebooks of v4.5 & above have unique cell identifiers, allowing Kyso to add inline comments to the reports. It seems that you are using an older version of Jupyter. If you want to allow for inline comments on your report without updating your version of Jupyter, select 'yes' and Kyso will process all notebooks in this push & set a random identifier automatically to all cells, with no side effects to the content of the report(s). If you select 'no' the notebooks will be published without cell ids.          
+
+These changes will modify your .ipynb files in your local filesystem, do you want to continue?`,
 
           default: true,
         },

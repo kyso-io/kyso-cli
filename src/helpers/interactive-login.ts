@@ -4,6 +4,54 @@ import { Login, LoginProviderEnum } from '@kyso-io/kyso-model'
 import { KysoCredentials } from '../types/kyso-credentials'
 import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitlab, authenticateWithGoogle } from './oauths'
 import inquirer = require('inquirer')
+import { KysoCommand } from '../commands/kyso-command'
+import { Api, loginAction, store } from '@kyso-io/kyso-store'
+import { CheckCredentialsResultEnum } from '../types/check-credentials-result.enum'
+
+export const launchInteractiveLoginIfNotLogged = async (): Promise<void> => {
+  const checkCredentialsResult: CheckCredentialsResultEnum = await KysoCommand.checkCredentials()
+  
+  switch(checkCredentialsResult) {
+    case CheckCredentialsResultEnum.NOT_EXIST:
+      const login: Login = await interactiveLogin(KysoCommand.getCredentials())
+      /**
+       * WTF?
+       * Argument of type
+       * 'import("/home/fjbarrena/Projects/kyso/kyso-cli/node_modules/@kyso-io/kyso-model/dist/models/login.model").Login'
+       * is not assignable to parameter of type
+       * 'import("/home/fjbarrena/Projects/kyso/kyso-cli/node_modules/@kyso-io/kyso-store/node_modules/@kyso-io/kyso-model/dist/models/login.model").Login'.
+       *
+       * Casting to any for now
+       */
+      await store.dispatch(loginAction(login as any))
+      const { auth } = store.getState()
+      if (auth.token) {
+        KysoCommand.saveToken(auth.token, null, null, login.kysoInstallUrl, null)
+      } else {
+        throw new Error('An error occurred making login request')
+      }
+      break;
+    case CheckCredentialsResultEnum.EXPIRED_TOKEN:
+      try {
+        const savedCredentials: KysoCredentials = KysoCommand.getCredentials();
+        const api: Api = new Api();
+        api.configure(savedCredentials.kysoInstallUrl + "/api/v1", savedCredentials.token);
+
+        const refreshedToken = await api.refreshToken();
+
+        if(refreshedToken.data) {
+          KysoCommand.saveToken(refreshedToken.data, null, null, savedCredentials.kysoInstallUrl, null)
+        }
+
+        break;
+      } catch(ex) {
+        console.error("Error refreshing token. Please run kyso login manually");
+      }
+    case CheckCredentialsResultEnum.VALID:
+      // All right, nothing to do
+      break;
+  }
+}
 
 export const interactiveLogin = async (kysoCredentials: KysoCredentials | null): Promise<Login> => {
   const login: Login = new Login('', LoginProviderEnum.KYSO, '', null, null)

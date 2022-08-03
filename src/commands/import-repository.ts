@@ -2,7 +2,7 @@
 import { Login, RepositoryProvider } from '@kyso-io/kyso-model'
 import { importBitbucketRepositoryAction, importGithubRepositoryAction, importGitlabRepositoryAction, loginAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
-import { interactiveLogin } from '../helpers/interactive-login'
+import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login'
 import { KysoCommand } from './kyso-command'
 
 export default class ImportRepository extends KysoCommand {
@@ -36,26 +36,7 @@ export default class ImportRepository extends KysoCommand {
   static args = []
 
   async run(): Promise<void> {
-    const logged: boolean = await this.checkCredentials()
-    if (!logged) {
-      const login: Login = await interactiveLogin(this.getCredentials())
-      /**
-       * WTF?
-       * Argument of type 
-       * 'import("/home/fjbarrena/Projects/kyso/kyso-cli/node_modules/@kyso-io/kyso-model/dist/models/login.model").Login'
-       * is not assignable to parameter of type 
-       * 'import("/home/fjbarrena/Projects/kyso/kyso-cli/node_modules/@kyso-io/kyso-store/node_modules/@kyso-io/kyso-model/dist/models/login.model").Login'.
-       * 
-       * Casting to any for now
-       */
-      await store.dispatch(loginAction(login as any))
-      const { auth } = store.getState()
-      if (auth.token) {
-        this.saveToken(auth.token, null, null, login.kysoInstallUrl, null)
-      } else {
-        this.error('An error occurred making login request')
-      }
-    }
+    await launchInteractiveLoginIfNotLogged()
 
     const { flags } = await this.parse(ImportRepository)
     this.log(`Importing ${flags.provider} repository ${flags.name}. Will take a while...`)

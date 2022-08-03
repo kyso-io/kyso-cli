@@ -6,7 +6,7 @@ import AdmZip from 'adm-zip'
 import { readdirSync } from 'fs'
 import { join, resolve } from 'path'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
-import { interactiveLogin } from '../helpers/interactive-login'
+import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login'
 import { KysoCommand } from './kyso-command'
 
 export default class Push extends KysoCommand {
@@ -46,26 +46,7 @@ export default class Push extends KysoCommand {
   static args = []
 
   async run(): Promise<void> {
-    const logged: boolean = await this.checkCredentials()
-    if (!logged) {
-      const login: Login = await interactiveLogin(this.getCredentials())
-      /**
-       * WTF?
-       * Argument of type 
-       * 'import("/home/fjbarrena/Projects/kyso/kyso-cli/node_modules/@kyso-io/kyso-model/dist/models/login.model").Login'
-       * is not assignable to parameter of type 
-       * 'import("/home/fjbarrena/Projects/kyso/kyso-cli/node_modules/@kyso-io/kyso-store/node_modules/@kyso-io/kyso-model/dist/models/login.model").Login'.
-       * 
-       * Casting to any for now
-       */
-      await store.dispatch(loginAction(login as any))
-      const { auth } = store.getState()
-      if (auth.token) {
-        this.saveToken(auth.token, null, null, login.kysoInstallUrl, null)
-      } else {
-        this.error('An error occurred making login request')
-      }
-    }
+    await launchInteractiveLoginIfNotLogged();
 
     this.log('Pulling report. Wait...')
     const { flags } = await this.parse(Push)

@@ -27,7 +27,7 @@ export default class Open extends KysoCommand {
   static args = []
 
   async run(): Promise<void> {
-    const kysoCredentials: KysoCredentials | null = this.getCredentials()
+    const kysoCredentials: KysoCredentials | null = KysoCommand.getCredentials()
     if (!kysoCredentials) {
       this.log(`No credentials found. Please login first.`)
     }

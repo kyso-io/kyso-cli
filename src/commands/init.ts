@@ -4,11 +4,10 @@ import * as jsYaml from 'js-yaml'
 import { KysoConfigFile, Login } from '@kyso-io/kyso-model'
 import { isAbsolute, join, basename } from 'path'
 import { getAllFiles } from '../helpers/get-all-files'
-import {Command, Flags} from '@oclif/core'
+import {Flags} from '@oclif/core'
 import inquirer = require('inquirer')
-import { store, loginAction, fetchOrganizationsAction, fetchTeamsAction } from '@kyso-io/kyso-store'
-import { title } from 'process'
-import { interactiveLogin } from '../helpers/interactive-login'
+import { store, fetchOrganizationsAction, fetchTeamsAction } from '@kyso-io/kyso-store'
+import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login'
 import { KysoCommand } from './kyso-command'
 
 enum ReportTypes {
@@ -36,26 +35,7 @@ export default class Init extends KysoCommand {
   static args = []
 
   public async run(): Promise<void> {
-    const logged: boolean = await this.checkCredentials()
-    if (!logged) {
-      const login: Login = await interactiveLogin(this.getCredentials())
-      /**
-       * WTF?
-       * Argument of type 
-       * 'import("/home/fjbarrena/Projects/kyso/kyso-cli/node_modules/@kyso-io/kyso-model/dist/models/login.model").Login'
-       * is not assignable to parameter of type 
-       * 'import("/home/fjbarrena/Projects/kyso/kyso-cli/node_modules/@kyso-io/kyso-store/node_modules/@kyso-io/kyso-model/dist/models/login.model").Login'.
-       * 
-       * Casting to any for now
-       */
-      await store.dispatch(loginAction(login as any))
-      const { auth } = store.getState()
-      if (auth.token) {
-        this.saveToken(auth.token, null, null, login.kysoInstallUrl, null)
-      } else {
-        this.error('An error occurred making login request')
-      }
-    }
+    await launchInteractiveLoginIfNotLogged()
 
     const {args, flags} = await this.parse(Init)
 

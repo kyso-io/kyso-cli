@@ -150,7 +150,7 @@ export default class Login extends KysoCommand {
     } else {
       // INTERACTIVE MODE
       try {
-        loginModel = await interactiveLogin(this.getCredentials())
+        loginModel = await interactiveLogin(KysoCommand.getCredentials())
       } catch (error: any) {
         this.error(error)
       }
@@ -169,7 +169,7 @@ export default class Login extends KysoCommand {
 
     const { auth, error } = store.getState()
     if (auth.token) {
-      this.saveToken(auth.token, flags.organization || null, flags.team || null, loginModel.kysoInstallUrl, loginModel.email || null)
+      KysoCommand.saveToken(auth.token, flags.organization || null, flags.team || null, loginModel.kysoInstallUrl, loginModel.email || null)
       this.log('Logged successfully')
     } else {
       this.log(error.text)

@@ -14,3 +14,4 @@ oclif.manifest.json
 /.npmrc-*
 /.npmrc.*
 kyso.yaml
+.scannerwork

@@ -9,7 +9,7 @@ export default class Push extends KysoCommand {
   static examples = [`$ kyso whoami`]
 
   async run(): Promise<void> {
-    const kysoCredentials: KysoCredentials | null = this.getCredentials()
+    const kysoCredentials: KysoCredentials | null = KysoCommand.getCredentials()
     if (kysoCredentials) {
       const decoded: { payload: any; iat: number; exp: number } = jwtDecode(kysoCredentials.token)
       const user: User = decoded.payload
