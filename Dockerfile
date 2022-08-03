@@ -1,5 +1,5 @@
 # Global Dockerfile Arguments (in our CI can be overriden in ./.build-args)
-ARG SERVICE_IMG=registry.kyso.io/docker/node
+ARG SERVICE_IMG=node
 ARG SERVICE_TAG=fixme
 
 # Production image
