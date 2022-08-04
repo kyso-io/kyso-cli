@@ -18,6 +18,6 @@ RUN npm update --location=global npm &&\
 # Copy entrypoint
 COPY ./container/entrypoint.sh /entrypoint.sh
 # Use it
-ENTRYPOINT ["/bin/sh", "-c", "/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
 # Image command
-CMD ["/bin/sh"]
+CMD [""]

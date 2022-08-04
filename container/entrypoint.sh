@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 KYSO_HOME="/kyso"
 if [ ! -d "$KYSO_HOME" ]; then
   echo "Mount user home @ '$KYSO_HOME'"
@@ -16,7 +17,7 @@ fi
 export HOME="$KYSO_HOME"
 cd "$HOME"
 if [ "$*" ]; then
-  exec /bin/sh -c "$@"
+  exec kyso "$@"
 else
-  exec /bin/sh
+  exec kyso
 fi

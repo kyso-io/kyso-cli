@@ -105,7 +105,6 @@ docker_rm() {
 }
 
 docker_run() {
-  PACKAGE_VERSION="$1"
   if [ -z "$PACKAGE_VERSION" ]; then
     PACKAGE_VERSION="$(
       git ls-remote -tq --sort=v:refname\
@@ -121,11 +120,11 @@ docker_run() {
       "docker run -ti --rm --name '$CONTAINER_NAME' $CONTAINER_VARS" \
       " '$BUILD_TAG'"
   )"
-  eval "$DOCKER_COMMAND"
+  eval "$DOCKER_COMMAND $*"
 }
 
 docker_sh() {
-  docker exec -ti "$CONTAINER_NAME" /bin/sh
+  docker exec -ti "$CONTAINER_NAME" --entrypoint /bin/sh
 }
 
 docker_status() {
@@ -143,7 +142,6 @@ usage() {
 Usage: $0 CMND [ARGS]
 
 Where CMND can be one of:
-- setup: prepare local files (.npmrc.kyso & .env.docker)
 - build: create container using the passed package version
 - build-prune: cleanup builder caché
 - run: run container in daemon mode with the right settings
@@ -165,7 +163,6 @@ build) shift && docker_build "$@";;
 build-prune) docker_build_prune ;;
 logs) shift && docker_logs "$@" ;;
 rm) docker_rm ;;
-setup) docker_setup ;;
 sh) docker_sh ;;
 run) shift && docker_run "$@";;
 status) docker_status ;;
