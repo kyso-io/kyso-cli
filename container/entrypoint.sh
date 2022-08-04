@@ -15,7 +15,6 @@ elif [ "$HOME_UID" != "$USER_UID" ]; then
   exit 1
 fi
 export HOME="$KYSO_HOME"
-cd "$HOME"
 if [ "$*" ]; then
   exec kyso "$@"
 else
