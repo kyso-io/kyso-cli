@@ -31,14 +31,26 @@ export default class ImportRepository extends KysoCommand {
       description: 'branch',
       required: false,
     }),
+    verbose: Flags.enum({
+      char: 'x',
+      options: [],
+      description: 'Verbose mode for debugging',
+      required: false,
+    })
   }
 
   static args = []
 
   async run(): Promise<void> {
+    const { flags } = await this.parse(ImportRepository)
+    
+    if(flags.verbose) {
+      this.log("Enabled verbose mode");
+      this.enableVerbose();
+    }
+
     await launchInteractiveLoginIfNotLogged()
 
-    const { flags } = await this.parse(ImportRepository)
     this.log(`Importing ${flags.provider} repository ${flags.name}. Will take a while...`)
 
     const args: any = {
@@ -65,5 +77,8 @@ export default class ImportRepository extends KysoCommand {
     } else {
       this.log(`Successfully uploaded report`)
     }
+
+    this.log("Disabling verbose mode");
+    this.disableVerbose();
   }
 }

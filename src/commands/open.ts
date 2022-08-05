@@ -22,18 +22,30 @@ export default class Open extends KysoCommand {
       required: false,
       default: '.',
     }),
+    verbose: Flags.enum({
+      char: 'x',
+      options: [],
+      description: 'Verbose mode for debugging',
+      required: false,
+    })
   }
 
   static args = []
 
   async run(): Promise<void> {
+    const { flags } = await this.parse(Open);
+    
+    if(flags.verbose) {
+      this.log("Enabled verbose mode");
+      this.enableVerbose();
+    }
+
     const kysoCredentials: KysoCredentials | null = KysoCommand.getCredentials()
     if (!kysoCredentials) {
       this.log(`No credentials found. Please login first.`)
     }
 
-    const { flags } = await this.parse(Open)
-
+    
     if (!existsSync(flags.path)) {
       this.error('Invalid path')
     }
@@ -63,5 +75,8 @@ export default class Open extends KysoCommand {
     const reportUrl = `${domain.protocol}//${domain.hostname}/${kysoConfigFile.organization}/${kysoConfigFile.team}/${slugify(kysoConfigFile.title)}`
     this.log(`Opening "${reportUrl}" the in browser...`)
     await open(reportUrl)
+
+    this.log("Disabling verbose mode");
+    this.disableVerbose();
   }
 }

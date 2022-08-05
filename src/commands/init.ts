@@ -29,15 +29,26 @@ export default class Init extends KysoCommand {
       description: "Folder's path in which kyso.json, yaml or yml file is placed",
       required: false,
       default: '.',
+    }),
+    verbose: Flags.enum({
+      char: 'x',
+      options: [],
+      description: 'Verbose mode for debugging',
+      required: false,
     })
   }
 
   static args = []
 
   public async run(): Promise<void> {
-    await launchInteractiveLoginIfNotLogged()
+    const { flags } = await this.parse(Init);
+    
+    if(flags.verbose) {
+      this.log("Enabled verbose mode");
+      this.enableVerbose();
+    }
 
-    const {args, flags} = await this.parse(Init)
+    await launchInteractiveLoginIfNotLogged()
 
     if (!existsSync(flags.path)) {
       this.error('Invalid path')
@@ -154,5 +165,8 @@ export default class Init extends KysoCommand {
     await writeFileSync(join(process.cwd(), 'kyso.yaml'), jsYaml.dump(config))
 
     this.log(`Wrote config to ${join(process.cwd(), 'kyso.yaml')}`)
+
+    this.log("Disabling verbose mode");
+    this.disableVerbose();
   }
 }

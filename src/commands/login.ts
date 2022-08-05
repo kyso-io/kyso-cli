@@ -57,26 +57,23 @@ export default class Login extends KysoCommand {
       required: false,
       multiple: false,
     }),
-    // Should we give that option? Hidden
-    organization: Flags.string({
-      char: 'o',
-      description: 'Your organization',
+    verbose: Flags.enum({
+      char: 'x',
+      options: [],
+      description: 'Verbose mode for debugging',
       required: false,
-      hidden: true,
-    }),
-    // Should we give that option? Hidden
-    team: Flags.string({
-      char: 't',
-      description: 'Your team',
-      required: false,
-      hidden: true,
-    }),
+    })
   }
 
   static args = []
 
   async run(): Promise<void> {
     const { flags } = await this.parse(Login)
+    
+    if(flags.verbose) {
+      this.log("Enabled verbose mode");
+      this.enableVerbose();
+    }
 
     let loginModel: LoginModel = new LoginModel('', LoginProviderEnum.KYSO, '', null)
 
@@ -175,5 +172,8 @@ export default class Login extends KysoCommand {
       this.log(error.text)
       this.error('An error occurred making login request')
     }
+
+    this.log("Disabling verbose mode");
+    this.disableVerbose();
   }
 }

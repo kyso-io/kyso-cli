@@ -41,15 +41,27 @@ export default class Push extends KysoCommand {
       description: 'Version of the report to be pulled. Latest version is pulled if not set',
       required: false,
     }),
+    verbose: Flags.enum({
+      char: 'x',
+      options: [],
+      description: 'Verbose mode for debugging',
+      required: false,
+    })
   }
 
   static args = []
 
   async run(): Promise<void> {
+    const { flags } = await this.parse(Push);
+    
+    if(flags.verbose) {
+      this.log("Enabled verbose mode");
+      this.enableVerbose();
+    }
+
     await launchInteractiveLoginIfNotLogged();
 
     this.log('Pulling report. Wait...')
-    const { flags } = await this.parse(Push)
     let files: string[] = readdirSync(flags.path)
 
     if (flags?.organization && flags?.team && flags?.report) {
@@ -67,6 +79,9 @@ export default class Push extends KysoCommand {
       }
       this.extractReport(kysoConfigFile.organization, kysoConfigFile.team, kysoConfigFile.title, flags.version, flags.path)
     }
+    
+    this.log("Disabling verbose mode");
+    this.disableVerbose();
   }
 
   async extractReport(organization: string, team: string, report: string, version: number | null, path: string): Promise<void> {

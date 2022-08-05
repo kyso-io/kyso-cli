@@ -26,6 +26,12 @@ export default class Clone extends KysoCommand {
       description: 'Version of the report to be pulled. Latest version is pulled if not set',
       required: false,
     }),
+    verbose: Flags.enum({
+      char: 'x',
+      options: [],
+      description: 'Verbose mode for debugging',
+      required: false,
+    })
   }
 
   static args = [
@@ -33,6 +39,13 @@ export default class Clone extends KysoCommand {
   ]
 
   async run(): Promise<void> {
+    const { flags } = await this.parse(Clone)
+
+    if(flags.verbose) {
+      this.log("Enabled verbose mode");
+      this.enableVerbose();
+    }
+    
     const parsed = await this.parse(Clone)
     let cloneUrl = parsed.args.cloneUrl;
 
@@ -51,7 +64,7 @@ export default class Clone extends KysoCommand {
     await launchInteractiveLoginIfNotLogged()
 
     this.log('Cloning report. Wait...')
-    const { flags } = await this.parse(Clone)
+    
     let files: string[] = readdirSync(flags.path)
 
     if (organizationSlug && teamSlug && reportSlug) {
@@ -69,6 +82,9 @@ export default class Clone extends KysoCommand {
       }
       this.extractReport(kysoConfigFile.organization, kysoConfigFile.team, kysoConfigFile.title, flags.version, flags.path)
     }
+
+    this.log("Disabling verbose mode");
+    this.disableVerbose();
   }
 
   async extractReport(organization: string, team: string, report: string, version: number | null, path: string): Promise<void> {

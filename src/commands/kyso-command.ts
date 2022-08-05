@@ -17,9 +17,22 @@ dotenv.config({
 export abstract class KysoCommand extends Command {
   private static readonly DATA_DIRECTORY = join(homedir(), '.kyso')
   public static tokenFilePath: string = join(this.DATA_DIRECTORY, 'auth.json')
+  private verbose: boolean = false;
+  private previousKysoCliVerbose = process.env.KYSO_CLI_VERBOSE;
 
   constructor(argv: string[], config: Config) {
     super(argv, config)
+  }
+
+  public enableVerbose() {
+    this.previousKysoCliVerbose = process.env.KYSO_CLI_VERBOSE
+    this.verbose = true;
+    process.env.KYSO_CLI_VERBOSE = "true";
+  }
+
+  public disableVerbose() {
+    this.verbose = false;
+    process.env.KYSO_CLI_VERBOSE = this.previousKysoCliVerbose;
   }
 
   private static removeCredentials(kysoCredentials: KysoCredentials | null): void {

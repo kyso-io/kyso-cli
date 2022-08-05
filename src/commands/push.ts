@@ -33,6 +33,12 @@ export default class Push extends KysoCommand {
       description: 'Postprocess the .ipynb files to allow inline comments at Kyso',
       required: false,
     }),
+    verbose: Flags.enum({
+      char: 'v',
+      options: [],
+      description: 'Verbose mode for debugging',
+      required: false,
+    })
   }
 
   static args = []
@@ -108,10 +114,15 @@ export default class Push extends KysoCommand {
   }
 
   async run(): Promise<void> {
+    const { flags } = await this.parse(Push);
+    
+    if(flags.verbose) {
+      this.log("Enabled verbose mode");
+      this.enableVerbose();
+    }
+
     await launchInteractiveLoginIfNotLogged()
-    
-    const { flags } = await this.parse(Push)
-    
+
     if (!existsSync(flags.path)) {
       this.error('Invalid path')
     }
@@ -143,5 +154,8 @@ These changes will modify your .ipynb files in your local filesystem, do you wan
 
     const basePath: string = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
     await this.uploadReport(basePath, enabledInlineComments)
+
+    this.log("Disabling verbose mode");
+    this.disableVerbose();
   }
 }
