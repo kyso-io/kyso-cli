@@ -31,11 +31,11 @@ export default class ImportRepository extends KysoCommand {
       description: 'branch',
       required: false,
     }),
-    verbose: Flags.enum({
+    verbose: Flags.boolean({
       char: 'x',
-      options: [],
       description: 'Verbose mode for debugging',
       required: false,
+      default: false
     })
   }
 
@@ -78,7 +78,9 @@ export default class ImportRepository extends KysoCommand {
       this.log(`Successfully uploaded report`)
     }
 
-    this.log("Disabling verbose mode");
-    this.disableVerbose();
+    if(flags.verbose) {
+      this.log("Disabling verbose mode");
+      this.disableVerbose();
+    }
   }
 }

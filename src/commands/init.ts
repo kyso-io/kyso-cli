@@ -30,11 +30,11 @@ export default class Init extends KysoCommand {
       required: false,
       default: '.',
     }),
-    verbose: Flags.enum({
+    verbose: Flags.boolean({
       char: 'x',
-      options: [],
       description: 'Verbose mode for debugging',
       required: false,
+      default: false
     })
   }
 
@@ -166,7 +166,9 @@ export default class Init extends KysoCommand {
 
     this.log(`Wrote config to ${join(process.cwd(), 'kyso.yaml')}`)
 
-    this.log("Disabling verbose mode");
-    this.disableVerbose();
+    if(flags.verbose) {
+      this.log("Disabling verbose mode");
+      this.disableVerbose();
+    }
   }
 }

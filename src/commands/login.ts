@@ -71,11 +71,11 @@ export default class Login extends KysoCommand {
       required: false,
       hidden: true,
     }),
-    verbose: Flags.enum({
+    verbose: Flags.boolean({
       char: 'x',
-      options: [],
       description: 'Verbose mode for debugging',
       required: false,
+      default: false
     })
   }
 
@@ -187,7 +187,9 @@ export default class Login extends KysoCommand {
       this.error('An error occurred making login request')
     }
 
-    this.log("Disabling verbose mode");
-    this.disableVerbose();
+    if(flags.verbose) {
+      this.log("Disabling verbose mode");
+      this.disableVerbose();
+    }
   }
 }

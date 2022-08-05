@@ -22,11 +22,11 @@ export default class Open extends KysoCommand {
       required: false,
       default: '.',
     }),
-    verbose: Flags.enum({
+    verbose: Flags.boolean({
       char: 'x',
-      options: [],
       description: 'Verbose mode for debugging',
       required: false,
+      default: false
     })
   }
 
@@ -76,7 +76,9 @@ export default class Open extends KysoCommand {
     this.log(`Opening "${reportUrl}" the in browser...`)
     await open(reportUrl)
 
-    this.log("Disabling verbose mode");
-    this.disableVerbose();
+    if(flags.verbose) {
+      this.log("Disabling verbose mode");
+      this.disableVerbose();
+    }
   }
 }

@@ -33,11 +33,11 @@ export default class Push extends KysoCommand {
       description: 'Postprocess the .ipynb files to allow inline comments at Kyso',
       required: false,
     }),
-    verbose: Flags.enum({
-      char: 'v',
-      options: [],
+    verbose: Flags.boolean({
+      char: 'x',
       description: 'Verbose mode for debugging',
       required: false,
+      default: false
     })
   }
 
@@ -155,7 +155,9 @@ These changes will modify your .ipynb files in your local filesystem, do you wan
     const basePath: string = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
     await this.uploadReport(basePath, enabledInlineComments)
 
-    this.log("Disabling verbose mode");
-    this.disableVerbose();
+    if(flags.verbose) {
+      this.log("Disabling verbose mode");
+      this.disableVerbose();
+    }
   }
 }

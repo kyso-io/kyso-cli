@@ -41,11 +41,11 @@ export default class Push extends KysoCommand {
       description: 'Version of the report to be pulled. Latest version is pulled if not set',
       required: false,
     }),
-    verbose: Flags.enum({
+    verbose: Flags.boolean({
       char: 'x',
-      options: [],
       description: 'Verbose mode for debugging',
       required: false,
+      default: false
     })
   }
 
@@ -79,9 +79,11 @@ export default class Push extends KysoCommand {
       }
       this.extractReport(kysoConfigFile.organization, kysoConfigFile.team, kysoConfigFile.title, flags.version, flags.path)
     }
-    
-    this.log("Disabling verbose mode");
-    this.disableVerbose();
+
+    if(flags.verbose) {
+      this.log("Disabling verbose mode");
+      this.disableVerbose();
+    }
   }
 
   async extractReport(organization: string, team: string, report: string, version: number | null, path: string): Promise<void> {
