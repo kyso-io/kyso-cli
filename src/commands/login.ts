@@ -57,6 +57,20 @@ export default class Login extends KysoCommand {
       required: false,
       multiple: false,
     }),
+    // Should we give that option? Hidden
+    organization: Flags.string({
+      char: 'o',
+      description: 'Your organization',
+      required: false,
+      hidden: true,
+    }),
+    // Should we give that option? Hidden
+    team: Flags.string({
+      char: 't',
+      description: 'Your team',
+      required: false,
+      hidden: true,
+    }),
     verbose: Flags.enum({
       char: 'x',
       options: [],
