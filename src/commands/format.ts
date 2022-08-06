@@ -76,7 +76,7 @@ export default class Format extends KysoCommand {
           message: 
 `Jupyter notebooks of v4.5 & above have unique cell identifiers, allowing Kyso to add inline comments to the reports. It seems that you are using an older version of Jupyter. If you want to allow for inline comments on your report without updating your version of Jupyter, select 'yes' and Kyso will process all notebooks in this push & set a random identifier automatically to all cells, with no side effects to the content of the report(s). If you select 'no' the notebooks will be published without cell ids.          
 
-These changes will modify your .ipynb files in your local filesystem, do you want to continue?`,
+These changes will modify your .ipynb files in your local filesystem, do you want to continue?\n`,
 
           default: true,
         },
