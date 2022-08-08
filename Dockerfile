@@ -10,14 +10,8 @@ ARG PACKAGE_VERSION=invalid
 ARG NODE_ENV=production
 # Export the NODE_ENV to the container environment
 ENV NODE_ENV=${NODE_ENV}
-# Change the workdir to the root home
-WORKDIR /root
 # Install package
 RUN npm update --location=global npm &&\
  npm install --location=global kyso@${PACKAGE_VERSION}
-# Copy entrypoint
-COPY ./container/entrypoint.sh /entrypoint.sh
-# Use it
-ENTRYPOINT ["/entrypoint.sh"]
 # Image command
-CMD [""]
+CMD ["kyso"]

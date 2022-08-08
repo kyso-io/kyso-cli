@@ -7,8 +7,8 @@ set -e
 RELPATH_TO_WORKDIR=".."
 
 # Variables
-IMAGE_NAME="k3d-registry.lo.kyso.io:5000/kyso-cli"
-CONTAINER_NAME="kyso-cli"
+IMAGE_NAME="kyso/kyso"
+CONTAINER_NAME="kyso"
 BUILD_ARGS=""
 BUILD_SECRETS=""
 CONTAINER_VARS="-v $HOME:/kyso -u $(id -u):$(id -g)"
