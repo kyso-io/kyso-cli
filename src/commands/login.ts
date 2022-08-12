@@ -75,18 +75,18 @@ export default class Login extends KysoCommand {
       char: 'x',
       description: 'Verbose mode for debugging',
       required: false,
-      default: false
-    })
+      default: false,
+    }),
   }
 
   static args = []
 
   async run(): Promise<void> {
     const { flags } = await this.parse(Login)
-    
-    if(flags.verbose) {
-      this.log("Enabled verbose mode");
-      this.enableVerbose();
+
+    if (flags.verbose) {
+      this.log('Enabled verbose mode')
+      this.enableVerbose()
     }
 
     let loginModel: LoginModel = new LoginModel('', LoginProviderEnum.KYSO, '', null)
@@ -187,9 +187,9 @@ export default class Login extends KysoCommand {
       this.error('An error occurred making login request')
     }
 
-    if(flags.verbose) {
-      this.log("Disabling verbose mode");
-      this.disableVerbose();
+    if (flags.verbose) {
+      this.log('Disabling verbose mode')
+      this.disableVerbose()
     }
   }
 }

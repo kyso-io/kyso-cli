@@ -1,6 +1,6 @@
 /* eslint-disable max-params */
-import { KysoConfigFile, Login } from '@kyso-io/kyso-model'
-import { loginAction, pullReportAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
+import { KysoConfigFile } from '@kyso-io/kyso-model'
+import { pullReportAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import AdmZip from 'adm-zip'
 import { readdirSync } from 'fs'
@@ -13,7 +13,7 @@ export default class Clone extends KysoCommand {
   static description = 'Clone a report from Kyso'
 
   static examples = [`$ kyso clone <report_url>`]
-  
+
   static flags = {
     path: Flags.string({
       char: 'p',
@@ -30,41 +30,39 @@ export default class Clone extends KysoCommand {
       char: 'x',
       description: 'Verbose mode for debugging',
       required: false,
-      default: false
-    })
+      default: false,
+    }),
   }
 
-  static args = [
-    {name: 'cloneUrl'}
-  ]
+  static args = [{ name: 'cloneUrl' }]
 
   async run(): Promise<void> {
     const { flags } = await this.parse(Clone)
 
-    if(flags.verbose) {
-      this.log("Enabled verbose mode");
-      this.enableVerbose();
+    if (flags.verbose) {
+      this.log('Enabled verbose mode')
+      this.enableVerbose()
     }
-    
-    const parsed = await this.parse(Clone)
-    let cloneUrl = parsed.args.cloneUrl;
 
-    if(!cloneUrl) {
-      this.log("\nError: Must provide the report URL\n");
-      return;
+    const parsed = await this.parse(Clone)
+    let cloneUrl = parsed.args.cloneUrl
+
+    if (!cloneUrl) {
+      this.log('\nError: Must provide the report URL\n')
+      return
     }
 
     this.log(`\n✨✨✨ Cloning ${cloneUrl} ✨✨✨\n`)
 
-    cloneUrl = cloneUrl.replace("https://", "").replace("http://", "").split("/");
-    const organizationSlug = cloneUrl[1];
-    const teamSlug = cloneUrl[2];
-    const reportSlug = cloneUrl[3];
-    
+    cloneUrl = cloneUrl.replace('https://', '').replace('http://', '').split('/')
+    const organizationSlug = cloneUrl[1]
+    const teamSlug = cloneUrl[2]
+    const reportSlug = cloneUrl[3]
+
     await launchInteractiveLoginIfNotLogged()
 
     this.log('Cloning report. Wait...')
-    
+
     let files: string[] = readdirSync(flags.path)
 
     if (organizationSlug && teamSlug && reportSlug) {
@@ -83,9 +81,9 @@ export default class Clone extends KysoCommand {
       this.extractReport(kysoConfigFile.organization, kysoConfigFile.team, kysoConfigFile.title, flags.version, flags.path)
     }
 
-    if(flags.verbose) {
-      this.log("Disabling verbose mode");
-      this.disableVerbose();
+    if (flags.verbose) {
+      this.log('Disabling verbose mode')
+      this.disableVerbose()
     }
   }
 
@@ -104,7 +102,8 @@ export default class Clone extends KysoCommand {
       this.error('Error pulling report')
     }
     const zip: AdmZip = new AdmZip(result.payload as Buffer)
-    zip.extractAllTo(path, true)
-    this.log(`\n🎉🎉🎉 Success! Report cloned into ${resolve(path)} 🎉🎉🎉\n`)
+    const reportPath = `${path}/${report}`
+    zip.extractAllTo(reportPath, true)
+    this.log(`\n🎉🎉🎉 Success! Report cloned into ${resolve(reportPath)} 🎉🎉🎉\n`)
   }
 }

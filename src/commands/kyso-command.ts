@@ -17,22 +17,23 @@ dotenv.config({
 export abstract class KysoCommand extends Command {
   private static readonly DATA_DIRECTORY = join(homedir(), '.kyso')
   public static tokenFilePath: string = join(this.DATA_DIRECTORY, 'auth.json')
-  private verbose: boolean = false;
-  private previousKysoCliVerbose = process.env.KYSO_CLI_VERBOSE;
+  private verbose: boolean
+  private previousKysoCliVerbose = process.env.KYSO_CLI_VERBOSE
 
   constructor(argv: string[], config: Config) {
     super(argv, config)
+    this.verbose = false
   }
 
-  public enableVerbose() {
+  public enableVerbose(): void {
     this.previousKysoCliVerbose = process.env.KYSO_CLI_VERBOSE
-    this.verbose = true;
-    process.env.KYSO_CLI_VERBOSE = "true";
+    this.verbose = true
+    process.env.KYSO_CLI_VERBOSE = 'true'
   }
 
-  public disableVerbose() {
-    this.verbose = false;
-    process.env.KYSO_CLI_VERBOSE = this.previousKysoCliVerbose;
+  public disableVerbose(): void {
+    this.verbose = false
+    process.env.KYSO_CLI_VERBOSE = this.previousKysoCliVerbose
   }
 
   private static removeCredentials(kysoCredentials: KysoCredentials | null): void {
@@ -45,16 +46,16 @@ export abstract class KysoCommand extends Command {
     return existsSync(this.tokenFilePath) ? JSON.parse(readFileSync(this.tokenFilePath, 'utf8').toString()) : null
   }
 
-  public static saveToken(token: string, organization: string | null, team: string | null, kysoInstallUrl?: string | null, username?: string | null): void {
+  public static saveToken(token: string, organization: string | null, team: string | null, kysoInstallUrl?: string | null, username?: string | null, fixedKysoInstallUrl?: string | null): void {
     mkdirSync(this.DATA_DIRECTORY, { recursive: true })
-    const kysoCredentials: KysoCredentials = { token, organization, team, kysoInstallUrl, username }
+    const kysoCredentials: KysoCredentials = { token, organization, team, kysoInstallUrl, username, fixedKysoInstallUrl }
     writeFileSync(this.tokenFilePath, JSON.stringify(kysoCredentials))
   }
 
   public static async checkCredentials(): Promise<CheckCredentialsResultEnum> {
     const kysoCredentials: KysoCredentials = this.getCredentials()
     if (!kysoCredentials) {
-      return CheckCredentialsResultEnum.NOT_EXIST;
+      return CheckCredentialsResultEnum.NOT_EXIST
     }
     try {
       if (kysoCredentials.kysoInstallUrl) {
@@ -62,17 +63,17 @@ export abstract class KysoCommand extends Command {
       }
       // Check token validity
       const decoded: { payload: any; iat: number; exp: number } = jwtDecode(kysoCredentials.token)
-      
+
       if (decoded.exp * 1000 >= new Date().getTime()) {
         store.dispatch(setTokenAuthAction(kysoCredentials.token))
         store.dispatch(setOrganizationAuthAction(kysoCredentials.organization))
         store.dispatch(setTeamAuthAction(kysoCredentials.team))
-        
-        return CheckCredentialsResultEnum.VALID;
-      }
-    } catch { }
 
-    return CheckCredentialsResultEnum.EXPIRED_TOKEN;
+        return CheckCredentialsResultEnum.VALID
+      }
+    } catch {}
+
+    return CheckCredentialsResultEnum.EXPIRED_TOKEN
     // this.removeCredentials(kysoCredentials)
   }
 }
