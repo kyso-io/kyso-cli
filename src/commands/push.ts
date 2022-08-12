@@ -1,10 +1,7 @@
-/* eslint-disable max-depth */
-/* eslint-disable no-prototype-builtins */
-/* eslint-disable no-negated-condition */
-import { KysoConfigFile, Login } from '@kyso-io/kyso-model'
-import { createKysoReportAction, loginAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
+import { KysoConfigFile } from '@kyso-io/kyso-model'
+import { createKysoReportAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
-import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { existsSync, readFileSync } from 'fs'
 import { isAbsolute, join } from 'path'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { getAllFiles } from '../helpers/get-all-files'
@@ -29,8 +26,8 @@ export default class Push extends KysoCommand {
       char: 'x',
       description: 'Verbose mode for debugging',
       required: false,
-      default: false
-    })
+      default: false,
+    }),
   }
 
   static args = []
@@ -87,25 +84,25 @@ export default class Push extends KysoCommand {
   }
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(Push);
-    
-    if(flags.verbose) {
-      this.log("Enabled verbose mode");
-      this.enableVerbose();
+    const { flags } = await this.parse(Push)
+
+    if (flags.verbose) {
+      this.log('Enabled verbose mode')
+      this.enableVerbose()
     }
 
     await launchInteractiveLoginIfNotLogged()
 
     if (!existsSync(flags.path)) {
       this.error('Invalid path')
-    }   
+    }
 
     const basePath: string = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
     await this.uploadReport(basePath)
 
-    if(flags.verbose) {
-      this.log("Disabling verbose mode");
-      this.disableVerbose();
+    if (flags.verbose) {
+      this.log('Disabling verbose mode')
+      this.disableVerbose()
     }
   }
 }
