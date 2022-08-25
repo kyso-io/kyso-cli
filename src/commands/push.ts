@@ -1,5 +1,5 @@
-import { KysoConfigFile } from '@kyso-io/kyso-model'
-import { createKysoReportAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
+import { KysoConfigFile, KysoSettingsEnum, NormalizedResponseDTO } from '@kyso-io/kyso-model'
+import { Api, createKysoReportAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import { existsSync, readFileSync } from 'fs'
 import { isAbsolute, join } from 'path'
@@ -69,12 +69,19 @@ export default class Push extends KysoCommand {
 
     this.log('\nUploading files. Wait a moment..\n')
 
+    const api: Api = new Api()
+    const resultKysoSettings: NormalizedResponseDTO<string> = await api.getSettingValue(KysoSettingsEnum.MAX_FILE_SIZE)
     const result: any = await store.dispatch(
       createKysoReportAction({
         filePaths: files,
         basePath,
+        maxFileSizeStr: resultKysoSettings.data,
       })
     )
+    const { error } = store.getState()
+    if (error.text) {
+      this.error(`\n😞 ${error.text}`)
+    }
     if (result?.payload?.isAxiosError || result.payload === null) {
       this.error(`\n😞 Something went wrong. Please check the console log.`)
     } else {
