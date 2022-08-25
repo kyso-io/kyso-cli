@@ -10,7 +10,6 @@ import inquirer = require('inquirer')
 
 export const launchInteractiveLoginIfNotLogged = async (): Promise<void> => {
   const checkCredentialsResult: CheckCredentialsResultEnum = await KysoCommand.checkCredentials()
-
   switch (checkCredentialsResult) {
     case CheckCredentialsResultEnum.NOT_EXIST:
       const login: Login = await interactiveLogin(KysoCommand.getCredentials())
@@ -55,7 +54,7 @@ export const launchInteractiveLoginIfNotLogged = async (): Promise<void> => {
 export const interactiveLogin = async (kysoCredentials: KysoCredentials | null): Promise<Login> => {
   const login: Login = new Login('', LoginProviderEnum.KYSO, '', null, null)
 
-  if (kysoCredentials.fixedKysoInstallUrl) {
+  if (kysoCredentials?.fixedKysoInstallUrl) {
     login.kysoInstallUrl = kysoCredentials.fixedKysoInstallUrl
   } else {
     const kysoApiResponse: { kysoInstallUrl: string } = await inquirer.prompt([
