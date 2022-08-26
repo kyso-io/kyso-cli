@@ -75,7 +75,7 @@ export default class Push extends KysoCommand {
       createKysoReportAction({
         filePaths: files,
         basePath,
-        maxFileSizeStr: resultKysoSettings.data,
+        maxFileSizeStr: resultKysoSettings.data || '500mb',
       })
     )
     const { error } = store.getState()
