@@ -1,10 +1,11 @@
 /* eslint-disable max-params */
 import { KysoConfigFile, Login } from '@kyso-io/kyso-model'
-import { loginAction, pullReportAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
+import { Api, loginAction, pullReportAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import AdmZip from 'adm-zip'
 import { readdirSync } from 'fs'
 import { join, resolve } from 'path'
+import { printErrorMessage } from '../helpers/error-handler'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login'
 import { KysoCommand } from './kyso-command'
@@ -61,23 +62,27 @@ export default class Push extends KysoCommand {
 
     await launchInteractiveLoginIfNotLogged();
 
-    this.log('Pulling report. Wait...')
-    let files: string[] = readdirSync(flags.path)
+    try {
+      this.log('Pulling report. Please wait...')
+      let files: string[] = readdirSync(flags.path)
 
-    if (flags?.organization && flags?.team && flags?.report) {
-      await this.extractReport(flags.organization, flags.team, flags.report, flags.version, flags.path)
-    } else {
-      if (flags?.path) {
-        files = files.map((file: string) => join(flags.path, file))
+      if (flags?.organization && flags?.team && flags?.report) {
+        await this.extractReport(flags.organization, flags.team, flags.report, flags.version, flags.path)
+      } else {
+        if (flags?.path) {
+          files = files.map((file: string) => join(flags.path, file))
+        }
+        let kysoConfigFile: KysoConfigFile | null = null
+        try {
+          const data: { kysoConfigFile: KysoConfigFile; kysoConfigPath: string } = findKysoConfigFile(files)
+          kysoConfigFile = data.kysoConfigFile
+        } catch (error: any) {
+          this.error(error)
+        }
+        this.extractReport(kysoConfigFile.organization, kysoConfigFile.team, kysoConfigFile.title, flags.version, flags.path)
       }
-      let kysoConfigFile: KysoConfigFile | null = null
-      try {
-        const data: { kysoConfigFile: KysoConfigFile; kysoConfigPath: string } = findKysoConfigFile(files)
-        kysoConfigFile = data.kysoConfigFile
-      } catch (error: any) {
-        this.error(error)
-      }
-      this.extractReport(kysoConfigFile.organization, kysoConfigFile.team, kysoConfigFile.title, flags.version, flags.path)
+    } catch (ex: any) {
+      printErrorMessage(ex);
     }
 
     if(flags.verbose) {
@@ -87,8 +92,9 @@ export default class Push extends KysoCommand {
   }
 
   async extractReport(organization: string, team: string, report: string, version: number | null, path: string): Promise<void> {
-    await store.dispatch(setOrganizationAuthAction(organization))
-    await store.dispatch(setTeamAuthAction(team))
+    const api: Api = new Api(KysoCommand.getCredentials().token, organization, team);
+    const finalPath: string = path + "/" + report;
+
     const data: any = {
       teamName: team,
       reportName: report,
@@ -96,12 +102,12 @@ export default class Push extends KysoCommand {
     if (version && version > 0) {
       data.version = version
     }
-    const result = await store.dispatch(pullReportAction(data))
-    if (!result || !result.payload) {
-      this.error('Error pulling report')
-    }
-    const zip: AdmZip = new AdmZip(result.payload as Buffer)
-    zip.extractAllTo(path, true)
-    this.log(`\n🎉🎉🎉 Success! Report downloaded to ${resolve(path)} 🎉🎉🎉\n`)
+    const result: Buffer = await api.pullReport(report, team);
+
+    const zip: AdmZip = new AdmZip(result)
+    
+    zip.extractAllTo(finalPath, true)
+    
+    this.log(`\n🎉🎉🎉 Success! Report downloaded to ${resolve(finalPath)} 🎉🎉🎉\n`)
   }
 }

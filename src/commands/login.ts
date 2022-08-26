@@ -2,9 +2,10 @@
 /* eslint-disable no-case-declarations */
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable indent */
-import { Login as LoginModel, LoginProviderEnum } from '@kyso-io/kyso-model'
-import { loginAction, store } from '@kyso-io/kyso-store'
+import { Login as LoginModel, LoginProviderEnum, NormalizedResponseDTO } from '@kyso-io/kyso-model'
+import { Api, loginAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
+import { printErrorMessage } from '../helpers/error-handler'
 import { interactiveLogin } from '../helpers/interactive-login'
 import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitlab, authenticateWithGoogle } from '../helpers/oauths'
 import { KysoCommand } from './kyso-command'
@@ -167,24 +168,16 @@ export default class Login extends KysoCommand {
       }
     }
 
-    /**
-     * WTF?
-     * Argument of type
-     * 'import("/home/fjbarrena/Projects/kyso/kyso-cli/node_modules/@kyso-io/kyso-model/dist/models/login.model").Login'
-     * is not assignable to parameter of type
-     * 'import("/home/fjbarrena/Projects/kyso/kyso-cli/node_modules/@kyso-io/kyso-store/node_modules/@kyso-io/kyso-model/dist/models/login.model").Login'.
-     *
-     * Casting to any for now
-     */
-    await store.dispatch(loginAction(loginModel as any))
+    try {
+      const api: Api = new Api();
+      const loginResult: NormalizedResponseDTO<string> = await api.login(loginModel);
 
-    const { auth, error } = store.getState()
-    if (auth.token) {
-      KysoCommand.saveToken(auth.token, flags.organization || null, flags.team || null, loginModel.kysoInstallUrl, loginModel.email || null)
-      this.log('Logged successfully')
-    } else {
-      this.log(error.text)
-      this.error('An error occurred making login request')
+      if (loginResult.data) {
+        KysoCommand.saveToken(loginResult.data, flags.organization || null, flags.team || null, loginModel.kysoInstallUrl, loginModel.email || null)
+        this.log('Logged successfully')
+      } 
+    } catch (ex) {
+      printErrorMessage(ex);
     }
 
     if (flags.verbose) {
