@@ -1,6 +1,5 @@
 /* eslint-disable max-params */
-import { KysoConfigFile } from '@kyso-io/kyso-model'
-import { Api, pullReportAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
+import { Api } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import AdmZip from 'adm-zip'
 import { readdirSync } from 'fs'
@@ -53,16 +52,14 @@ export default class Clone extends KysoCommand {
       return
     }
 
-    this.log(`\n✨✨✨ Cloning ${cloneUrl} ✨✨✨\n`)
-
-    cloneUrl = cloneUrl.replace('https://', '').replace('http://', '').split('/')
-    const organizationSlug = cloneUrl[1]
-    const teamSlug = cloneUrl[2]
-    const reportSlug = cloneUrl[3]
+    const urlParts: string[] = cloneUrl.replace('https://', '').replace('http://', '').split('/')
+    const organizationSlug = urlParts[1]
+    const teamSlug = urlParts[2]
+    const reportSlug = urlParts[3]
 
     await launchInteractiveLoginIfNotLogged()
 
-    this.log('Cloning report. Please wait...')
+    this.log(`\n✨✨✨ Cloning ${cloneUrl} ✨✨✨\n`)
 
     try {
       let files: string[] = readdirSync(flags.path)
@@ -73,17 +70,19 @@ export default class Clone extends KysoCommand {
         if (flags?.path) {
           files = files.map((file: string) => join(flags.path, file))
         }
-        let kysoConfigFile: KysoConfigFile | null = null
-        try {
-          const data: { kysoConfigFile: KysoConfigFile; kysoConfigPath: string } = findKysoConfigFile(files)
-          kysoConfigFile = data.kysoConfigFile
-        } catch (error: any) {
-          this.error(error)
+        const { kysoConfigFile, valid, message } = findKysoConfigFile(files)
+        if (!valid) {
+          this.error(`Could not clone report using Kyso config file: ${message}`)
         }
         this.extractReport(kysoConfigFile.organization, kysoConfigFile.team, kysoConfigFile.title, flags.version, flags.path)
       }
-    } catch(ex) {
-      printErrorMessage(ex);
+    } catch (error: any) {
+      try {
+        const errorJson: { statusCode: number; message: string; error: string } = JSON.parse(error.response.data.toString())
+        this.log(`Error: ${errorJson.message}`)
+      } catch {
+        printErrorMessage(error)
+      }
     }
 
     if (flags.verbose) {
@@ -93,8 +92,8 @@ export default class Clone extends KysoCommand {
   }
 
   async extractReport(organization: string, team: string, report: string, version: number | null, path: string): Promise<void> {
-    const api: Api = new Api(KysoCommand.getCredentials().token, organization, team);
-    const finalPath: string = path + "/" + report;
+    const api: Api = new Api(KysoCommand.getCredentials().token, organization, team)
+    const finalPath: string = path + '/' + report
 
     const data: any = {
       teamName: team,
@@ -103,12 +102,12 @@ export default class Clone extends KysoCommand {
     if (version && version > 0) {
       data.version = version
     }
-    const result: Buffer = await api.pullReport(report, team);
+    const result: Buffer = await api.pullReport(report, team)
 
     const zip: AdmZip = new AdmZip(result)
-    
+
     zip.extractAllTo(finalPath, true)
-    
+
     this.log(`\n🎉🎉🎉 Success! Report downloaded to ${resolve(finalPath)} 🎉🎉🎉\n`)
   }
 }
