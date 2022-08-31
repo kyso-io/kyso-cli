@@ -1,27 +1,25 @@
-import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
+/* eslint-disable camelcase */
+import { fetchOrganizationsAction, fetchTeamsAction, store } from '@kyso-io/kyso-store'
+import { Flags } from '@oclif/core'
 import { existsSync, writeFileSync } from 'fs'
 import * as jsYaml from 'js-yaml'
-import { KysoConfigFile, Login } from '@kyso-io/kyso-model'
-import { isAbsolute, join, basename } from 'path'
+import { basename, isAbsolute, join } from 'path'
+import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { getAllFiles } from '../helpers/get-all-files'
-import {Flags} from '@oclif/core'
-import inquirer = require('inquirer')
-import { store, fetchOrganizationsAction, fetchTeamsAction } from '@kyso-io/kyso-store'
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login'
 import { KysoCommand } from './kyso-command'
+import inquirer = require('inquirer')
 
 enum ReportTypes {
   website = 'website',
   jupyter = 'jupyter',
-  markdown = 'markdown'
+  markdown = 'markdown',
 }
 
 export default class Init extends KysoCommand {
   static description = 'Interactivel build a kyso.yaml file'
 
-  static examples = [
-    `$ kyso init`,
-  ]
+  static examples = [`$ kyso init`]
 
   static flags = {
     path: Flags.string({
@@ -34,18 +32,18 @@ export default class Init extends KysoCommand {
       char: 'x',
       description: 'Verbose mode for debugging',
       required: false,
-      default: false
-    })
+      default: false,
+    }),
   }
 
   static args = []
 
   public async run(): Promise<void> {
-    const { flags } = await this.parse(Init);
-    
-    if(flags.verbose) {
-      this.log("Enabled verbose mode");
-      this.enableVerbose();
+    const { flags } = await this.parse(Init)
+
+    if (flags.verbose) {
+      this.log('Enabled verbose mode')
+      this.enableVerbose()
     }
 
     await launchInteractiveLoginIfNotLogged()
@@ -57,24 +55,19 @@ export default class Init extends KysoCommand {
     const basePath = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
     const files: string[] = getAllFiles(basePath, [])
 
-    let kysoConfigFile: KysoConfigFile | null = null
-    try {
-      const data: { kysoConfigFile: KysoConfigFile; kysoConfigPath: string } = findKysoConfigFile(files)
-      kysoConfigFile = data.kysoConfigFile
+    const { kysoConfigFile } = findKysoConfigFile(files)
+    if (kysoConfigFile) {
       const confirmResponse: { confirmOverwrite } = await inquirer.prompt([
         {
           name: 'confirmOverwrite',
           default: false,
           message: 'kyso.yaml already exists, overwrite?',
-          type: 'confirm'
+          type: 'confirm',
         },
       ])
-
       if (!confirmResponse.confirmOverwrite) {
         return
       }
-    } catch (error: any) {
-      // continue
     }
 
     const { payload: orgPayload } = await store.dispatch(fetchOrganizationsAction({}))
@@ -88,11 +81,13 @@ export default class Init extends KysoCommand {
     ])
 
     const orgId = orgPayload.find(org => org.sluglified_name === organizationResponse.organization).id
-    const {payload: teamPayload} = await store.dispatch(fetchTeamsAction({
-      filter: {
-        organization_id: orgId,
-      }
-    }))
+    const { payload: teamPayload } = await store.dispatch(
+      fetchTeamsAction({
+        filter: {
+          organization_id: orgId,
+        },
+      })
+    )
 
     const teamResponse: { team } = await inquirer.prompt([
       {
@@ -108,11 +103,7 @@ export default class Init extends KysoCommand {
         name: 'reportType',
         message: 'Select a reportType',
         type: 'list',
-        choices: [
-          { name: ReportTypes.website },
-          { name: ReportTypes.jupyter },
-          { name: ReportTypes.markdown },
-        ],
+        choices: [{ name: ReportTypes.website }, { name: ReportTypes.jupyter }, { name: ReportTypes.markdown }],
       },
     ])
 
@@ -159,16 +150,16 @@ export default class Init extends KysoCommand {
       team: teamResponse.team,
       type: reportTypeResponse.reportType,
       title: titleResponse.title,
-      main: mainFileResponse.mainFile
+      main: mainFileResponse.mainFile,
     }
 
     await writeFileSync(join(process.cwd(), 'kyso.yaml'), jsYaml.dump(config))
 
     this.log(`Wrote config to ${join(process.cwd(), 'kyso.yaml')}`)
 
-    if(flags.verbose) {
-      this.log("Disabling verbose mode");
-      this.disableVerbose();
+    if (flags.verbose) {
+      this.log('Disabling verbose mode')
+      this.disableVerbose()
     }
   }
 }
