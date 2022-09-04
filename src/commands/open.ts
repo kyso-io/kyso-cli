@@ -1,5 +1,4 @@
 /* eslint-disable no-prototype-builtins */
-import { KysoConfigFile } from '@kyso-io/kyso-model'
 import { Flags } from '@oclif/core'
 import { existsSync } from 'fs'
 import open from 'open'
@@ -26,18 +25,18 @@ export default class Open extends KysoCommand {
       char: 'x',
       description: 'Verbose mode for debugging',
       required: false,
-      default: false
-    })
+      default: false,
+    }),
   }
 
   static args = []
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(Open);
-    
-    if(flags.verbose) {
-      this.log("Enabled verbose mode");
-      this.enableVerbose();
+    const { flags } = await this.parse(Open)
+
+    if (flags.verbose) {
+      this.log('Enabled verbose mode')
+      this.enableVerbose()
     }
 
     const kysoCredentials: KysoCredentials | null = KysoCommand.getCredentials()
@@ -45,7 +44,6 @@ export default class Open extends KysoCommand {
       this.log(`No credentials found. Please login first.`)
     }
 
-    
     if (!existsSync(flags.path)) {
       this.error('Invalid path')
     }
@@ -53,12 +51,9 @@ export default class Open extends KysoCommand {
     const basePath = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
     const files: string[] = getAllFiles(basePath, [])
 
-    let kysoConfigFile: KysoConfigFile | null = null
-    try {
-      const data: { kysoConfigFile: KysoConfigFile; kysoConfigPath: string } = findKysoConfigFile(files)
-      kysoConfigFile = data.kysoConfigFile
-    } catch (error: any) {
-      this.error(error)
+    const { kysoConfigFile, valid, message } = findKysoConfigFile(files)
+    if (!valid) {
+      this.error(`Could not open the report using Kyso config file: ${message}`)
     }
 
     if (!kysoConfigFile.hasOwnProperty('organization') || kysoConfigFile.organization === null || kysoConfigFile.organization.length === 0) {
@@ -76,9 +71,9 @@ export default class Open extends KysoCommand {
     this.log(`Opening "${reportUrl}" the in browser...`)
     await open(reportUrl)
 
-    if(flags.verbose) {
-      this.log("Disabling verbose mode");
-      this.disableVerbose();
+    if (flags.verbose) {
+      this.log('Disabling verbose mode')
+      this.disableVerbose()
     }
   }
 }

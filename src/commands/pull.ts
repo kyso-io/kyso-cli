@@ -1,6 +1,5 @@
 /* eslint-disable max-params */
-import { KysoConfigFile, Login } from '@kyso-io/kyso-model'
-import { Api, loginAction, pullReportAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
+import { Api } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import AdmZip from 'adm-zip'
 import { readdirSync } from 'fs'
@@ -46,21 +45,21 @@ export default class Push extends KysoCommand {
       char: 'x',
       description: 'Verbose mode for debugging',
       required: false,
-      default: false
-    })
+      default: false,
+    }),
   }
 
   static args = []
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(Push);
-    
-    if(flags.verbose) {
-      this.log("Enabled verbose mode");
-      this.enableVerbose();
+    const { flags } = await this.parse(Push)
+
+    if (flags.verbose) {
+      this.log('Enabled verbose mode')
+      this.enableVerbose()
     }
 
-    await launchInteractiveLoginIfNotLogged();
+    await launchInteractiveLoginIfNotLogged()
 
     try {
       this.log('Pulling report. Please wait...')
@@ -72,28 +71,25 @@ export default class Push extends KysoCommand {
         if (flags?.path) {
           files = files.map((file: string) => join(flags.path, file))
         }
-        let kysoConfigFile: KysoConfigFile | null = null
-        try {
-          const data: { kysoConfigFile: KysoConfigFile; kysoConfigPath: string } = findKysoConfigFile(files)
-          kysoConfigFile = data.kysoConfigFile
-        } catch (error: any) {
-          this.error(error)
+        const { kysoConfigFile, valid, message } = findKysoConfigFile(files)
+        if (!valid) {
+          this.error(`Could not pull report using Kyso config file: ${message}`)
         }
         this.extractReport(kysoConfigFile.organization, kysoConfigFile.team, kysoConfigFile.title, flags.version, flags.path)
       }
-    } catch (ex: any) {
-      printErrorMessage(ex);
+    } catch (error: any) {
+      printErrorMessage(error)
     }
 
-    if(flags.verbose) {
-      this.log("Disabling verbose mode");
-      this.disableVerbose();
+    if (flags.verbose) {
+      this.log('Disabling verbose mode')
+      this.disableVerbose()
     }
   }
 
   async extractReport(organization: string, team: string, report: string, version: number | null, path: string): Promise<void> {
-    const api: Api = new Api(KysoCommand.getCredentials().token, organization, team);
-    const finalPath: string = path + "/" + report;
+    const api: Api = new Api(KysoCommand.getCredentials().token, organization, team)
+    const finalPath: string = path + '/' + report
 
     const data: any = {
       teamName: team,
@@ -102,12 +98,12 @@ export default class Push extends KysoCommand {
     if (version && version > 0) {
       data.version = version
     }
-    const result: Buffer = await api.pullReport(report, team);
+    const result: Buffer = await api.pullReport(report, team)
 
     const zip: AdmZip = new AdmZip(result)
-    
+
     zip.extractAllTo(finalPath, true)
-    
+
     this.log(`\n🎉🎉🎉 Success! Report downloaded to ${resolve(finalPath)} 🎉🎉🎉\n`)
   }
 }
