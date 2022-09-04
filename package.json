@@ -20,12 +20,14 @@
     "inquirer": "^8.2.0",
     "js-yaml": "^4.1.0",
     "jwt-decode": "^3.1.2",
+    "office-document-properties": "^1.1.0",
     "open": "^8.4.0",
     "server-destroy": "^1.0.1",
     "sha256-file": "^1.0.0",
     "slugify": "^1.6.5",
     "trim-newlines": "3.0.1",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "xml-js": "^1.6.11"
   },
   "devDependencies": {
     "@oclif/test": "^2",
