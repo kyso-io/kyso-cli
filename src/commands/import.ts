@@ -20,8 +20,8 @@ export default class Import extends KysoCommand {
       char: 't',
       description: 'type',
       required: true,
-      options: ["powerpoint"],
-      default: "powerpoint"
+      options: ["office-metadata"],
+      default: "office-metadata"
     }),
     path: Flags.string({
       char: 'p',
@@ -61,7 +61,7 @@ export default class Import extends KysoCommand {
 
   static args = []
 
-  protected processFolder(startPath: string, extension: string, flags: any) {
+  protected searchAndProcessOfficeMetadata(startPath: string, extension: string, flags: any) {
     if (!existsSync(startPath)) {
       this.error("Provided path does not exists");
     }
@@ -73,7 +73,7 @@ export default class Import extends KysoCommand {
         let stat = lstatSync(filename);
 
         if (stat.isDirectory()) {
-            this.processFolder(filename, extension, flags); //recurse
+            this.searchAndProcessOfficeMetadata(filename, extension, flags); //recurse
         } else if (filename.endsWith(extension)) {
             try {
               console.log('🔎 Found: ', filename);
@@ -244,6 +244,16 @@ export default class Import extends KysoCommand {
 
     await launchInteractiveLoginIfNotLogged();
 
-    this.processFolder(flags.path, ".pptx", flags);
+    switch(flags.type.toLowerCase()) {
+      case "office-metadata":
+        console.log(`\n📢 Searching pptx, docx and xlsx at ${flags.path} \n`);
+
+        this.searchAndProcessOfficeMetadata(flags.path, ".pptx", flags);
+        this.searchAndProcessOfficeMetadata(flags.path, ".docx", flags);
+        this.searchAndProcessOfficeMetadata(flags.path, ".xlsx", flags);
+        break;
+    }
+
+    
   }
 }
