@@ -8,7 +8,7 @@ import convert = require('xml-js')
 import { v4 as uuidv4 } from 'uuid';
 const { execSync } = require("child_process");
 
-export default class ImportRepository extends KysoCommand {
+export default class Import extends KysoCommand {
   static description = 'Import report into kyso from different sources'
 
   static examples = [
@@ -40,12 +40,28 @@ export default class ImportRepository extends KysoCommand {
       description: 'Verbose mode for debugging',
       required: false,
       default: false
+    }),
+    organization: Flags.string({
+      char: 'o',
+      description: 'organization',
+      required: false,
+      default: ""
+    }),
+    channel: Flags.string({
+      char: 'c',
+      description: 'channel',
+      required: false
+    }),
+    author: Flags.string({
+      char: 'u',
+      description: 'author',
+      required: false
     })
   }
 
   static args = []
 
-  protected processFolder(startPath: string, extension: string, mappings: string) {
+  protected processFolder(startPath: string, extension: string, flags: any) {
     if (!existsSync(startPath)) {
       this.error("Provided path does not exists");
     }
@@ -57,7 +73,7 @@ export default class ImportRepository extends KysoCommand {
         let stat = lstatSync(filename);
 
         if (stat.isDirectory()) {
-            this.processFolder(filename, extension, mappings); //recurse
+            this.processFolder(filename, extension, flags); //recurse
         } else if (filename.endsWith(extension)) {
             console.log('🔎 Found: ', filename);
             const zip: AdmZip = new AdmZip(filename);
@@ -79,7 +95,7 @@ export default class ImportRepository extends KysoCommand {
             const mappingObject = new Map();
 
             for(const metadata of allMetadata) {
-              const mappingData = mappings.split(";");
+              const mappingData = flags.mappings.split(";");
 
               for(const mData of mappingData) {
                 const splittedMap = mData.split(":");
@@ -116,7 +132,7 @@ export default class ImportRepository extends KysoCommand {
             let titleValue = "";
 
             // Check if minimum data is retrieved
-            for (const [key, value] of mappingObject) {
+            for (const [_key, value] of mappingObject) {
               switch(value.kyso) {
                 case "organization":
                   if(value.value) {
@@ -145,6 +161,33 @@ export default class ImportRepository extends KysoCommand {
               }
             }
 
+            // Set defaults if are defined and no-metadata was collected
+            if(!organizationSet && flags.organization) {
+              console.log(`\t🔶 Organization was not found in the document's metadata. Setting default value ${flags.organization}.`)
+              organizationSet = true;
+              organizationValue = flags.organization
+            }
+
+            if(!authorSet && flags.author) {
+              console.log(`\t🔶 Author was not found in the document's metadata. Setting default value ${flags.author}.`)
+              authorSet = true;
+              authorValue = flags.author;
+            }
+
+            if(!teamSet && flags.channel) {
+              console.log(`\t🔶 Channel was not found in the document's metadata. Setting default value ${flags.channel}.`)
+              teamSet = true;
+              teamValue = flags.channel;
+            }
+            const onlyName = filename.replace(/^.*[\\\/]/, '');
+
+            if(!titleSet) {
+              const defaultTitle = onlyName.replace("-", " ").replace("_", " ");
+              console.log(`\t🔶 Title was not found in the document's metadata. Setting the file name as title: ${defaultTitle}.`)
+              titleSet = true;
+              titleValue = defaultTitle;
+            }
+
             if(organizationSet && authorSet && teamSet && titleSet) {
               // All right, upload it
               console.log("\t💚 All right! Uploading report...");
@@ -155,7 +198,7 @@ export default class ImportRepository extends KysoCommand {
               mkdirSync(tmpFolder);
               
               // Copy file to a temporary folder
-              const onlyName = filename.replace(/^.*[\\\/]/, '');
+              
               const copyPath = join(tmpFolder, onlyName)
               copyFileSync(filename, copyPath);
 
@@ -184,7 +227,7 @@ export default class ImportRepository extends KysoCommand {
   }
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(ImportRepository)
+    const { flags } = await this.parse(Import)
 
     if(flags.verbose) {
       this.log("Enabled verbose mode");
@@ -193,6 +236,6 @@ export default class ImportRepository extends KysoCommand {
 
     await launchInteractiveLoginIfNotLogged();
 
-    this.processFolder(flags.path, ".pptx", flags.mappings);
+    this.processFolder(flags.path, ".pptx", flags);
   }
 }
