@@ -6,7 +6,7 @@ import { join } from 'path'
 import AdmZip from 'adm-zip'
 import convert = require('xml-js')
 import { v4 as uuidv4 } from 'uuid';
-const { exec, execSync } = require("child_process");
+const { execSync } = require("child_process");
 
 export default class ImportRepository extends KysoCommand {
   static description = 'Import report into kyso from different sources'
@@ -53,8 +53,9 @@ export default class ImportRepository extends KysoCommand {
     const files = readdirSync(startPath);
     
     for (let i = 0; i < files.length; i++) {
-        var filename = join(startPath, files[i]);
-        var stat = lstatSync(filename);
+        let filename = join(startPath, files[i]);
+        let stat = lstatSync(filename);
+
         if (stat.isDirectory()) {
             this.processFolder(filename, extension, mappings); //recurse
         } else if (filename.endsWith(extension)) {
@@ -65,10 +66,10 @@ export default class ImportRepository extends KysoCommand {
             const app = zipEntries.filter(x => x.entryName === 'docProps/app.xml');
             const core = zipEntries.filter(x => x.entryName === 'docProps/core.xml');
             const thumbnail = zipEntries.filter(x => x.entryName === 'docProps/thumbnail.jpeg');
-            
+
             const appJson = JSON.parse(convert.xml2json(app[0].getData().toString()));
             const coreJson = JSON.parse(convert.xml2json(core[0].getData().toString()));
-            
+
             const appElements = appJson.elements.map(x => x.elements).flat();
             const coreElements = coreJson.elements.map(x => x.elements).flat();
 
@@ -79,7 +80,7 @@ export default class ImportRepository extends KysoCommand {
 
             for(const metadata of allMetadata) {
               const mappingData = mappings.split(";");
-              
+
               for(const mData of mappingData) {
                 const splittedMap = mData.split(":");
 
@@ -87,7 +88,7 @@ export default class ImportRepository extends KysoCommand {
                   mappingObject.set(splittedMap[0], { kyso: splittedMap[1], value: undefined });
                 }
               }
-              
+
               for(const k of mappingObject.keys()) {
                 if(metadata.name.toLowerCase().includes(k.toLowerCase())) {
                   // Match
@@ -149,13 +150,14 @@ export default class ImportRepository extends KysoCommand {
               console.log("\t💚 All right! Uploading report...");
 
               const random = uuidv4();
-              const tmpFolder = `${KysoCommand.DATA_DIRECTORY}/tmp/${random}`;
-
+              const tmpFolder = join(KysoCommand.DATA_DIRECTORY, "tmp", random);
+              
               mkdirSync(tmpFolder);
               
               // Copy file to a temporary folder
               const onlyName = filename.replace(/^.*[\\\/]/, '');
-              copyFileSync(filename, `${tmpFolder}/${onlyName}`);
+              const copyPath = join(tmpFolder, onlyName)
+              copyFileSync(filename, copyPath);
 
               // Create kyso.json
               const kysoJson = {
@@ -172,7 +174,8 @@ export default class ImportRepository extends KysoCommand {
 
               // Call kyso push
               const result = execSync(`kyso push --path ${tmpFolder}`);
-              console.log(result.toString());
+              rmSync(tmpFolder, {recursive: true, force: true});
+              result.toString().split("\n").forEach(x => console.log(`\t${x}`));
             } else {
               console.log("\t💔 Sorry, we can't retrieve all the required metadata to upload this report");
             }
