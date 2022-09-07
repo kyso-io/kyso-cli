@@ -15,7 +15,8 @@ dotenv.config({
 })
 
 export abstract class KysoCommand extends Command {
-  protected static readonly DATA_DIRECTORY = join(homedir(), '.kyso')
+  protected static readonly DATA_DIRECTORY = process.env.KYSO_DATA_DIRECTORY ? process.env.KYSO_DATA_DIRECTORY : join(homedir(), '.kyso')
+  
   public static tokenFilePath: string = join(this.DATA_DIRECTORY, 'auth.json')
   private verbose: boolean
   private previousKysoCliVerbose = process.env.KYSO_CLI_VERBOSE
