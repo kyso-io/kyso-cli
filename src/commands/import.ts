@@ -56,6 +56,12 @@ export default class Import extends KysoCommand {
       char: 'u',
       description: 'author',
       required: false
+    }),
+    force: Flags.boolean({
+      char: 'f',
+      description: 'Force',
+      required: false,
+      default: false
     })
   }
 
@@ -162,26 +168,48 @@ export default class Import extends KysoCommand {
                 }
               }
 
-              // Set defaults if are defined and no-metadata was collected
-              if(!organizationSet && flags.organization) {
-                console.log(`\t🔶 Organization was not found in the document's metadata. Setting default value ${flags.organization}.`)
-                organizationSet = true;
-                organizationValue = flags.organization
-              }
-
-              if(!authorSet && flags.author) {
-                console.log(`\t🔶 Author was not found in the document's metadata. Setting default value ${flags.author}.`)
-                authorSet = true;
-                authorValue = flags.author;
-              }
-
-              if(!teamSet && flags.channel) {
-                console.log(`\t🔶 Channel was not found in the document's metadata. Setting default value ${flags.channel}.`)
-                teamSet = true;
-                teamValue = flags.channel;
-              }
               const onlyName = filename.replace(/^.*[\\\/]/, '');
 
+              if(flags.force) {
+                if(flags.organization) {
+                  console.log(`\t👊 Forcing organization to ${flags.organization}.`)
+                  organizationSet = true;
+                  organizationValue = flags.organization
+                }
+
+                if(flags.author) {
+                  console.log(`\t👊 Forcing author to ${flags.author}.`)
+                  authorSet = true;
+                  authorValue = flags.author;
+                }
+
+                if(flags.channel) {
+                  console.log(`\t👊 Forcing achannel to ${flags.channel}.`)
+                  teamSet = true;
+                  teamValue = flags.channel;
+                }
+
+              } else {
+                // Set defaults if are defined and no-metadata was collected
+                if(!organizationSet && flags.organization) {
+                  console.log(`\t🔶 Organization was not found in the document's metadata. Setting default value ${flags.organization}.`)
+                  organizationSet = true;
+                  organizationValue = flags.organization
+                }
+
+                if(!authorSet && flags.author) {
+                  console.log(`\t🔶 Author was not found in the document's metadata. Setting default value ${flags.author}.`)
+                  authorSet = true;
+                  authorValue = flags.author;
+                }
+
+                if(!teamSet && flags.channel) {
+                  console.log(`\t🔶 Channel was not found in the document's metadata. Setting default value ${flags.channel}.`)
+                  teamSet = true;
+                  teamValue = flags.channel;
+                }
+              }
+              
               if(!titleSet) {
                 const defaultTitle = onlyName.replace("-", " ").replace("_", " ");
                 console.log(`\t🔶 Title was not found in the document's metadata. Setting the file name as title: ${defaultTitle}.`)
@@ -194,6 +222,13 @@ export default class Import extends KysoCommand {
                 console.log("\t💚 All right! Uploading report...");
 
                 const random = uuidv4();
+                
+                // Check if tmp folder exists, and create it if not
+                if (!existsSync(join(KysoCommand.DATA_DIRECTORY, "tmp"))) {
+                  console.log(`Creating tmp folder at ${join(KysoCommand.DATA_DIRECTORY, "tmp")}`);
+                  mkdirSync(join(KysoCommand.DATA_DIRECTORY, "tmp"));
+                }
+                
                 const tmpFolder = join(KysoCommand.DATA_DIRECTORY, "tmp", random);
                 
                 mkdirSync(tmpFolder);
