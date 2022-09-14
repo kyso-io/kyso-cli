@@ -13,10 +13,10 @@ export default class Push extends KysoCommand {
     if (kysoCredentials) {
       const decoded: { payload: any; iat: number; exp: number } = jwtDecode(kysoCredentials.token)
       const user: User = decoded.payload
-      this.log(`You are logged into ${kysoCredentials.kysoInstallUrl} as ${user.email}.`);
+      this.log(`You are logged into ${kysoCredentials.kysoInstallUrl} as ${user.email}.`)
     } else {
       this.log(`No credentials found. Please login.`)
     }
-    this.log(`Your kyso data directory is ${KysoCommand.DATA_DIRECTORY}`);
+    this.log(`Your kyso data directory is ${KysoCommand.DATA_DIRECTORY}`)
   }
 }
