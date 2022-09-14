@@ -1,10 +1,11 @@
 /* eslint-disable no-await-in-loop */
-import { KysoConfigFile, KysoSettingsEnum, NormalizedResponseDTO, Organization, ReportDTO, ReportPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model'
+import { UpdateReportRequestDTO, KysoConfigFile, KysoSettingsEnum, NormalizedResponseDTO, Organization, ReportDTO, ReportPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model'
 import { Api, createKysoReportAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import { existsSync, readdirSync, readFileSync } from 'fs'
 import jwtDecode from 'jwt-decode'
 import { isAbsolute, join } from 'path'
+import { report } from 'process'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { getAllFiles } from '../helpers/get-all-files'
 import { getValidFiles } from '../helpers/get-valid-files'
@@ -122,13 +123,44 @@ export default class Push extends KysoCommand {
       const normalizedResponse: NormalizedResponseDTO<ReportDTO | ReportDTO[]> = result.payload
       if (Array.isArray(normalizedResponse.data)) {
         for (const reportDto of normalizedResponse.data) {
+          
           const reportUrl = `${kysoCredentials.kysoInstallUrl}/${reportDto.organization_sluglified_name}/${reportDto.team_sluglified_name}/${reportDto.name}`
           this.log(`🎉🎉🎉 Report ${reportDto.title} was uploaded to: ${reportUrl} 🎉🎉🎉\n`)
+
+          try {
+            // Silently update authors to the specified ones
+            api.updateReport(reportDto.id, new UpdateReportRequestDTO(
+              reportDto.title,
+              reportDto.description,
+              reportDto.show_code,
+              reportDto.show_output,
+              reportDto.main_file,
+              reportDto.tags, 
+              kysoConfigFile.authors ? kysoConfigFile.authors : reportDto.authors.map(x => x.email)
+            ))
+          } catch (ex) {
+            // silent
+          }
         }
       } else {
         const reportDto: ReportDTO = normalizedResponse.data
         const reportUrl = `${kysoCredentials.kysoInstallUrl}/${reportDto.organization_sluglified_name}/${reportDto.team_sluglified_name}/${reportDto.name}`
         this.log(`🎉🎉🎉 Report ${reportDto.title} was uploaded to: ${reportUrl} 🎉🎉🎉\n`)
+
+        try {
+          // Silently update authors to the specified ones
+          api.updateReport(reportDto.id, new UpdateReportRequestDTO(
+            reportDto.title,
+            reportDto.description,
+            reportDto.show_code,
+            reportDto.show_output,
+            reportDto.main_file,
+            reportDto.tags, 
+            kysoConfigFile.authors ? kysoConfigFile.authors : reportDto.authors.map(x => x.email)
+          ))
+        } catch (ex) {
+          // silent
+        }
       }
     }
   }
