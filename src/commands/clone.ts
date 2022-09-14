@@ -1,4 +1,5 @@
 /* eslint-disable max-params */
+import { NormalizedResponseDTO, Organization, Team, TeamVisibilityEnum } from '@kyso-io/kyso-model'
 import { Api } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import AdmZip from 'adm-zip'
@@ -7,6 +8,7 @@ import { join, resolve } from 'path'
 import { printErrorMessage } from '../helpers/error-handler'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login'
+import { KysoCredentials } from '../types/kyso-credentials'
 import { KysoCommand } from './kyso-command'
 
 export default class Clone extends KysoCommand {
@@ -45,7 +47,7 @@ export default class Clone extends KysoCommand {
     }
 
     const parsed = await this.parse(Clone)
-    let cloneUrl = parsed.args.cloneUrl
+    const cloneUrl: string = parsed.args.cloneUrl
 
     if (!cloneUrl) {
       this.log('\nError: Must provide the report URL\n')
@@ -57,7 +59,43 @@ export default class Clone extends KysoCommand {
     const teamSlug = urlParts[2]
     const reportSlug = urlParts[3]
 
-    await launchInteractiveLoginIfNotLogged()
+    if (!organizationSlug || !teamSlug || !reportSlug) {
+      this.error('Invalid report URL')
+    }
+
+    // Check if team is public
+    const kysoCredentials: KysoCredentials = KysoCommand.getCredentials()
+    const api: Api = new Api(kysoCredentials?.token)
+    let organization: Organization | null = null
+    try {
+      const resultOrganization: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(organizationSlug)
+      organization = resultOrganization.data
+    } catch {
+      this.log(`\nError: Organization ${organizationSlug} does not exist.\n`)
+      return
+    }
+    try {
+      const resultTeam: NormalizedResponseDTO<Team> = await api.getTeamBySlug(organization.id, teamSlug)
+      const team: Team = resultTeam.data
+      if (team.visibility !== TeamVisibilityEnum.PUBLIC) {
+        await launchInteractiveLoginIfNotLogged()
+      }
+    } catch (error: any) {
+      const { statusCode, message } = error.response.data
+      if (statusCode === 404) {
+        this.log(`\nError: Team ${teamSlug} does not exist.\n`)
+      } else if (statusCode === 403) {
+        if (kysoCredentials?.token) {
+          this.log(`\nError: ${message}\n`)
+        } else {
+          await launchInteractiveLoginIfNotLogged()
+          this.run()
+        }
+      } else {
+        printErrorMessage(error)
+      }
+      return
+    }
 
     this.log(`\n✨✨✨ Cloning ${cloneUrl} ✨✨✨\n`)
 
