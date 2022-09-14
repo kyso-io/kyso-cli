@@ -9,6 +9,7 @@ import { printErrorMessage } from '../helpers/error-handler'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login'
 import slugify from '../helpers/slugify'
+import { KysoCredentials } from '../types/kyso-credentials'
 import { KysoCommand } from './kyso-command'
 
 export default class Push extends KysoCommand {
@@ -98,7 +99,8 @@ export default class Push extends KysoCommand {
     }
 
     // Check if team is public
-    const api: Api = new Api()
+    const kysoCredentials: KysoCredentials = KysoCommand.getCredentials()
+    const api: Api = new Api(kysoCredentials?.token)
     let organization: Organization | null = null
     try {
       const resultOrganization: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(organizationSlug)
@@ -113,8 +115,20 @@ export default class Push extends KysoCommand {
       if (team.visibility !== TeamVisibilityEnum.PUBLIC) {
         await launchInteractiveLoginIfNotLogged()
       }
-    } catch {
-      this.log(`\nError: Team ${teamSlug} does not exist.\n`)
+    } catch (error: any) {
+      const { statusCode, message } = error.response.data
+      if (statusCode === 404) {
+        this.log(`\nError: Team ${teamSlug} does not exist.\n`)
+      } else if (statusCode === 403) {
+        if (kysoCredentials?.token) {
+          this.log(`\nError: ${message}\n`)
+        } else {
+          await launchInteractiveLoginIfNotLogged()
+          this.run()
+        }
+      } else {
+        printErrorMessage(error)
+      }
       return
     }
 
