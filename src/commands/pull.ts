@@ -1,4 +1,5 @@
 /* eslint-disable max-params */
+import { NormalizedResponseDTO, Organization, Team, TeamVisibilityEnum } from '@kyso-io/kyso-model'
 import { Api } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import AdmZip from 'adm-zip'
@@ -7,6 +8,7 @@ import { join, resolve } from 'path'
 import { printErrorMessage } from '../helpers/error-handler'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login'
+import slugify from '../helpers/slugify'
 import { KysoCommand } from './kyso-command'
 
 export default class Push extends KysoCommand {
@@ -24,17 +26,14 @@ export default class Push extends KysoCommand {
     organization: Flags.string({
       char: 'o',
       description: 'Organization slug name which the report belongs to. i.e: for organization "Kyso Inc" the organization slug is "kyso-inc".',
-      required: true,
     }),
     team: Flags.string({
       char: 't',
       description: 'Team slug name which the report belongs to. i.e: for team "My Awesome Team" the team slug is "my-awesome-team".',
-      required: true,
     }),
     report: Flags.string({
       char: 'r',
       description: 'Report slug name to be pulled. i.e: for report with name "The Great Report" the report slug if "the-great-report"',
-      required: true,
     }),
     version: Flags.integer({
       char: 'v',
@@ -59,27 +58,67 @@ export default class Push extends KysoCommand {
       this.enableVerbose()
     }
 
-    await launchInteractiveLoginIfNotLogged()
+    let organizationSlug: string | null = null
+    let teamSlug: string | null = null
+    let reportSlug: string | null = null
 
     try {
       this.log('Pulling report. Please wait...')
-      let files: string[] = readdirSync(flags.path)
 
       if (flags?.organization && flags?.team && flags?.report) {
-        await this.extractReport(flags.organization, flags.team, flags.report, flags.version, flags.path)
+        organizationSlug = flags.organization
+        teamSlug = flags.team
+        reportSlug = flags.report
       } else {
-        if (flags?.path) {
-          files = files.map((file: string) => join(flags.path, file))
+        if (!flags.path) {
+          this.error('Please specify a path to pull the report to')
         }
+        let files: string[] = readdirSync(flags.path)
+        files = files.map((file: string) => join(flags.path, file))
         const { kysoConfigFile, valid, message } = findKysoConfigFile(files)
         if (!valid) {
           this.error(`Could not pull report using Kyso config file: ${message}`)
         }
-        this.extractReport(kysoConfigFile.organization, kysoConfigFile.team, kysoConfigFile.title, flags.version, flags.path)
+        organizationSlug = kysoConfigFile.organization
+        teamSlug = kysoConfigFile.team
+        reportSlug = slugify(kysoConfigFile.title)
       }
     } catch (error: any) {
       printErrorMessage(error)
     }
+
+    if (!organizationSlug) {
+      this.error('Organization is required')
+    }
+    if (!teamSlug) {
+      this.error('Team is required')
+    }
+    if (!reportSlug) {
+      this.error('Report is required')
+    }
+
+    // Check if team is public
+    const api: Api = new Api()
+    let organization: Organization | null = null
+    try {
+      const resultOrganization: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(organizationSlug)
+      organization = resultOrganization.data
+    } catch {
+      this.log(`\nError: Organization ${organizationSlug} does not exist.\n`)
+      return
+    }
+    try {
+      const resultTeam: NormalizedResponseDTO<Team> = await api.getTeamBySlug(organization.id, teamSlug)
+      const team: Team = resultTeam.data
+      if (team.visibility !== TeamVisibilityEnum.PUBLIC) {
+        await launchInteractiveLoginIfNotLogged()
+      }
+    } catch {
+      this.log(`\nError: Team ${teamSlug} does not exist.\n`)
+      return
+    }
+
+    await this.extractReport(organizationSlug, teamSlug, reportSlug, flags.version, flags.path)
 
     if (flags.verbose) {
       this.log('Disabling verbose mode')
@@ -88,22 +127,16 @@ export default class Push extends KysoCommand {
   }
 
   async extractReport(organization: string, team: string, report: string, version: number | null, path: string): Promise<void> {
-    const api: Api = new Api(KysoCommand.getCredentials().token, organization, team)
-    const finalPath: string = path + '/' + report
-
-    const data: any = {
-      teamName: team,
-      reportName: report,
+    try {
+      const api: Api = new Api(KysoCommand.getCredentials()?.token, organization, team)
+      const result: Buffer = await api.pullReport(report, team, version)
+      const zip: AdmZip = new AdmZip(result)
+      const finalPath: string = path + '/' + report
+      zip.extractAllTo(finalPath, true)
+      this.log(`\n🎉🎉🎉 Success! Report downloaded to ${resolve(finalPath)} 🎉🎉🎉\n`)
+    } catch (error: any) {
+      const { message } = JSON.parse(error.response.data.toString())
+      this.error(message)
     }
-    if (version && version > 0) {
-      data.version = version
-    }
-    const result: Buffer = await api.pullReport(report, team)
-
-    const zip: AdmZip = new AdmZip(result)
-
-    zip.extractAllTo(finalPath, true)
-
-    this.log(`\n🎉🎉🎉 Success! Report downloaded to ${resolve(finalPath)} 🎉🎉🎉\n`)
   }
 }
