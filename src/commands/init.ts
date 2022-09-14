@@ -1,12 +1,15 @@
 /* eslint-disable camelcase */
-import { fetchOrganizationsAction, fetchTeamsAction, store } from '@kyso-io/kyso-store'
+import { NormalizedResponseDTO, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model'
+import { Api, fetchTeamsAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import { existsSync, writeFileSync } from 'fs'
 import * as jsYaml from 'js-yaml'
+import jwtDecode from 'jwt-decode'
 import { basename, isAbsolute, join } from 'path'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { getAllFiles } from '../helpers/get-all-files'
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login'
+import { KysoCredentials } from '../types/kyso-credentials'
 import { KysoCommand } from './kyso-command'
 import inquirer = require('inquirer')
 
@@ -70,21 +73,29 @@ export default class Init extends KysoCommand {
       }
     }
 
-    const { payload: orgPayload } = await store.dispatch(fetchOrganizationsAction({}))
+    const kysoCredentials: KysoCredentials = KysoCommand.getCredentials()
+    const decoded: { payload: any } = jwtDecode(kysoCredentials.token)
+    const api: Api = new Api(kysoCredentials.token)
+    const resultTokenPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(decoded.payload.username)
+
+    if (resultTokenPermissions.data.organizations.length === 0) {
+      this.error('You need to be part of an organization to initialize a report')
+    }
+
     const organizationResponse: { organization } = await inquirer.prompt([
       {
         name: 'organization',
         message: 'Select an organization',
         type: 'list',
-        choices: orgPayload.map(org => ({ name: org.sluglified_name })),
+        choices: resultTokenPermissions.data.organizations.map((resourcePermission: ResourcePermissions) => ({ name: resourcePermission.name })),
       },
     ])
 
-    const orgId = orgPayload.find(org => org.sluglified_name === organizationResponse.organization).id
+    const organization_id: string = resultTokenPermissions.data.organizations.find((resourcePermission: ResourcePermissions) => resourcePermission.name === organizationResponse.organization).id
     const { payload: teamPayload } = await store.dispatch(
       fetchTeamsAction({
         filter: {
-          organization_id: orgId,
+          organization_id,
         },
       })
     )
