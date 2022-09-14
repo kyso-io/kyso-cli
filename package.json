@@ -1,7 +1,7 @@
 {
   "name": "@kyso-io/kyso-cli",
   "description": "Kyso Client",
-  "version": "1.9.4",
+  "version": "1.9.5",
   "author": "Kyso Inc.",
   "bin": {
     "kyso": "./bin/run"
