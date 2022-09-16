@@ -1,11 +1,10 @@
 /* eslint-disable no-await-in-loop */
-import { UpdateReportRequestDTO, KysoConfigFile, KysoSettingsEnum, NormalizedResponseDTO, Organization, ReportDTO, ReportPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model'
+import { KysoConfigFile, KysoSettingsEnum, NormalizedResponseDTO, Organization, ReportDTO, ReportPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model'
 import { Api, createKysoReportAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import { existsSync, readdirSync, readFileSync } from 'fs'
 import jwtDecode from 'jwt-decode'
 import { isAbsolute, join } from 'path'
-import { report } from 'process'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { getAllFiles } from '../helpers/get-all-files'
 import { getValidFiles } from '../helpers/get-valid-files'
@@ -46,44 +45,40 @@ export default class Push extends KysoCommand {
       this.log(`\nError: Could not pull report using Kyso config file: ${message}\n`)
       return
     }
-
+    let organization: Organization | null = null
+    try {
+      const resultOrganization: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(kysoConfigFile.organization)
+      organization = resultOrganization.data
+    } catch {
+      this.log(`\nError: Organization ${kysoConfigFile.organization} does not exist.\n`)
+      return
+    }
+    const { payload }: any = jwtDecode(kysoCredentials.token)
+    const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(payload.username)
+    const tokenPermissions: TokenPermissions = resultPermissions.data
+    const indexOrganization: number = tokenPermissions.organizations.findIndex(
+      (resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === kysoConfigFile.organization
+    )
+    if (indexOrganization === -1) {
+      this.log(`\nError: You don't have permissions to create reports in organization ${kysoConfigFile.organization}\n`)
+      return
+    }
     const resultCheckPermission: NormalizedResponseDTO<boolean> = await api.checkPermission({
       organization: kysoConfigFile.organization,
       team: kysoConfigFile.team,
       permission: ReportPermissionsEnum.CREATE,
     })
-    if (resultCheckPermission.data) {
-      const { payload }: any = jwtDecode(kysoCredentials.token)
-      const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(payload.username)
-      const tokenPermissions: TokenPermissions = resultPermissions.data
-      const indexOrganization: number = tokenPermissions.organizations.findIndex(
-        (resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === kysoConfigFile.organization
-      )
-      if (indexOrganization === -1) {
-        this.log(`\nError: You don't have permissions to create reports in organization ${kysoConfigFile.organization}\n`)
-        return
-      }
-      const indexTeam: number = tokenPermissions.teams.findIndex((resourcePermissionTeam: ResourcePermissions) => resourcePermissionTeam.name === kysoConfigFile.team)
-      if (indexTeam === -1) {
-        this.log(`\nError: You don't have permissions to create reports in team ${kysoConfigFile.team}\n`)
-        return
-      }
-    } else {
-      let organization: Organization | null = null
-      try {
-        const resultOrganization: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(kysoConfigFile.organization)
-        organization = resultOrganization.data
-      } catch {
-        this.log(`\nError: Organization ${kysoConfigFile.organization} does not exist.\n`)
-        return
-      }
+    if (!resultCheckPermission.data) {
       try {
         await api.getTeamBySlug(organization.id, kysoConfigFile.team)
-      } catch {
-        this.log(`\nError: Team ${kysoConfigFile.team} does not exist.\n`)
-        return
+      } catch (error: any) {
+        const errorData: { statusCode: number; message: string; error: string } = error.response.data
+        if (errorData.statusCode === 404) {
+          this.log(`\nError: Team ${kysoConfigFile.team} does not exist.\n`)
+          return
+        }
       }
-      this.log(`\nError: You don't have permission to create reports in ${kysoConfigFile.team} of organization ${kysoConfigFile.organization}.\n`)
+      this.log(`\nError: You don't have permission to create reports in ${kysoConfigFile.team} in the organization ${kysoConfigFile.organization}.\n`)
       return
     }
 

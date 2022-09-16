@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { NormalizedResponseDTO, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model'
+import { NormalizedResponseDTO, ResourcePermissions, Team, TokenPermissions } from '@kyso-io/kyso-model'
 import { Api, fetchTeamsAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import { existsSync, writeFileSync } from 'fs'
@@ -17,6 +17,7 @@ enum ReportTypes {
   website = 'website',
   jupyter = 'jupyter',
   markdown = 'markdown',
+  other = 'other',
 }
 
 export default class Init extends KysoCommand {
@@ -82,7 +83,7 @@ export default class Init extends KysoCommand {
       this.error('You need to be part of an organization to initialize a report')
     }
 
-    const organizationResponse: { organization } = await inquirer.prompt([
+    const organizationResponse: { organization: string } = await inquirer.prompt([
       {
         name: 'organization',
         message: 'Select an organization',
@@ -100,12 +101,12 @@ export default class Init extends KysoCommand {
       })
     )
 
-    const teamResponse: { team } = await inquirer.prompt([
+    const teamResponse: { team: string } = await inquirer.prompt([
       {
         name: 'team',
         message: 'Select an team',
         type: 'list',
-        choices: teamPayload.map(team => ({ name: team.sluglified_name })),
+        choices: teamPayload.map((team: Team) => ({ name: team.sluglified_name })),
       },
     ])
 
@@ -114,7 +115,7 @@ export default class Init extends KysoCommand {
         name: 'reportType',
         message: 'Select a reportType',
         type: 'list',
-        choices: [{ name: ReportTypes.website }, { name: ReportTypes.jupyter }, { name: ReportTypes.markdown }],
+        choices: [{ name: ReportTypes.website }, { name: ReportTypes.jupyter }, { name: ReportTypes.markdown }, { name: ReportTypes.other }],
       },
     ])
 
