@@ -34,7 +34,7 @@ export default class Push extends KysoCommand {
 
   static args = []
 
-  private async uploadReportAux(basePath: string): Promise<void> {
+  private async uploadReportAux(reportFolder: string, basePath: string): Promise<void> {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials()
     const api: Api = new Api(kysoCredentials.token)
 
@@ -42,7 +42,7 @@ export default class Push extends KysoCommand {
 
     const { kysoConfigFile, valid, message } = findKysoConfigFile(files)
     if (!valid) {
-      this.log(`\nError: Could not pull report using Kyso config file: ${message}\n`)
+      this.log(`\nError: Could not pull report of '${reportFolder}' folder using Kyso config file: ${message}\n`)
       return
     }
     let organization: Organization | null = null
@@ -50,7 +50,7 @@ export default class Push extends KysoCommand {
       const resultOrganization: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(kysoConfigFile.organization)
       organization = resultOrganization.data
     } catch {
-      this.log(`\nError: Organization ${kysoConfigFile.organization} does not exist.\n`)
+      this.log(`\nError: Organization '${kysoConfigFile.organization}' defined in the '${reportFolder}' folder does not exist.\n`)
       return
     }
     const { payload }: any = jwtDecode(kysoCredentials.token)
@@ -60,7 +60,7 @@ export default class Push extends KysoCommand {
       (resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === kysoConfigFile.organization
     )
     if (indexOrganization === -1) {
-      this.log(`\nError: You don't have permissions to create reports in organization ${kysoConfigFile.organization}\n`)
+      this.log(`\nError: You don't have permissions to create reports in the organization '${kysoConfigFile.organization}' defined in the '${reportFolder}' folder.\n`)
       return
     }
     const resultCheckPermission: NormalizedResponseDTO<boolean> = await api.checkPermission({
@@ -74,11 +74,11 @@ export default class Push extends KysoCommand {
       } catch (error: any) {
         const errorData: { statusCode: number; message: string; error: string } = error.response.data
         if (errorData.statusCode === 404) {
-          this.log(`\nError: Team ${kysoConfigFile.team} does not exist.\n`)
+          this.log(`\nError: Team '${kysoConfigFile.team}' defined in '${reportFolder}' folder does not exist.\n`)
           return
         }
       }
-      this.log(`\nError: You don't have permission to create reports in ${kysoConfigFile.team} in the organization ${kysoConfigFile.organization}.\n`)
+      this.log(`\nError: You don't have permission to create reports in the ${kysoConfigFile.team} team of the ${kysoConfigFile.organization} organization defined in the '${reportFolder}' folder.\n`)
       return
     }
 
@@ -112,7 +112,7 @@ export default class Push extends KysoCommand {
       this.error(`\n😞 ${error.text}`)
     }
     if (result?.payload?.isAxiosError || result.payload === null) {
-      this.error(`\n😞 Something went wrong. Please check the console log.`)
+      this.error(`\n😞 Something went wrong pushing the report in '${reportFolder}' folder. Please check the console log.`)
     } else {
       const kysoCredentials = JSON.parse(readFileSync(KysoCommand.tokenFilePath, 'utf8').toString())
       const normalizedResponse: NormalizedResponseDTO<ReportDTO | ReportDTO[]> = result.payload
@@ -145,20 +145,20 @@ export default class Push extends KysoCommand {
         // Check if folder exists
         const reportPath: string = join(basePath, reportFolder)
         if (!existsSync(reportPath)) {
-          this.error(`Report folder ${reportFolder} does not exist.`)
+          this.error(`Report '${reportFolder}' folder does not exist.`)
         }
         files = getAllFiles(reportPath, [])
         const { valid, message } = findKysoConfigFile(files)
         if (!valid) {
-          this.error(`Folder ${reportFolder} does not have a valid Kyso config file. ${message}`)
+          this.error(`Folder '${reportFolder}' does not have a valid Kyso config file: ${message}`)
         }
-        await this.uploadReportAux(reportPath)
+        await this.uploadReportAux(reportFolder, reportPath)
       }
     } else {
       const parts: string[] = basePath.split('/')
-      const folderName: string = parts[parts.length - 1]
-      this.log(`Uploading report '${folderName}'`)
-      await this.uploadReportAux(basePath)
+      const reportFolder: string = parts[parts.length - 1]
+      this.log(`Uploading report '${reportFolder}'`)
+      await this.uploadReportAux(reportFolder, basePath)
     }
   }
 
