@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable max-depth */
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable no-negated-condition */
@@ -61,7 +62,7 @@ export default class Format extends KysoCommand {
     }
   }
 
-  async formatJupyterFiles(flags: any) {
+  async formatJupyterFiles(flags: any): Promise<void> {
     let _yes = false
 
     if (!flags.yes) {
@@ -81,8 +82,8 @@ These changes will modify your .ipynb files in your local filesystem, do you wan
     } else {
       _yes = true
     }
-    const _files: string[] = getValidFiles(flags.path)
-    const hasIpynbFiles: boolean = _files.some((x: string) => x.includes('.ipynb'))
+    const _files: { path: string; sha: string }[] = getValidFiles(flags.path)
+    const hasIpynbFiles: boolean = _files.some((x: { path: string; sha: string }) => x.path.includes('.ipynb'))
 
     if (!hasIpynbFiles) {
       this.log(`Can't find any .ipynb files in the base path ${flags.path}`)
@@ -102,11 +103,12 @@ These changes will modify your .ipynb files in your local filesystem, do you wan
       if (kysoConfigFile?.reports) {
         for (const reportFolderName of kysoConfigFile.reports) {
           const folderBasePath = join(basePath, reportFolderName)
-          const folderFiles: string[] = getValidFiles(folderBasePath)
-          files = [...files, ...folderFiles]
+          const folderFiles: { path: string; sha: string }[] = getValidFiles(folderBasePath)
+          files = [...files, ...folderFiles.map((x: { path: string; sha: string }) => x.path)]
         }
       } else {
-        files = getValidFiles(basePath)
+        const a: { path: string; sha: string }[] = getValidFiles(basePath)
+        files = a.map((x: { path: string; sha: string }) => x.path)
       }
 
       for (const file of files) {
