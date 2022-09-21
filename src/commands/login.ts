@@ -3,7 +3,7 @@
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable indent */
 import { Login as LoginModel, LoginProviderEnum, NormalizedResponseDTO } from '@kyso-io/kyso-model'
-import { Api, loginAction, store } from '@kyso-io/kyso-store'
+import { Api } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import { printErrorMessage } from '../helpers/error-handler'
 import { interactiveLogin } from '../helpers/interactive-login'
@@ -169,15 +169,14 @@ export default class Login extends KysoCommand {
     }
 
     try {
-      const api: Api = new Api();
-      const loginResult: NormalizedResponseDTO<string> = await api.login(loginModel);
-
+      const api: Api = new Api()
+      const loginResult: NormalizedResponseDTO<string> = await api.login(loginModel)
       if (loginResult.data) {
         KysoCommand.saveToken(loginResult.data, flags.organization || null, flags.team || null, loginModel.kysoInstallUrl, loginModel.email || null)
         this.log('Logged successfully')
-      } 
-    } catch (ex) {
-      printErrorMessage(ex);
+      }
+    } catch (error: any) {
+      this.error(`Login failed: ${error.response.data.message}`)
     }
 
     if (flags.verbose) {
