@@ -1,8 +1,9 @@
-import { existsSync, readdirSync, readFileSync, lstatSync } from 'fs'
-import { join } from 'path'
+import { existsSync, lstatSync, readdirSync, readFileSync } from 'fs'
 import ignore from 'ignore'
+import { join } from 'path'
+import sha256File from 'sha256-file'
 
-export const getValidFiles = (dirPath: string): string[] => {
+export const getValidFiles = (dirPath: string): { path: string; sha: string }[] => {
   if (!existsSync(dirPath)) {
     throw new Error(`Folder ${dirPath} not found`)
   }
@@ -28,16 +29,19 @@ export const getValidFiles = (dirPath: string): string[] => {
   const ig = ignore().add(filesToIgnore)
   // Remove ignored files defined in .gitignore or .kysoignore
   const filteredFiles: string[] = files.filter(file => !ig.ignores(file))
-  let validFiles: string[] = []
+  let validFiles: { path: string; sha: string }[] = []
   for (const file of filteredFiles) {
     // For each file
     const filePath: string = join(dirPath, file)
     // Add to the valid files
-    validFiles.push(filePath)
+    validFiles.push({
+      path: filePath,
+      sha: sha256File(filePath),
+    })
     // check if it is a directory
     if (lstatSync(filePath).isDirectory()) {
       // Recursive call
-      const folderFiles = getValidFiles(filePath)
+      const folderFiles: { path: string; sha: string }[] = getValidFiles(filePath)
       validFiles = [...validFiles, ...folderFiles]
     }
   }

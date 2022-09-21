@@ -1,6 +1,20 @@
+/* eslint-disable complexity */
+/* eslint-disable unicorn/prefer-ternary */
+/* eslint-disable unicorn/no-array-for-each */
 /* eslint-disable no-await-in-loop */
-import { KysoConfigFile, KysoSettingsEnum, NormalizedResponseDTO, Organization, ReportDTO, ReportPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model'
-import { Api, createKysoReportAction, setOrganizationAuthAction, setTeamAuthAction, store } from '@kyso-io/kyso-store'
+import {
+  File as KysoFile,
+  KysoConfigFile,
+  KysoSettingsEnum,
+  NormalizedResponseDTO,
+  Organization,
+  ReportDTO,
+  ReportPermissionsEnum,
+  ResourcePermissions,
+  Team,
+  TokenPermissions,
+} from '@kyso-io/kyso-model'
+import { Api, createKysoReportAction, setOrganizationAuthAction, setTeamAuthAction, store, updateKysoReportAction } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import { existsSync, readdirSync, readFileSync } from 'fs'
 import jwtDecode from 'jwt-decode'
@@ -9,6 +23,7 @@ import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { getAllFiles } from '../helpers/get-all-files'
 import { getValidFiles } from '../helpers/get-valid-files'
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login'
+import slugify from '../helpers/slugify'
 import { KysoCredentials } from '../types/kyso-credentials'
 import { KysoCommand } from './kyso-command'
 
@@ -38,7 +53,7 @@ export default class Push extends KysoCommand {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials()
     const api: Api = new Api(kysoCredentials.token)
 
-    let files: string[] = getAllFiles(basePath, [])
+    const files: string[] = getAllFiles(basePath, [])
 
     const { kysoConfigFile, valid, message } = findKysoConfigFile(files)
     if (!valid) {
@@ -68,9 +83,17 @@ export default class Push extends KysoCommand {
       team: kysoConfigFile.team,
       permission: ReportPermissionsEnum.CREATE,
     })
-    if (!resultCheckPermission.data) {
+    let teamId: string | null = null
+    if (resultCheckPermission.data) {
+      const indexTeam: number = tokenPermissions.teams.findIndex(
+        (resourcePermissionTeam: ResourcePermissions) =>
+          resourcePermissionTeam.name === kysoConfigFile.team && resourcePermissionTeam.organization_id === tokenPermissions.organizations[indexOrganization].id
+      )
+      teamId = tokenPermissions.teams[indexTeam].id
+    } else {
       try {
-        await api.getTeamBySlug(organization.id, kysoConfigFile.team)
+        const resultTeam: NormalizedResponseDTO<Team> = await api.getTeamBySlug(organization.id, kysoConfigFile.team)
+        teamId = resultTeam.data.id
       } catch (error: any) {
         const errorData: { statusCode: number; message: string; error: string } = error.response.data
         if (errorData.statusCode === 404) {
@@ -89,24 +112,68 @@ export default class Push extends KysoCommand {
       store.dispatch(setTeamAuthAction(kysoConfigFile.team))
     }
 
-    if (kysoConfigFile?.reports) {
-      for (const reportFolderName of kysoConfigFile.reports) {
-        const folderBasePath = join(basePath, reportFolderName)
-        const folderFiles: string[] = getValidFiles(folderBasePath)
-        files = [...files, ...folderFiles]
+    const validFiles: { path: string; sha: string }[] = getValidFiles(basePath)
+    let newFiles: string[] = []
+    const unmodifiedFiles: string[] = []
+    const deletedFiles: string[] = []
+
+    let reportDto: ReportDTO | null = null
+    let version = 1
+    try {
+      const reportSlug: string = slugify(kysoConfigFile.title)
+      const resultReport: NormalizedResponseDTO<ReportDTO> = await api.getReportByTeamIdAndSlug(teamId, reportSlug)
+      reportDto = resultReport.data
+      version = reportDto.last_version
+      const resultFiles: NormalizedResponseDTO<KysoFile[]> = await api.getReportFiles(reportDto.id, reportDto.last_version)
+      const reportFiles: KysoFile[] = resultFiles.data
+      validFiles.forEach((validFile: { path: string; sha: string }) => {
+        const indexFile: number = reportFiles.findIndex((reportFile: KysoFile) => reportFile.sha === validFile.sha)
+        if (indexFile === -1) {
+          newFiles.push(validFile.path)
+        } else {
+          unmodifiedFiles.push(reportFiles[indexFile].id)
+        }
+      })
+      if (newFiles.length === 0) {
+        this.log(`\nNo new or modified files to upload in the '${reportFolder}' folder.\n`)
+        return
       }
-    } else {
-      files = getValidFiles(basePath)
+      reportFiles.forEach((reportFile: KysoFile) => {
+        const indexFile: number = validFiles.findIndex((validFile: { path: string; sha: string }) => reportFile.sha === validFile.sha)
+        if (indexFile === -1) {
+          deletedFiles.push(reportFile.id)
+        }
+      })
+    } catch (error: any) {
+      const errorData: { statusCode: number; message: string; error: string } = error.response.data
+      if (errorData.statusCode === 404) {
+        newFiles = validFiles.map((file: { path: string; sha: string }) => file.path)
+      }
     }
 
     const resultKysoSettings: NormalizedResponseDTO<string> = await api.getSettingValue(KysoSettingsEnum.MAX_FILE_SIZE)
-    const result: any = await store.dispatch(
-      createKysoReportAction({
-        filePaths: files,
-        basePath,
-        maxFileSizeStr: resultKysoSettings.data || '500mb',
-      })
-    )
+    let result: any | null
+    if (reportDto) {
+      result = await store.dispatch(
+        updateKysoReportAction({
+          filePaths: newFiles,
+          basePath,
+          maxFileSizeStr: resultKysoSettings.data || '500mb',
+          id: reportDto.id,
+          unmodifiedFiles,
+          deletedFiles,
+          version,
+        })
+      )
+    } else {
+      result = await store.dispatch(
+        createKysoReportAction({
+          filePaths: files,
+          basePath,
+          maxFileSizeStr: resultKysoSettings.data || '500mb',
+        })
+      )
+    }
     const { error } = store.getState()
     if (error.text) {
       this.error(`\n😞 ${error.text}`)
