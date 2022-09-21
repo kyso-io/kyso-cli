@@ -134,6 +134,10 @@ export default class Push extends KysoCommand {
           unmodifiedFiles.push(reportFiles[indexFile].id)
         }
       })
+      if (newFiles.length === 0) {
+        this.log(`\nNo new or modified files to upload in the '${reportFolder}' folder.\n`)
+        return
+      }
       reportFiles.forEach((reportFile: KysoFile) => {
         const indexFile: number = validFiles.findIndex((validFile: { path: string; sha: string }) => reportFile.sha === validFile.sha)
         if (indexFile === -1) {

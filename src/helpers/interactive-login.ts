@@ -1,6 +1,6 @@
 /* eslint-disable indent */
 /* eslint-disable no-case-declarations */
-import { Login, LoginProviderEnum } from '@kyso-io/kyso-model'
+import { Login, LoginProviderEnum, NormalizedResponseDTO } from '@kyso-io/kyso-model'
 import { Api, loginAction, store } from '@kyso-io/kyso-store'
 import { KysoCommand } from '../commands/kyso-command'
 import { CheckCredentialsResultEnum } from '../types/check-credentials-result.enum'
@@ -35,9 +35,7 @@ export const launchInteractiveLoginIfNotLogged = async (): Promise<void> => {
         const savedCredentials: KysoCredentials = KysoCommand.getCredentials()
         const api: Api = new Api()
         api.configure(savedCredentials.kysoInstallUrl + '/api/v1', savedCredentials.token)
-
-        const refreshedToken = await api.refreshToken()
-
+        const refreshedToken: NormalizedResponseDTO<string> = await api.refreshToken()
         if (refreshedToken.data) {
           KysoCommand.saveToken(refreshedToken.data, null, null, savedCredentials.kysoInstallUrl, null)
         }
