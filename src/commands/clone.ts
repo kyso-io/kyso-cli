@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 /* eslint-disable max-params */
 import { NormalizedResponseDTO, Organization, Team, TeamVisibilityEnum } from '@kyso-io/kyso-model'
 import { Api } from '@kyso-io/kyso-store'
@@ -55,25 +56,30 @@ export default class Clone extends KysoCommand {
     }
 
     const urlParts: string[] = cloneUrl.replace('https://', '').replace('http://', '').split('/')
-    const organizationSlug = urlParts[1]
-    const teamSlug = urlParts[2]
-    const reportSlug = urlParts[3]
-
+    const organizationSlug: string = urlParts[1]
+    const teamSlug: string = urlParts[2]
+    const reportSlug: string = urlParts[3]
     if (!organizationSlug || !teamSlug || !reportSlug) {
       this.error('Invalid report URL')
     }
-
-    // Check if team is public
+    const baseUrl = cloneUrl.replace(`/${organizationSlug}/${teamSlug}/${reportSlug}`, '')
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials()
-    const api: Api = new Api(kysoCredentials?.token)
+    const api: Api = new Api()
+    api.configure(baseUrl + '/api/v1', kysoCredentials?.token)
     let organization: Organization | null = null
     try {
       const resultOrganization: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(organizationSlug)
       organization = resultOrganization.data
-    } catch {
-      this.log(`\nError: Organization ${organizationSlug} does not exist.\n`)
+    } catch (error: any) {
+      const errorResponse: { statusCode: number; message: string; error: string } = error.response.data
+      if (errorResponse.statusCode === 404) {
+        this.log(`\nError: Organization ${organizationSlug} does not exist.\n`)
+      } else {
+        this.log(`\nError: ${errorResponse.message}.\n`)
+      }
       return
     }
+    // Check if team is public
     try {
       const resultTeam: NormalizedResponseDTO<Team> = await api.getTeamBySlug(organization.id, teamSlug)
       const team: Team = resultTeam.data
@@ -103,7 +109,7 @@ export default class Clone extends KysoCommand {
       let files: string[] = readdirSync(flags.path)
 
       if (organizationSlug && teamSlug && reportSlug) {
-        await this.extractReport(organizationSlug, teamSlug, reportSlug, flags.version, flags.path)
+        await this.extractReport(baseUrl, organizationSlug, teamSlug, reportSlug, flags.version, flags.path)
       } else {
         if (flags?.path) {
           files = files.map((file: string) => join(flags.path, file))
@@ -112,7 +118,7 @@ export default class Clone extends KysoCommand {
         if (!valid) {
           this.error(`Could not clone report using Kyso config file: ${message}`)
         }
-        this.extractReport(kysoConfigFile.organization, kysoConfigFile.team, kysoConfigFile.title, flags.version, flags.path)
+        this.extractReport(baseUrl, kysoConfigFile.organization, kysoConfigFile.team, kysoConfigFile.title, flags.version, flags.path)
       }
     } catch (error: any) {
       try {
@@ -129,8 +135,9 @@ export default class Clone extends KysoCommand {
     }
   }
 
-  async extractReport(organization: string, team: string, report: string, version: number | null, path: string): Promise<void> {
-    const api: Api = new Api(KysoCommand.getCredentials().token, organization, team)
+  async extractReport(baseUrl: string, organization: string, team: string, report: string, version: number | null, path: string): Promise<void> {
+    const api: Api = new Api()
+    api.configure(baseUrl + '/api/v1', KysoCommand.getCredentials()?.token, organization, team)
     const finalPath: string = path + '/' + report
 
     const data: any = {
