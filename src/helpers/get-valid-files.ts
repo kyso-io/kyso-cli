@@ -8,7 +8,7 @@ export const getValidFiles = (dirPath: string): { path: string; sha: string }[] 
     throw new Error(`Folder ${dirPath} not found`)
   }
   const files: string[] = readdirSync(dirPath)
-  const filesToIgnore: string[] = ['.git']
+  const filesToIgnore: string[] = ['.git', '.DS_Store']
   for (const file of files) {
     if (file === '.gitignore' || file === '.kysoignore') {
       // Read content of file
@@ -33,16 +33,17 @@ export const getValidFiles = (dirPath: string): { path: string; sha: string }[] 
   for (const file of filteredFiles) {
     // For each file
     const filePath: string = join(dirPath, file)
-    // Add to the valid files
-    validFiles.push({
-      path: filePath,
-      sha: sha256File(filePath),
-    })
     // check if it is a directory
     if (lstatSync(filePath).isDirectory()) {
       // Recursive call
       const folderFiles: { path: string; sha: string }[] = getValidFiles(filePath)
       validFiles = [...validFiles, ...folderFiles]
+    } else {
+      // Add to the valid files
+      validFiles.push({
+        path: filePath,
+        sha: sha256File(filePath),
+      })
     }
   }
   return validFiles

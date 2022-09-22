@@ -127,7 +127,13 @@ export default class Push extends KysoCommand {
       const resultFiles: NormalizedResponseDTO<KysoFile[]> = await api.getReportFiles(reportDto.id, reportDto.last_version)
       const reportFiles: KysoFile[] = resultFiles.data
       validFiles.forEach((validFile: { path: string; sha: string }) => {
-        const indexFile: number = reportFiles.findIndex((reportFile: KysoFile) => reportFile.sha === validFile.sha)
+        const indexFile: number = reportFiles.findIndex((reportFile: KysoFile) => {
+          let validFilePathWithoutBasePath: string = validFile.path.replace(basePath, '')
+          if (validFilePathWithoutBasePath.startsWith('/')) {
+            validFilePathWithoutBasePath = validFilePathWithoutBasePath.slice(1)
+          }
+          return reportFile.sha === validFile.sha && reportFile.name === validFilePathWithoutBasePath
+        })
         if (indexFile === -1) {
           newFiles.push(validFile.path)
         } else {
