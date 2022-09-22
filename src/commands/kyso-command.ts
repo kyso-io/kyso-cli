@@ -2,7 +2,7 @@
 import { setOrganizationAuthAction, setTeamAuthAction, setTokenAuthAction, store } from '@kyso-io/kyso-store'
 import { Command, Config } from '@oclif/core'
 import * as dotenv from 'dotenv'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
 import jwtDecode from 'jwt-decode'
 import { homedir } from 'os'
 import { join } from 'path'
@@ -37,9 +37,9 @@ export abstract class KysoCommand extends Command {
     process.env.KYSO_CLI_VERBOSE = this.previousKysoCliVerbose
   }
 
-  private static removeCredentials(kysoCredentials: KysoCredentials | null): void {
-    if (kysoCredentials) {
-      this.saveToken(null, null, null, kysoCredentials.kysoInstallUrl, null)
+  public static removeCredentials(): void {
+    if (existsSync(this.tokenFilePath)) {
+      unlinkSync(this.tokenFilePath)
     }
   }
 
