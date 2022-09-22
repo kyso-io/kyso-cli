@@ -5,7 +5,6 @@
 import { Login as LoginModel, LoginProviderEnum, NormalizedResponseDTO } from '@kyso-io/kyso-model'
 import { Api } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
-import { printErrorMessage } from '../helpers/error-handler'
 import { interactiveLogin } from '../helpers/interactive-login'
 import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitlab, authenticateWithGoogle } from '../helpers/oauths'
 import { KysoCommand } from './kyso-command'
@@ -115,9 +114,9 @@ export default class Login extends KysoCommand {
           break
         case LoginProviderEnum.GOOGLE:
           try {
-            const googleResult: { code: string; redirectUrl: string } | null = await authenticateWithGoogle()
-            if (!googleResult) {
-              this.error('Google authentication failed')
+            const googleResult: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithGoogle(flags.kysoInstallUrl)
+            if (googleResult.errorMessage) {
+              throw new Error(googleResult.errorMessage)
             }
             loginModel = new LoginModel(googleResult.code, LoginProviderEnum.GOOGLE, '', googleResult.redirectUrl)
           } catch (error: any) {
@@ -125,30 +124,30 @@ export default class Login extends KysoCommand {
           }
           break
         case LoginProviderEnum.GITHUB:
-          const code: string | null = await authenticateWithGithub()
-          if (!code) {
-            this.error('Authentication failed')
+          const githubResult: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithGithub(flags.kysoInstallUrl)
+          if (githubResult.errorMessage) {
+            throw new Error(githubResult.errorMessage)
           }
-          loginModel = new LoginModel(code, LoginProviderEnum.GITHUB, '', null)
+          loginModel = new LoginModel(githubResult.code, LoginProviderEnum.GITHUB, '', null)
           break
         case LoginProviderEnum.BITBUCKET:
           try {
-            const code: string | null = await authenticateWithBitbucket()
-            if (!code) {
-              this.error('Authentication failed')
+            const bitbucketResult: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithBitbucket(flags.kysoInstallUrl)
+            if (bitbucketResult.errorMessage) {
+              throw new Error(bitbucketResult.errorMessage)
             }
-            loginModel = new LoginModel(code, LoginProviderEnum.BITBUCKET, '', null)
+            loginModel = new LoginModel(bitbucketResult.code, LoginProviderEnum.BITBUCKET, '', null)
           } catch (error: any) {
             this.error(error)
           }
           break
         case LoginProviderEnum.GITLAB:
           try {
-            const gitlabResult: { code: string; redirectUrl: string } | null = await authenticateWithGitlab()
-            if (!gitlabResult) {
-              this.error('Authentication failed')
+            const gitlabResponse: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithGitlab(flags.kysoInstallUrl)
+            if (gitlabResponse.errorMessage) {
+              throw new Error(gitlabResponse.errorMessage)
             }
-            loginModel = new LoginModel(gitlabResult.code, LoginProviderEnum.GITLAB, '', gitlabResult.redirectUrl)
+            loginModel = new LoginModel(gitlabResponse.code, LoginProviderEnum.GITLAB, '', gitlabResponse.redirectUrl)
           } catch (error: any) {
             this.error(error)
           }

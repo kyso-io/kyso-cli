@@ -143,38 +143,34 @@ export const interactiveLogin = async (kysoCredentials: KysoCredentials | null):
       login.password = accessTokenResponse.accessToken
       break
     case LoginProviderEnum.GOOGLE:
-      try {
-        const googleResult: { code: string; redirectUrl: string } | null = await authenticateWithGoogle()
-        if (!googleResult) {
-          throw new Error('Authentication failed')
-        }
-        login.password = googleResult.code
-        login.payload = googleResult.redirectUrl
-      } catch (error: any) {
-        throw new Error(error)
+      const googleResult: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithGoogle(login.kysoInstallUrl)
+      if (googleResult.errorMessage) {
+        throw new Error(googleResult.errorMessage)
       }
+      login.password = googleResult.code
+      login.payload = googleResult.redirectUrl
       break
     case LoginProviderEnum.GITHUB:
-      const githubCode: string | null = await authenticateWithGithub()
-      if (!githubCode) {
-        throw new Error('Authentication failed')
+      const githubResult: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithGithub(login.kysoInstallUrl)
+      if (githubResult.errorMessage) {
+        throw new Error(githubResult.errorMessage)
       }
-      login.password = githubCode
+      login.password = githubResult.code
       break
     case LoginProviderEnum.BITBUCKET:
-      const bitbucketCode: string | null = await authenticateWithBitbucket()
-      if (!bitbucketCode) {
-        throw new Error('Authentication failed')
+      const bitbucketResult: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithBitbucket(login.kysoInstallUrl)
+      if (bitbucketResult.errorMessage) {
+        throw new Error(bitbucketResult.errorMessage)
       }
-      login.password = bitbucketCode
+      login.password = bitbucketResult.code
       break
     case LoginProviderEnum.GITLAB:
-      const gitlabCode: { code: string; redirectUrl: string } | null = await authenticateWithGitlab()
-      if (!gitlabCode) {
-        throw new Error('Authentication failed')
+      const gitlabResponse: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithGitlab(login.kysoInstallUrl)
+      if (gitlabResponse.errorMessage) {
+        throw new Error(gitlabResponse.errorMessage)
       }
-      login.password = gitlabCode.code
-      login.payload = gitlabCode.redirectUrl
+      login.password = gitlabResponse.code
+      login.payload = gitlabResponse.redirectUrl
       break
   }
   if (login.kysoInstallUrl) {
