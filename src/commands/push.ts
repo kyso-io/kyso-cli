@@ -16,6 +16,7 @@ import {
 } from '@kyso-io/kyso-model'
 import { Api, createKysoReportAction, setOrganizationAuthAction, setTeamAuthAction, store, updateKysoReportAction } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
+import axios from 'axios'
 import { existsSync, readdirSync, readFileSync } from 'fs'
 import jwtDecode from 'jwt-decode'
 import { isAbsolute, join } from 'path'
@@ -158,8 +159,18 @@ export default class Push extends KysoCommand {
     }
 
     const resultKysoSettings: NormalizedResponseDTO<string> = await api.getSettingValue(KysoSettingsEnum.MAX_FILE_SIZE)
+    let existsMethod = true
+    try {
+      const url = `${kysoCredentials.kysoInstallUrl}/api/v1/reports/kyso/XXXX`
+      await axios.put(url, {})
+    } catch (error: any) {
+      const errorResponse: { statusCode: number; message: string; error: string } = error.response.data
+      if (errorResponse.statusCode === 404) {
+        existsMethod = false
+      }
+    }
     let result: any | null
-    if (reportDto) {
+    if (existsMethod && reportDto) {
       result = await store.dispatch(
         updateKysoReportAction({
           filePaths: newFiles,
