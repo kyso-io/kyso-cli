@@ -42,6 +42,12 @@ export default class Config extends KysoCommand {
             }
             return true
           },
+          filter: (input: string) => {
+            if (input.endsWith('/')) {
+              input = input.slice(0, -1)
+            }
+            return input
+          },
         },
       ])
       fixedKysoInstallUrl = kysoApiResponse.kysoInstallUrl

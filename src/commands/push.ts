@@ -101,9 +101,11 @@ export default class Push extends KysoCommand {
           this.log(`\nError: Team '${kysoConfigFile.team}' defined in '${reportFolder}' folder does not exist.\n`)
           return
         }
+        this.log(
+          `\nError: You don't have permission to create reports in the ${kysoConfigFile.team} team of the ${kysoConfigFile.organization} organization defined in the '${reportFolder}' folder.\n`
+        )
+        return
       }
-      this.log(`\nError: You don't have permission to create reports in the ${kysoConfigFile.team} team of the ${kysoConfigFile.organization} organization defined in the '${reportFolder}' folder.\n`)
-      return
     }
 
     if (kysoConfigFile?.organization && kysoConfigFile.organization.length > 0) {
@@ -160,6 +162,7 @@ export default class Push extends KysoCommand {
 
     const resultKysoSettings: NormalizedResponseDTO<string> = await api.getSettingValue(KysoSettingsEnum.MAX_FILE_SIZE)
     let existsMethod = true
+    // Check the put endpoint is available in the api
     try {
       const url = `${kysoCredentials.kysoInstallUrl}/api/v1/reports/kyso/XXXX`
       await axios.put(url, {})
