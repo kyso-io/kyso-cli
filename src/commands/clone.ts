@@ -62,7 +62,10 @@ export default class Clone extends KysoCommand {
     if (!organizationSlug || !teamSlug || !reportSlug) {
       this.error('Invalid report URL')
     }
-    const baseUrl = cloneUrl.replace(`/${organizationSlug}/${teamSlug}/${reportSlug}`, '')
+    let baseUrl = cloneUrl.replace(`/${organizationSlug}/${teamSlug}/${reportSlug}`, '')
+    if (baseUrl.endsWith('/')) {
+      baseUrl = baseUrl.slice(0, -1)
+    }
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials()
     const api: Api = new Api()
     api.configure(baseUrl + '/api/v1', kysoCredentials?.token)
