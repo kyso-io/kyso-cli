@@ -131,7 +131,7 @@ export default class Push extends KysoCommand {
       const reportFiles: KysoFile[] = resultFiles.data
       validFiles.forEach((validFile: { path: string; sha: string }) => {
         const indexFile: number = reportFiles.findIndex((reportFile: KysoFile) => {
-          let validFilePathWithoutBasePath: string = validFile.path.replace(basePath, '')
+          let validFilePathWithoutBasePath: string = basePath === '.' ? validFile.path : validFile.path.replace(basePath, '')
           if (validFilePathWithoutBasePath.startsWith('/')) {
             validFilePathWithoutBasePath = validFilePathWithoutBasePath.slice(1)
           }
