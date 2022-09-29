@@ -1,13 +1,13 @@
 {
   "name": "@kyso-io/kyso-cli",
   "description": "Kyso Client",
-  "version": "1.9.12",
+  "version": "1.9.13",
   "author": "Kyso Inc.",
   "bin": {
     "kyso": "./bin/run"
   },
   "dependencies": {
-    "@kyso-io/kyso-store": "^1.1.4",
+    "@kyso-io/kyso-store": "^1.1.7",
     "@oclif/core": "^1",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.0.1",
