@@ -5,7 +5,7 @@ export const getAllFiles = function (dirPath: string, arrayOfFiles: string[]): s
   const files: string[] = readdirSync(dirPath)
   arrayOfFiles = arrayOfFiles || []
   for (const file of files) {
-    if (file.endsWith('.git') || file.endsWith('.ipynb_checkpoints') || file.endsWith('__MACOSX')) {
+    if (file.endsWith('.git') || file.endsWith('.ipynb_checkpoints') || file.endsWith('__MACOSX') || file.startsWith('.')) {
       continue
     }
     if (statSync(dirPath + '/' + file).isDirectory()) {
