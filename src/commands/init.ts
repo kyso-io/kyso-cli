@@ -1,13 +1,11 @@
-/* eslint-disable camelcase */
-import { NormalizedResponseDTO, ResourcePermissions, Team, TokenPermissions } from '@kyso-io/kyso-model'
-import { Api, fetchTeamsAction, store } from '@kyso-io/kyso-store'
+import { NormalizedResponseDTO, ReportPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model'
+import { Api } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
-import { existsSync, writeFileSync } from 'fs'
+import { existsSync, lstatSync, readdirSync, writeFileSync } from 'fs'
 import * as jsYaml from 'js-yaml'
 import jwtDecode from 'jwt-decode'
 import { basename, isAbsolute, join } from 'path'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
-import { getAllFiles } from '../helpers/get-all-files'
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login'
 import { KysoCredentials } from '../types/kyso-credentials'
 import { KysoCommand } from './kyso-command'
@@ -56,9 +54,12 @@ export default class Init extends KysoCommand {
       this.error('Invalid path')
     }
 
-    const basePath = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
-    const files: string[] = getAllFiles(basePath, [])
+    if (!lstatSync(flags.path).isDirectory()) {
+      this.error('Path must be a directory')
+    }
 
+    const basePath = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
+    const files: string[] = readdirSync(basePath)
     const { kysoConfigFile } = findKysoConfigFile(files)
     if (kysoConfigFile) {
       const confirmResponse: { confirmOverwrite } = await inquirer.prompt([
@@ -92,21 +93,31 @@ export default class Init extends KysoCommand {
       },
     ])
 
-    const organization_id: string = resultTokenPermissions.data.organizations.find((resourcePermission: ResourcePermissions) => resourcePermission.name === organizationResponse.organization).id
-    const { payload: teamPayload } = await store.dispatch(
-      fetchTeamsAction({
-        filter: {
-          organization_id,
-        },
-      })
-    )
+    const organizationResourcePermission: ResourcePermissions = resultTokenPermissions.data.organizations.find(
+      (resourcePermission: ResourcePermissions) => resourcePermission.name === organizationResponse.organization
+    )!
+    const organizationHasCreateReportPermission: boolean = organizationResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE)
+    const teamsOrganizationResourcePermissions: ResourcePermissions[] = []
+    for (const teamResourcePermission of resultTokenPermissions.data.teams) {
+      if (teamResourcePermission.organization_id !== organizationResourcePermission.id) {
+        continue
+      }
+      if (teamResourcePermission.organization_inherited && organizationHasCreateReportPermission) {
+        teamsOrganizationResourcePermissions.push(teamResourcePermission)
+      } else if (teamResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE)) {
+        teamsOrganizationResourcePermissions.push(teamResourcePermission)
+      }
+    }
+    if (teamsOrganizationResourcePermissions.length === 0) {
+      this.error('you do not have permissions to upload reports in this organization')
+    }
 
     const teamResponse: { team: string } = await inquirer.prompt([
       {
         name: 'team',
-        message: 'Select an team',
+        message: 'Select a team',
         type: 'list',
-        choices: teamPayload.map((team: Team) => ({ name: team.sluglified_name })),
+        choices: teamsOrganizationResourcePermissions.map((teamResourcePermissions: ResourcePermissions) => ({ name: teamResourcePermissions.name })),
       },
     ])
 
@@ -122,8 +133,7 @@ export default class Init extends KysoCommand {
     let defaultFile = 'index.html'
     if (reportTypeResponse.reportType === ReportTypes.jupyter) {
       defaultFile = 'index.ipynb'
-    }
-    if (reportTypeResponse.reportType === ReportTypes.markdown) {
+    } else if (reportTypeResponse.reportType === ReportTypes.markdown) {
       defaultFile = 'index.md'
     }
 
@@ -139,6 +149,7 @@ export default class Init extends KysoCommand {
           }
           return true
         },
+        filter: (input: string) => input.trim(),
       },
     ])
 
@@ -154,6 +165,7 @@ export default class Init extends KysoCommand {
           }
           return true
         },
+        filter: (input: string) => input.trim(),
       },
     ])
 
@@ -165,9 +177,9 @@ export default class Init extends KysoCommand {
       main: mainFileResponse.mainFile,
     }
 
-    await writeFileSync(join(process.cwd(), 'kyso.yaml'), jsYaml.dump(config))
+    writeFileSync(join(flags.path, 'kyso.yaml'), jsYaml.dump(config))
 
-    this.log(`Wrote config to ${join(process.cwd(), 'kyso.yaml')}`)
+    this.log(`Wrote config to ${join(flags.path, 'kyso.yaml')}`)
 
     if (flags.verbose) {
       this.log('Disabling verbose mode')
