@@ -1,11 +1,14 @@
-import { readdirSync, statSync } from 'fs'
+import { existsSync, readdirSync, statSync } from 'fs'
 import { join } from 'path'
 
 export const getAllFiles = function (dirPath: string, arrayOfFiles: string[]): string[] {
   const files: string[] = readdirSync(dirPath)
   arrayOfFiles = arrayOfFiles || []
   for (const file of files) {
-    if (file.endsWith('.git') || file.endsWith('.ipynb_checkpoints') || file.endsWith('__MACOSX') || file.startsWith('.')) {
+    if (file.startsWith('.') || file.endsWith('__MACOSX')) {
+      continue
+    }
+    if (!existsSync(dirPath + '/' + file)) {
       continue
     }
     if (statSync(dirPath + '/' + file).isDirectory()) {

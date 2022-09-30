@@ -71,8 +71,8 @@ export const interactiveLogin = async (kysoCredentials: KysoCredentials | null):
           if (input.endsWith('/')) {
             input = input.slice(0, -1)
           }
-          return input
-        }
+          return input.trim()
+        },
       },
     ])
     login.kysoInstallUrl = kysoApiResponse.kysoInstallUrl

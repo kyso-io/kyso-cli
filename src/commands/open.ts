@@ -1,10 +1,9 @@
 /* eslint-disable no-prototype-builtins */
 import { Flags } from '@oclif/core'
-import { existsSync } from 'fs'
+import { existsSync, lstatSync, readdirSync } from 'fs'
 import open from 'open'
 import { isAbsolute, join } from 'path'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
-import { getAllFiles } from '../helpers/get-all-files'
 import slugify from '../helpers/slugify'
 import { KysoCredentials } from '../types/kyso-credentials'
 import { KysoCommand } from './kyso-command'
@@ -48,8 +47,12 @@ export default class Open extends KysoCommand {
       this.error('Invalid path')
     }
 
-    const basePath = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
-    const files: string[] = getAllFiles(basePath, [])
+    if (!lstatSync(flags.path).isDirectory()) {
+      this.error('Path must be a directory')
+    }
+
+    const basePath: string = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
+    const files: string[] = readdirSync(basePath).map((file: string) => join(basePath, file))
 
     const { kysoConfigFile, valid, message } = findKysoConfigFile(files)
     if (!valid) {

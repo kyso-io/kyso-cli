@@ -17,7 +17,7 @@ import {
 import { Api, createKysoReportAction, setOrganizationAuthAction, setTeamAuthAction, store, updateKysoReportAction } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import axios from 'axios'
-import { existsSync, readdirSync, readFileSync } from 'fs'
+import { existsSync, lstatSync, readdirSync, readFileSync } from 'fs'
 import jwtDecode from 'jwt-decode'
 import { isAbsolute, join } from 'path'
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
@@ -54,9 +54,8 @@ export default class Push extends KysoCommand {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials()
     const api: Api = new Api(kysoCredentials.token)
 
-    const files: string[] = getAllFiles(basePath, [])
-
-    const { kysoConfigFile, valid, message } = findKysoConfigFile(files)
+    const filesBasePath: string[] = readdirSync(basePath).map((file: string) => join(basePath, file))
+    const { kysoConfigFile, valid, message } = findKysoConfigFile(filesBasePath)
     if (!valid) {
       this.log(`\nError: Could not pull report of '${reportFolder}' folder using Kyso config file: ${message}\n`)
       return
@@ -160,6 +159,21 @@ export default class Push extends KysoCommand {
       }
     }
 
+    // Check if report has defined main file
+    if (kysoConfigFile.main && newFiles.length > 0) {
+      const indexMainFile: number = newFiles.findIndex((file: string) => {
+        let validFilePathWithoutBasePath: string = basePath === '.' ? file : file.replace(basePath, '')
+        if (validFilePathWithoutBasePath.startsWith('/')) {
+          validFilePathWithoutBasePath = validFilePathWithoutBasePath.slice(1)
+        }
+        return validFilePathWithoutBasePath === kysoConfigFile.main
+      })
+      if (indexMainFile === -1) {
+        this.log(`\nError: Main file '${kysoConfigFile.main}' defined in the '${reportFolder}' folder does not exist.\n`)
+        return
+      }
+    }
+
     const resultKysoSettings: NormalizedResponseDTO<string> = await api.getSettingValue(KysoSettingsEnum.MAX_FILE_SIZE)
     let existsMethod = true
     // Check the put endpoint is available in the api
@@ -188,7 +202,7 @@ export default class Push extends KysoCommand {
     } else {
       result = await store.dispatch(
         createKysoReportAction({
-          filePaths: files,
+          filePaths: getAllFiles(basePath, []),
           basePath,
           maxFileSizeStr: resultKysoSettings.data || '500mb',
         })
@@ -218,7 +232,7 @@ export default class Push extends KysoCommand {
 
   private async uploadReport(basePath: string): Promise<void> {
     // Check if report is a multiple report
-    let files: string[] = readdirSync(basePath).map((file: string) => join(basePath, file))
+    const files: string[] = readdirSync(basePath).map((file: string) => join(basePath, file))
     let mainKysoConfigFile: KysoConfigFile | null = null
     const data: { kysoConfigFile: KysoConfigFile; valid: boolean; message: string } = findKysoConfigFile(files)
     if (!data.valid) {
@@ -234,8 +248,8 @@ export default class Push extends KysoCommand {
         if (!existsSync(reportPath)) {
           this.error(`Report '${reportFolder}' folder does not exist.`)
         }
-        files = getAllFiles(reportPath, [])
-        const { valid, message } = findKysoConfigFile(files)
+        const filesBasePath: string[] = readdirSync(reportPath).map((file: string) => join(reportPath, file))
+        const { valid, message } = findKysoConfigFile(filesBasePath)
         if (!valid) {
           this.error(`Folder '${reportFolder}' does not have a valid Kyso config file: ${message}`)
         }
@@ -261,6 +275,10 @@ export default class Push extends KysoCommand {
 
     if (!existsSync(flags.path)) {
       this.error('Invalid path')
+    }
+
+    if (!lstatSync(flags.path).isDirectory()) {
+      this.error('Path must be a directory')
     }
 
     const basePath: string = isAbsolute(flags.path) ? flags.path : join('.', flags.path)

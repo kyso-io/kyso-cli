@@ -46,7 +46,7 @@ export default class Config extends KysoCommand {
             if (input.endsWith('/')) {
               input = input.slice(0, -1)
             }
-            return input
+            return input.trim()
           },
         },
       ])
