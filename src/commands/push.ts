@@ -143,9 +143,9 @@ export default class Push extends KysoCommand {
     }
 
     // Check if report has defined main file
-    if (kysoConfigFile.main && newFiles.length > 0) {
-      const indexMainFile: number = newFiles.findIndex((file: string) => {
-        let validFilePathWithoutBasePath: string = basePath === '.' ? file : file.replace(basePath, '')
+    if (kysoConfigFile.main && validFiles.length > 0) {
+      const indexMainFile: number = validFiles.findIndex((file: {path: string, sha: string}) => {
+        let validFilePathWithoutBasePath: string = basePath === '.' ? file.path : file.path.replace(basePath, '')
         if (validFilePathWithoutBasePath.startsWith('/')) {
           validFilePathWithoutBasePath = validFilePathWithoutBasePath.slice(1)
         }
