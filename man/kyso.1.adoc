@@ -1,0 +1,426 @@
+= kyso (1)
+Kyso Inc.
+:doctype: manpage
+:release-version: 2.0.0
+:man manual: Kyso Client Manual
+:man source: Kyso {release-version}
+
+== Name
+
+kyso - kyso command line interface
+
+== Synopsis
+
+*kyso* _command_ [ _<arguments>_ | _<subcommand>_ [ _<arguments>_ ] ]
+
+== Description
+
+The `kyso` command is a tool to work with reports locally, clone, push, pull or
+remove them from a remote server and manage users, profiles, organizations and
+channels if the user has the right permissions.
+
+== Commands
+
+=== Authentication related
+
+*login* [ _<server>_ [ _<user>_ ] ]::
+  Select a remote server and user and provide an _auth token_ interactively to
+  log into the server.
++
+If the _server_ or the _user_ are not passed as arguments the command reads the
+values from the `auth.json` file or asks for them if the file does not exist;
+the _server_ can be a URL or just a host name (in that case the protocol is
+assumed to be HTTPS using the default port).
++
+If the operation succeeds the tool creates or updates two files on the
+`KYSO_DATA_DIRECTORY`:
++
+- `auth.json`: contains the value of the _server_url_, the _user name_ and the
+  default values for _organization_ and _channel_.
+- `token.txt`: contains the session token returned by the platform.
+
+*logout*::
+  Removes the `token.txt` file linked to the `auth.json` file.
+
+*whoami*::
+  Show current user information and status (if the user is logged or not).
+
+=== Local report management
+
+*check* [ _<local_directory>_ ]::
+  Check the values of the `.kyso.yaml` file on the _local_directory_ (the
+  working directory if no value is passed) to make sure that the contents are
+  valid for the current server and user.
++
+Basically this shows if the user is allowed to update the report, verifies
+that the required fields (_type_, _main_ file, _title_, _organization_ and
+_channel_) are set and valid (i.e. checks that the _organization_ and _channel_
+exist and that the _main_ file is included on the report) and prints the report
+URL for the current version (if we have pending changes it should show the
+one we downloaded, as we should not change the version manually, only `pull`
+and `push` calls do it).
+
+*edit* [ _<field-values>_ ] [ _<local_directory>_ ]::
+  Edit values on the `.kyso.yaml` file on the _local_directory_ (if not present
+  the working directory is used).
++
+The command allows the user to change the report _type_, _main_ file, _title_,
+_description_, _organization_, _channel_, _tags_ or _authors_
+interactively when no value is passed or changes the values passed as options
+(i.e. to change only the _main_ file the user can pass the argument
+`--main=FILE`).
+
+*init* [ _<field-values>_ ] [ _<init_flags>_ ] [ _<local_directory>_ ]::
+  Create `.kyso.yaml` file for a new report.
++
+The command creates the file on the current directory unless the
+*local_directory* argument is provided and when a folder only has one file it
+is used as the `main` file for the report by default unless the user adds a
+`--main=VALUE` argument to the command.
++
+The user can provide values for the configuration file fields on the command
+line using the syntax `--field=VALUE` where the `field` name can be _type_,
+_main_, _title_, _description_, _organization_, _channel_, _tags_ or
+_authors_).
++
+If the call does not include all the possible fields the user is asked
+interactively to change each value, using the provided values as defaults (if
+a value was not passed the tool proposes a default value or an empty one).
++
+When the valid values for a field can be obtained from the backend, the
+interactive mode allows the user to autocomplete (i.e. when adjusting
+organizations or channels).
++
+This command will not add the `slug` or `version` fields to the `.kyso.yaml`
+file, those will be updated after the first `push`.
++
+The available _init_flags_ are:
+
+  *--dirname-as-title*:::
+    This flag only makes sense with the `--subfolder` option; when we pass it
+    the title of the report is taken from the folder name unless the
+    `--use-metadata` flag is also available and we can get it from there.
+
+  *--force-fields*:::
+    Use the field values passed from the command line as they are, don't ask
+    the users to update them nor read the values from the main document
+    metadata when `--use-metadata` is active.
+
+  *--map-metadata* _<fields_metadata_map>_:::
+    List of metadata fields to map to report attributes when the
+    `--use-metadata` flag is active (the format is a comma separated list of
+    `Metadata_field:Kyso_field` pairs).
+
+  *--multireport*:::
+    Assume that the `.kyso.yaml` is going to be for a multireport, in that case
+    we create the main `.kyso.yaml` file and the user is responsible of creating
+    each report configuration independently unless the `--subfolders` flag
+    is passed.
+
+  *--subfolders*:::
+    Instead of working on the _local_directory_ or the working directory process
+    all the folders inside it as individual reports.
++
+This option is useful when we pass the `--multireport` flag and with the
+`--use-metadata` and `--dirname-as-title` flags, as we can generate multiple
+`.kyso.yaml` files without answering interactive questions.
++
+In any case, when we use this option the system will ask for the required
+fields of each report that can't be computed automatically (i.e. when the
+report has more than one file and it does not match the default _main_, when
+the `--dirname-as-title` has not been used, etc.).
+
+  *--use-metadata*:::
+    If the main file of a report is an office file, use the file metadata to get
+    the `.kyso.yaml` field values.
+
+*format* [ _<format_flags>_ ] [ _<local_directory>_ ]::
+  Format the files on the working directory (or the _local_directory_ if
+  passed) for Kyso.
++
+For now the _format_flags_ defined are:
+
+  *--jupiter*:::
+    Searches and process all the `.ipynb` files to allow using inline comments
+    once the files are uploaded to a Kyso server.
+
+*open* [ _<local_directory>_ ]::
+  This command opens the current version of the report on the user's browser.
+
+*update* [ _<local_directory>_ ]::
+  If the _local_directory_ or the working directory (when the _local_directory_
+  is not provided) contains a `kyso.json` or `kyso.yaml` file and no
+  `.kyso.yaml` file exists this command reads the information, saves it to the
+  `.kyso.yaml` file and removes the original file.
+
+=== Remote report management
+
+*clone* _<report_url>_ [ _<local_directory>_ ]::
+  Clone report from Kyso.
++
+The _report_url_ has the form
+https://<kyso_server>/<organization>/<channel>/<report_slug>/.
++
+If a _local_directory_ is given the report files are copied into that folder,
+if not the command tries to create a folder with the `report_slug` value as its
+name.
+
+*copy* _<local_directory|report_url>_ _<channel>_ [ _<organization>_ ]::
+  Copies the last version of the report in the _local_directory_ or the
+  _report_url_ to the provided _channel_ and _organization_ (if the
+  organization is not specified the one on the original report is used).
++
+If we are using a _local_directory_ and it has changes the command copies the
+version on the directory, not the one on the remote server and our local files
+are left as they were.
+
+*move* _<local_directory|report_url>_ _<channel>_ [ _<organization>_ ]::
+  Moves the report in the _local_directory_ or the _report_url_ to the
+  provided _channel_ and _organization_ (if the organization is not specified
+  the one on the original report is used).
++
+This command moves the remote report with all its history, not only the last
+version.
++
+If we use a _local_directory_ the `.kyso.yaml` file is updated with the new
+_organization_, _channel_ and _report_slug_ value, but the rest of the files
+are not changed or checked (any added, removed or updated files are left alone).
+
+*push* [ _<local_directory>_ ] [ *--force* ] [ *--subdirs* ]::
+  Push the report on the _local_directory_ (the working directory if not
+  specified) to the Kyso server.
++
+Always works against the latest version of the report on the server, before
+sending the files it checks if the latest version pulled is the same as the
+one on the server; it they are not equal the command fails unless the `--force`
+flag is passed.
++
+If the `.kyso.yaml` file does not have a `slug` field it means that we are on a
+first push and the command replaces the report configuration file by the one
+stored on the server (basically it adds the `slug` and `version` fields to it).
++
+If the `--subdirs` flag is passed and the working directory or the
+_local_directory_ does not have a `.kyso.yaml` the command processes all the
+sub directories that do have one as reports; this is only useful when processing
+multiple reports in batch mode (i.e. for importing multiple powerpoint
+reports).
+
+*pull* [ _<local_directory>_ ] [ *--force* ] [ *--version*=_VERSION_ ]::
+  Pull the report on the _local_directory_ (the working directory if not
+  specified) from the Kyso server.
++
+The command gets new files and removes the ones no longer on the server version
+if they have not changed locally; if there are files with local changes that
+will be removed or updated the command aborts unless we pass the `--force`
+argument.
++
+Note that each time a pull succeeds we update the `.kyso.yaml` file to update the
+`version` field.
++
+If the user wants to pull an specific version of the report it can be done
+passing the `--version=VERSION` argument.
+
+*remove* [ _<local_directory|report_url>_ ] [ *--version*=_VERSION_ ]::
+  Remove a report from Kyso. If the user is on a folder with a `.kyso.yaml`
+  file the command will try to remove it, if not the user must pass a
+  _local_directory_ that has the file or a valid _report_url_.
++
+The user can request to remove a specific version of the report passing the
+`--version=VERSION` argument
+
+*status* [ _<local_directory>_ ]::
+  Check the _local_directory_ report status against the server version (if the
+  local_directory is missing we use the working directory).
++
+The command shows the remote version number and the files added, removed or
+updated locally.
+
+=== Settings related
+
+*profile* _subcommand_ _<arguments>_::
+  Get and set profile values.
++
+Valid _subcommands_ and their _arguments_ are:
+
+  *download* *background*|*photo* _<image_file>_:::
+    Download the `background` or `photo` images and save them on the provided
+    _image_file_.
+
+  *upload* *background*|*photo* _<image_file>_:::
+    Upload the _image_file_ as the `background` or `photo` images.
+
+  *get* [ _--images_ ] _<yaml_file>_:::
+    Save the user profile values on a _yaml_file_.
++
+If the `--images` flag is passed the _yaml_file_ will contain copies of the
+background and photo images encoded in base64.
+
+  *set* _<yaml_file>_:::
+    Pass the user profile values from the _yaml_file_ to the backend and merge
+    its values with the existing ones (that is, missing values keep their
+    value).
++
+If we pass the images encoded in base64 on the _yaml_file_ the images are
+updated if there are changes.
+
+*organization* _subcommand_ _<arguments>_::
+  Get and set organization related values.
++
+Valid _subcommands_ and their _arguments_ are:
+
+  *add* _<list_of_orgs>_:::
+    Add the organizations in the _list_of_orgs_ to the system. This command asks
+    interactively for the minimum data required to create them and later the
+    user can update the information using the frontend or the `get` and `set`
+    subcommands.
+
+  *del* _<list_of_orgs>_:::
+    Remove the organizations included in the _list_of_orgs_.
+
+  *download* _<organization>_ *background*|*photo* _<image_file>_:::
+    Download the `background` or `photo` images of the given _organization_
+    and save them on the provided _image_file_.
+
+  *upload* _<organization>_ *background*|*photo* _<image_file>_:::
+    Upload the _image_file_ as the `background` or `photo` image of the given
+    _organization_.
+
+  *get* [ _--images_ ] [ _--no-channels_ ] _<list_of_orgs>_ _<yaml_file>_:::
+    Save the configuration values (profile data, access settings and list of
+    channels) of the organizations in the _list_of_organizations_ on a
+    _yaml_file_.
++
+If the `--images` flag is passed the _<yaml_file>_ will contain copies of the
+background and photo images encoded in base64.
++
+If the `--no-channels` flag is passed the _<yaml_file>_ will not include the
+list of channels for the organizations.
+
+  *set* _<yaml_file>_:::
+    Pass the organizations configuration values from the _yaml_file_ to the
+    backend and merge its values with the existing ones (that is, missing
+    values keep their value).
++
+This command does not get the organization names from the command line because
+we can pass multiple organizations on the YAML file and each of them includes
+its name.
++
+Note that when updating the information of an organization the list of channels
+is not used, that is, no channel is added or removed with this command, to
+manage channels you should use the `channel` subcommand.
+
+*channel* _subcommand_ _<arguments>_::
+  Get and set channel related values.
++
+Valid _subcommands_ and their _arguments_ are:
+
+  *add* _<organization>_ _<list_of_channels>_:::
+    Add the channels on the _list_of_channels_ to the given _organization_.
+    This command asks interactively for the minimum data required to create
+    each organization and later the user can update the information using the
+    frontend or the `get` and `set` subcommands.
+
+  *del* _<organization>_ _<list_of_channels>_:::
+    Remove the channels on the _list_of_channels_ from the given _organization_.
+
+  *get* _<organization>_ _<list_of_channels>_ _<yaml_file>_:::
+    Save the configuration values of the channels on the _list_of_channels_
+    from the given _organization_ on a _yaml_file_.
+
+  *set* _<yaml_file>_:::
+    Pass the channels configuration values from the _yaml_file_ to the backend
+    and merge its values with the existing ones.
++
+This command does not get the organization or the channel names because we can
+pass multiple channels on the YAML file and each of them includes the channel
+name and the organization it belongs to.
+
+*user* _subcommand_ _<arguments>_::
+  Get and set user related values. Valid _subcommands_ and their _arguments_
+  are:
+
+  *add* _<list_of_users>_:::
+    Add the users on the _list_of_users_ to the system; the command asks
+    interactively for the required parameters and later an admin can update
+    values using the `get` and `set` subcommands.
+
+  *del* _<list_of_users>_:::
+    Remove the users on the _list_of_users_ from the system.
+
+  *download* _<user>_ *background*|*photo* _<image_file>_:::
+    Download the `background` or `photo` images of the given _<user>_ and save
+    them on the provided _image_file_.
+
+  *upload* _<user>_ *background*|*photo* _<image_file>_:::
+    Upload the _image_file_ as the `background` or `photo` image of the given
+    _user_.
+
+  *get* [ _--images_ ] _<list_of_users>_ _<yaml_file>_:::
+    Save the configuration values of the users in the _list_of_organizations_
+    on a _yaml_file_.
++
+If the `--images` flag is passed the _<yaml_file>_ will contain copies of the
+background and photo images encoded in base64.
+
+  *set* _<yaml_file>_:::
+    Pass the user configuration values from the _yaml_file_ to the backend and
+    merge its values with the existing ones (that is, missing values keep their
+    value).
++
+This command does not get the user names from the command line because we can
+pass multiple users on the YAML file and each of them includes its name.
+
+*theme* _subcommand_ _<arguments>_::
+  Manage theme related files.
++
+Valid _subcommands_ and their _arguments_ are:
+
+  *add* _<theme_name>_ _<zip_file>_:::
+    Uploads the _zip_file_ to the given _theme_name_ folder replacing its
+    previous contents.
+
+  *del* _<theme_name>_:::
+    Removes the _theme_name_ folder.
+
+  *get* _<theme_name>_ [ _<zip_file>_ ]:::
+    Downloads the contents of the _theme_name_ folder and stores it on the
+    given _zip_file_ or on the _theme_name.zip_ file on the current directory
+    if no _zip_file_ is provided.
+
+== Tool related
+
+*help* [ _<command>_ [ _<subcommand>_  ] ]::
+  Display general tool usage information or _command_ or _command_ _subcommand_
+  usage information if given.
+
+*version*::
+  Print kyso cli version information.
+
+== Environment
+
+Kyso honors the _KYSO_DATA_DIRECTORY_ environment variable.
+
+If set, the _kyso_ command looks for its configuration files and temporary
+directories inside that directory (by default the data directory is
+_$HOME/.kyso_); this variable can be used to keep login information for more
+than one instance of the platform or to change the default PATH for CI/CD
+systems (i.e. when the HOME directory is not writable).
+
+== Exit status
+
+*0*::
+  Success.
+
+*1*::
+  Failure.
+
+== Resources
+
+*Product web site:* https://about.kyso.io/
+
+*Cli web site:* https://cli.kyso.io/
+
+== Copying
+
+Copyright (C) 2022-present {author}.
+Free use of this software is granted under the terms of the MIT License.
