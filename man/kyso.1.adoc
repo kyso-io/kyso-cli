@@ -48,30 +48,34 @@ If the operation succeeds the tool creates or updates two files on the
 === Local report management
 
 *check* [ _<local_directory>_ ]::
-  Check the values of the `.kyso.yaml` file on the _local_directory_ (the
-  working directory if no value is passed) to make sure that the contents are
-  valid for the current server and user.
+  Check the values of the `.kyso/meta.yaml` and `.kyso/repo.json` files on the
+  _local_directory_ (the working directory if no value is passed) to make sure
+  that the contents are valid for the current server and user.
 +
 Basically this shows if the user is allowed to update the report, verifies
-that the required fields (_type_, _main_ file, _title_, _organization_ and
-_channel_) are set and valid (i.e. checks that the _organization_ and _channel_
-exist and that the _main_ file is included on the report) and prints the report
-URL for the current version (if we have pending changes it should show the
-one we downloaded, as we should not change the version manually, only `pull`
-and `push` calls do it).
+that the required fields on the `meta.yaml` file (_type_, _main_ file and
+_title_) and the `repo.json` file (_server_, _organization_ and _channel_) are
+set and valid (i.e. checks that the _organization_ and _channel_ exist and that
+the _main_ file is included on the report) and prints the report URL for the
+current version (if we have pending changes it should show the one we
+downloaded, as we should not change the version manually, only `pull` and
+`push` calls do it).
 
 *edit* [ _<field-values>_ ] [ _<local_directory>_ ]::
-  Edit values on the `.kyso.yaml` file on the _local_directory_ (if not present
-  the working directory is used).
+  Edit values on the `.kyso/meta.yaml` file on the _local_directory_ (if not
+  present the working directory is used).
 +
 The command allows the user to change the report _type_, _main_ file, _title_,
-_description_, _organization_, _channel_, _tags_ or _authors_
-interactively when no value is passed or changes the values passed as options
-(i.e. to change only the _main_ file the user can pass the argument
-`--main=FILE`).
+_description_, _tags_ or _authors_ interactively when no value is passed or
+changes the values passed as options (i.e. to change only the _main_ file the
+user can pass the argument `--main=FILE`).
++
+If the `.kyso/repo.json` file has the value `0` on the _version_ file we will
+also be able to update the values of _organization_ and _channel_, but once the
+report is pushed we will have to move it to update that information.
 
 *init* [ _<field-values>_ ] [ _<init_flags>_ ] [ _<local_directory>_ ]::
-  Create `.kyso.yaml` file for a new report.
+  Create the `.kyso/meta.yaml` file for a new report.
 +
 The command creates the file on the current directory unless the
 *local_directory* argument is provided and when a folder only has one file it
@@ -88,11 +92,12 @@ interactively to change each value, using the provided values as defaults (if
 a value was not passed the tool proposes a default value or an empty one).
 +
 When the valid values for a field can be obtained from the backend, the
-interactive mode allows the user to autocomplete (i.e. when adjusting
+interactive mode allows the user to auto complete (i.e. when adjusting
 organizations or channels).
 +
-This command will not add the `slug` or `version` fields to the `.kyso.yaml`
-file, those will be updated after the first `push`.
+This command will create the `.kyso/repo.json` file with the _version_ adjusted
+to 0 and will leave empty the _hashes_ and _slug_ files, their values will be
+updated after the first `push`.
 +
 The available _init_flags_ are:
 
@@ -112,10 +117,10 @@ The available _init_flags_ are:
     `Metadata_field:Kyso_field` pairs).
 
   *--multireport*:::
-    Assume that the `.kyso.yaml` is going to be for a multireport, in that case
-    we create the main `.kyso.yaml` file and the user is responsible of creating
-    each report configuration independently unless the `--subfolders` flag
-    is passed.
+    Assume that the `.kyso/meta.yaml` is going to be for a multireport, in
+	that case we create the main `.kyso/meta.yaml` file and assume that the
+	user will be responsible of creating each report configuration independently
+	unless the `--subfolders` flag is passed.
 
   *--subfolders*:::
     Instead of working on the _local_directory_ or the working directory process
@@ -123,7 +128,7 @@ The available _init_flags_ are:
 +
 This option is useful when we pass the `--multireport` flag and with the
 `--use-metadata` and `--dirname-as-title` flags, as we can generate multiple
-`.kyso.yaml` files without answering interactive questions.
+`.kyso/meta.yaml` files without answering interactive questions.
 +
 In any case, when we use this option the system will ask for the required
 fields of each report that can't be computed automatically (i.e. when the
@@ -132,7 +137,8 @@ the `--dirname-as-title` has not been used, etc.).
 
   *--use-metadata*:::
     If the main file of a report is an office file, use the file metadata to get
-    the `.kyso.yaml` field values.
+    the `.kyso/meta.yaml` field values and the proposed values for
+	_organization_ and _channel_ for the `.kyso/repo.json` file.
 
 *format* [ _<format_flags>_ ] [ _<local_directory>_ ]::
   Format the files on the working directory (or the _local_directory_ if
@@ -150,8 +156,9 @@ For now the _format_flags_ defined are:
 *update* [ _<local_directory>_ ]::
   If the _local_directory_ or the working directory (when the _local_directory_
   is not provided) contains a `kyso.json` or `kyso.yaml` file and no
-  `.kyso.yaml` file exists this command reads the information, saves it to the
-  `.kyso.yaml` file and removes the original file.
+  `.kyso` folder exists this command reads the information, creates the `.kyso`
+  folder, saves the report metadata to the `.kyso/meta.yaml` and
+  `.kyso/repo.json` files and removes the original file.
 
 === Remote report management
 
@@ -159,11 +166,10 @@ For now the _format_flags_ defined are:
   Clone report from Kyso.
 +
 The _report_url_ has the form
-https://<kyso_server>/<organization>/<channel>/<report_slug>/.
+https://<kyso_server>/<organization>/<channel>/<slug>/.
 +
 If a _local_directory_ is given the report files are copied into that folder,
-if not the command tries to create a folder with the `report_slug` value as its
-name.
+if not the command tries to create a folder with the `slug` value as its name.
 
 *copy* _<local_directory|report_url>_ _<channel>_ [ _<organization>_ ]::
   Copies the last version of the report in the _local_directory_ or the
@@ -182,9 +188,9 @@ are left as they were.
 This command moves the remote report with all its history, not only the last
 version.
 +
-If we use a _local_directory_ the `.kyso.yaml` file is updated with the new
-_organization_, _channel_ and _report_slug_ value, but the rest of the files
-are not changed or checked (any added, removed or updated files are left alone).
+If we use a _local_directory_ the `.kyso/repo.json` file is updated with the
+new _organization_ and _channel_ values, but the rest of the files are not
+changed or checked (any added, removed or updated files are left alone).
 
 *push* [ _<local_directory>_ ] [ *--force* ] [ *--subdirs* ]::
   Push the report on the _local_directory_ (the working directory if not
@@ -193,17 +199,15 @@ are not changed or checked (any added, removed or updated files are left alone).
 Always works against the latest version of the report on the server, before
 sending the files it checks if the latest version pulled is the same as the
 one on the server; it they are not equal the command fails unless the `--force`
-flag is passed.
-+
-If the `.kyso.yaml` file does not have a `slug` field it means that we are on a
-first push and the command replaces the report configuration file by the one
-stored on the server (basically it adds the `slug` and `version` fields to it).
+flag is passed and shows a message saying which files have been updated on the
+remote server and which ones have changed locally, with a separate list of
+files changed on both places.
 +
 If the `--subdirs` flag is passed and the working directory or the
-_local_directory_ does not have a `.kyso.yaml` the command processes all the
-sub directories that do have one as reports; this is only useful when processing
-multiple reports in batch mode (i.e. for importing multiple powerpoint
-reports).
+_local_directory_ does not have a `.kyso` directory the command processes all
+the sub directories that do have one as reports; this is only useful when
+processing multiple reports in batch mode (i.e. for importing multiple
+powerpoint reports).
 
 *pull* [ _<local_directory>_ ] [ *--force* ] [ *--version*=_VERSION_ ]::
   Pull the report on the _local_directory_ (the working directory if not
@@ -214,16 +218,17 @@ if they have not changed locally; if there are files with local changes that
 will be removed or updated the command aborts unless we pass the `--force`
 argument.
 +
-Note that each time a pull succeeds we update the `.kyso.yaml` file to update the
-`version` field.
+Note that each time a pull succeeds the tool updates the `.kyso/repo.json` file
+to update the changed fields (`hashes` and `version`).
 +
 If the user wants to pull an specific version of the report it can be done
 passing the `--version=VERSION` argument.
 
 *remove* [ _<local_directory|report_url>_ ] [ *--version*=_VERSION_ ]::
-  Remove a report from Kyso. If the user is on a folder with a `.kyso.yaml`
-  file the command will try to remove it, if not the user must pass a
-  _local_directory_ that has the file or a valid _report_url_.
+  Remove a report from Kyso. If the user is on a folder with a `.kyso` sub
+  directory with a `repo.json` file the command will try to remove it, if not
+  the user must pass a _local_directory_ that has the sub directory and the file
+  or a valid _report_url_.
 +
 The user can request to remove a specific version of the report passing the
 `--version=VERSION` argument
@@ -405,6 +410,48 @@ directories inside that directory (by default the data directory is
 _$HOME/.kyso_); this variable can be used to keep login information for more
 than one instance of the platform or to change the default PATH for CI/CD
 systems (i.e. when the HOME directory is not writable).
+
+== Files
+
+Each report will contain a `.kyso` folder that can contain two files:
+
+*meta.yaml*:: file that contains the metadata for the report:
+
+  *type*::: report type (available ones are `markdown`, `jupyter`, `website`,
+  `other`, `meta`)
+
+  *main*::: local path of the report main file
+
+  *title*::: report title
+
+  *description*::: report description
+
+  *tags*::: list of report tags
+
+  *authors*::: list of report authors
+
+*repo.json*:: file that contains information about the latest checkout of the
+report, it contains the following values:
+
+  *server*::: address of the server used to checkout this report (if _version_
+  is 0 this is the proposed server)
+
+  *organization*::: report organization (if _version_ is 0 it is the proposed
+  _organization_, if it is higher we assume that the report was already
+  uploaded to that organization)
+
+  *channel*::: report channel (if _version_ is 0 it is the proposed _channel_,
+  if it is higher we assume that the report was already uploaded to that
+  channel)
+
+  *version*::: version checked out (if the value is 0 the report has not been
+  uploaded yet)
+
+  *hashes*::: map of report files to the hash value of their content when the
+  given version was uploaded to the server, empty when the report has not been
+  uploaded yet.
+
+  *slug*::: report slug (only has values if the report has been uploaded)
 
 == Exit status
 
