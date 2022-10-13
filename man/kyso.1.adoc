@@ -146,7 +146,7 @@ the `--dirname-as-title` has not been used, etc.).
 +
 For now the _format_flags_ defined are:
 
-  *--jupiter*:::
+  *--jupyter*:::
     Searches and process all the `.ipynb` files to allow using inline comments
     once the files are uploaded to a Kyso server.
 
