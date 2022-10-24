@@ -84,16 +84,35 @@ export default class Init extends KysoCommand {
       this.error('You need to be part of an organization to initialize a report')
     }
 
+    const organizationsPermissions: ResourcePermissions[] = resultTokenPermissions.data.organizations.filter((organizationResourcePermission: ResourcePermissions) => {
+      const organizationHasCreateReportPermission: boolean = organizationResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE)
+      if (organizationHasCreateReportPermission) {
+        return true
+      }
+      const teamsOrganizationResourcePermissions: ResourcePermissions[] = []
+      for (const teamResourcePermission of resultTokenPermissions.data.teams) {
+        if (teamResourcePermission.organization_id !== organizationResourcePermission.id) {
+          continue
+        }
+        if (teamResourcePermission.organization_inherited && organizationHasCreateReportPermission) {
+          teamsOrganizationResourcePermissions.push(teamResourcePermission)
+        } else if (teamResourcePermission?.permissions && teamResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE)) {
+          teamsOrganizationResourcePermissions.push(teamResourcePermission)
+        }
+      }
+      return teamsOrganizationResourcePermissions.length > 0
+    })
+
     const organizationResponse: { organization: string } = await inquirer.prompt([
       {
         name: 'organization',
         message: 'Select an organization',
         type: 'list',
-        choices: resultTokenPermissions.data.organizations.map((resourcePermission: ResourcePermissions) => ({ name: resourcePermission.name })),
+        choices: organizationsPermissions.map((resourcePermission: ResourcePermissions) => ({ name: resourcePermission.name })),
       },
     ])
 
-    const organizationResourcePermission: ResourcePermissions = resultTokenPermissions.data.organizations.find(
+    const organizationResourcePermission: ResourcePermissions = organizationsPermissions.find(
       (resourcePermission: ResourcePermissions) => resourcePermission.name === organizationResponse.organization
     )!
     const organizationHasCreateReportPermission: boolean = organizationResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE)
@@ -104,12 +123,9 @@ export default class Init extends KysoCommand {
       }
       if (teamResourcePermission.organization_inherited && organizationHasCreateReportPermission) {
         teamsOrganizationResourcePermissions.push(teamResourcePermission)
-      } else if (teamResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE)) {
+      } else if (teamResourcePermission?.permissions && teamResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE)) {
         teamsOrganizationResourcePermissions.push(teamResourcePermission)
       }
-    }
-    if (teamsOrganizationResourcePermissions.length === 0) {
-      this.error('you do not have permissions to upload reports in this organization')
     }
 
     const teamResponse: { team: string } = await inquirer.prompt([
