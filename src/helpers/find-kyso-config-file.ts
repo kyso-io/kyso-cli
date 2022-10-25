@@ -3,9 +3,9 @@ import { readFileSync } from 'fs'
 
 export const findKysoConfigFile = (files: string[]): { kysoConfigFile: KysoConfigFile | null; kysoConfigPath: string | null; valid: boolean; message: string | null } => {
   let data: {
-    valid: boolean
-    message: string | null
-    kysoConfigFile: KysoConfigFile | null
+    valid: boolean;
+    message: string | null;
+    kysoConfigFile: KysoConfigFile | null;
   } = {
     valid: false,
     message: null,

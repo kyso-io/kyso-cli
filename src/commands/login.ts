@@ -1,5 +1,5 @@
 /* eslint-disable complexity */
-/* eslint-disable no-case-declarations */
+
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable indent */
 import { Login as LoginModel, LoginProviderEnum, NormalizedResponseDTO } from '@kyso-io/kyso-model'
@@ -10,7 +10,7 @@ import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitl
 import { KysoCommand } from './kyso-command'
 
 export default class Login extends KysoCommand {
-  static description = 'Login into Kyso'
+  static description = 'Login into Kyso';
 
   static examples = [
     `** NOTE: If you plan to use kyso-cli inside a CI/CD pipeline, we strongly recommend to use access tokens **`,
@@ -22,7 +22,7 @@ export default class Login extends KysoCommand {
     $ kyso login --kysoInstallUrl <kyso_installation_url> --provider kyso --username <your_email> --token <your_access_token>`,
     `# Login using github provider (will prompt a browser window to log in). The same behavior happens using the rest of external providers 
     $ kyso login --provider github`,
-  ]
+  ];
 
   static flags = {
     provider: Flags.string({
@@ -77,9 +77,9 @@ export default class Login extends KysoCommand {
       required: false,
       default: false,
     }),
-  }
+  };
 
-  static args = []
+  static args = [];
 
   async run(): Promise<void> {
     const { flags } = await this.parse(Login)
@@ -94,7 +94,7 @@ export default class Login extends KysoCommand {
     if (flags?.provider && flags.provider !== '') {
       // NON-INTERACTIVE MODE
       switch (flags.provider) {
-        case LoginProviderEnum.KYSO:
+        case LoginProviderEnum.KYSO: {
           if (!flags.hasOwnProperty('kysoInstallUrl')) {
             this.error('KysoInstallUrl is required when provider is kyso')
           }
@@ -112,7 +112,8 @@ export default class Login extends KysoCommand {
             this.error('You must provide a password or a token')
           }
           break
-        case LoginProviderEnum.GOOGLE:
+        }
+        case LoginProviderEnum.GOOGLE: {
           try {
             const googleResult: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithGoogle(flags.kysoInstallUrl)
             if (googleResult.errorMessage) {
@@ -123,14 +124,16 @@ export default class Login extends KysoCommand {
             this.error(error)
           }
           break
-        case LoginProviderEnum.GITHUB:
+        }
+        case LoginProviderEnum.GITHUB: {
           const githubResult: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithGithub(flags.kysoInstallUrl)
           if (githubResult.errorMessage) {
             throw new Error(githubResult.errorMessage)
           }
           loginModel = new LoginModel(githubResult.code, LoginProviderEnum.GITHUB, '', null)
           break
-        case LoginProviderEnum.BITBUCKET:
+        }
+        case LoginProviderEnum.BITBUCKET: {
           try {
             const bitbucketResult: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithBitbucket(flags.kysoInstallUrl)
             if (bitbucketResult.errorMessage) {
@@ -141,7 +144,8 @@ export default class Login extends KysoCommand {
             this.error(error)
           }
           break
-        case LoginProviderEnum.GITLAB:
+        }
+        case LoginProviderEnum.GITLAB: {
           try {
             const gitlabResponse: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithGitlab(flags.kysoInstallUrl)
             if (gitlabResponse.errorMessage) {
@@ -152,8 +156,10 @@ export default class Login extends KysoCommand {
             this.error(error)
           }
           break
-        default:
+        }
+        default: {
           this.error('Provider not supported')
+        }
       }
       if (loginModel.kysoInstallUrl) {
         process.env.KYSO_API = `${loginModel.kysoInstallUrl}/api/v1`

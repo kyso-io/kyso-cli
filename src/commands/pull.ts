@@ -13,9 +13,9 @@ import { KysoCredentials } from '../types/kyso-credentials'
 import { KysoCommand } from './kyso-command'
 
 export default class Push extends KysoCommand {
-  static description = 'Pull repository from Kyso'
+  static description = 'Pull repository from Kyso';
 
-  static examples = [`$ kyso pull --path <destination_folder> --organization <organization> --team <team> --report <report_name> --version <version>`]
+  static examples = [`$ kyso pull --path <destination_folder> --organization <organization> --team <team> --report <report_name> --version <version>`];
 
   static flags = {
     path: Flags.string({
@@ -47,9 +47,9 @@ export default class Push extends KysoCommand {
       required: false,
       default: false,
     }),
-  }
+  };
 
-  static args = []
+  static args = [];
 
   async run(): Promise<void> {
     const { flags } = await this.parse(Push)

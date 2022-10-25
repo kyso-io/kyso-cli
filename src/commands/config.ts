@@ -4,12 +4,12 @@ import { KysoCredentials } from '../types/kyso-credentials'
 import { KysoCommand } from './kyso-command'
 
 export default class Config extends KysoCommand {
-  static description = 'Login into Kyso'
+  static description = 'Login into Kyso';
 
   static examples = [
     `# Direct login using kyso provider and password
     $ kyso config --kysoInstallUrl <kyso_installation_url>`,
-  ]
+  ];
 
   static flags = {
     kysoInstallUrl: Flags.string({
@@ -18,9 +18,9 @@ export default class Config extends KysoCommand {
       required: false,
       multiple: false,
     }),
-  }
+  };
 
-  static args = []
+  static args = [];
 
   async run(): Promise<void> {
     const { flags } = await this.parse(Config)

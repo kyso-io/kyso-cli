@@ -4,9 +4,9 @@ import { KysoCredentials } from '../types/kyso-credentials'
 import { KysoCommand } from './kyso-command'
 
 export default class Push extends KysoCommand {
-  static description = 'Current logged user and platform'
+  static description = 'Current logged user and platform';
 
-  static examples = [`$ kyso whoami`]
+  static examples = [`$ kyso whoami`];
 
   async run(): Promise<void> {
     const kysoCredentials: KysoCredentials | null = KysoCommand.getCredentials()

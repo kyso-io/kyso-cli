@@ -1,18 +1,18 @@
 /* eslint-disable indent */
-import { Login, RepositoryProvider } from '@kyso-io/kyso-model'
-import { importBitbucketRepositoryAction, importGithubRepositoryAction, importGitlabRepositoryAction, loginAction, store } from '@kyso-io/kyso-store'
+import { RepositoryProvider } from '@kyso-io/kyso-model'
+import { importBitbucketRepositoryAction, importGithubRepositoryAction, importGitlabRepositoryAction, store } from '@kyso-io/kyso-store'
 import { Flags } from '@oclif/core'
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login'
 import { KysoCommand } from './kyso-command'
 
 export default class ImportRepository extends KysoCommand {
-  static description = 'Import repository to Kyso'
+  static description = 'Import repository to Kyso';
 
   static examples = [
     `$ kyso import-repository --provider github --name <repository_name> --branch <branch>`,
     `$ kyso import-repository --provider bitbucket --name <workspace/repository-name> --branch <branch>`,
     `$ kyso import-repository --provider gitlab --name <id | name_with_namespace> --branch <branch>`,
-  ]
+  ];
 
   static flags = {
     provider: Flags.string({
@@ -35,18 +35,18 @@ export default class ImportRepository extends KysoCommand {
       char: 'x',
       description: 'Verbose mode for debugging',
       required: false,
-      default: false
-    })
-  }
+      default: false,
+    }),
+  };
 
-  static args = []
+  static args = [];
 
   async run(): Promise<void> {
     const { flags } = await this.parse(ImportRepository)
-    
-    if(flags.verbose) {
-      this.log("Enabled verbose mode");
-      this.enableVerbose();
+
+    if (flags.verbose) {
+      this.log('Enabled verbose mode')
+      this.enableVerbose()
     }
 
     await launchInteractiveLoginIfNotLogged()
@@ -62,15 +62,18 @@ export default class ImportRepository extends KysoCommand {
 
     let result: any = null
     switch (flags.provider) {
-      case RepositoryProvider.GITHUB:
+      case RepositoryProvider.GITHUB: {
         result = await store.dispatch(importGithubRepositoryAction(args))
         break
-      case RepositoryProvider.BITBUCKET:
+      }
+      case RepositoryProvider.BITBUCKET: {
         result = await store.dispatch(importBitbucketRepositoryAction(args))
         break
-      case RepositoryProvider.GITLAB:
+      }
+      case RepositoryProvider.GITLAB: {
         result = await store.dispatch(importGitlabRepositoryAction(args))
         break
+      }
     }
     if (result?.error) {
       this.error(result.error.message)
@@ -78,9 +81,9 @@ export default class ImportRepository extends KysoCommand {
       this.log(`Successfully uploaded report`)
     }
 
-    if(flags.verbose) {
-      this.log("Disabling verbose mode");
-      this.disableVerbose();
+    if (flags.verbose) {
+      this.log('Disabling verbose mode')
+      this.disableVerbose()
     }
   }
 }

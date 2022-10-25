@@ -9,7 +9,7 @@ import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login'
 import { KysoCredentials } from '../types/kyso-credentials'
 import { KysoCommand } from './kyso-command'
-import inquirer = require('inquirer')
+import inquirer = require('inquirer');
 
 enum ReportTypes {
   website = 'website',
@@ -19,9 +19,9 @@ enum ReportTypes {
 }
 
 export default class Init extends KysoCommand {
-  static description = 'Interactivel build a kyso.yaml file'
+  static description = 'Interactivel build a kyso.yaml file';
 
-  static examples = [`$ kyso init`]
+  static examples = [`$ kyso init`];
 
   static flags = {
     path: Flags.string({
@@ -36,9 +36,9 @@ export default class Init extends KysoCommand {
       required: false,
       default: false,
     }),
-  }
+  };
 
-  static args = []
+  static args = [];
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(Init)
@@ -113,7 +113,7 @@ export default class Init extends KysoCommand {
     ])
 
     const organizationResourcePermission: ResourcePermissions = organizationsPermissions.find(
-      (resourcePermission: ResourcePermissions) => resourcePermission.name === organizationResponse.organization
+      (resourcePermission: ResourcePermissions) => resourcePermission.name === organizationResponse.organization,
     )!
     const organizationHasCreateReportPermission: boolean = organizationResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE)
     const teamsOrganizationResourcePermissions: ResourcePermissions[] = []

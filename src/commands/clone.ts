@@ -13,9 +13,9 @@ import { KysoCredentials } from '../types/kyso-credentials'
 import { KysoCommand } from './kyso-command'
 
 export default class Clone extends KysoCommand {
-  static description = 'Clone a report from Kyso'
+  static description = 'Clone a report from Kyso';
 
-  static examples = [`$ kyso clone <report_url>`]
+  static examples = [`$ kyso clone <report_url>`];
 
   static flags = {
     path: Flags.string({
@@ -35,9 +35,9 @@ export default class Clone extends KysoCommand {
       required: false,
       default: false,
     }),
-  }
+  };
 
-  static args = [{ name: 'cloneUrl' }]
+  static args = [{ name: 'cloneUrl' }];
 
   async run(): Promise<void> {
     const { flags } = await this.parse(Clone)

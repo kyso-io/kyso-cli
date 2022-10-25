@@ -1,6 +1,6 @@
 /* eslint-disable no-async-promise-executor */
 /* eslint-disable indent */
-/* eslint-disable unicorn/prefer-module */
+
 /* eslint-disable camelcase */
 import { KysoSetting, KysoSettingsEnum, NormalizedResponseDTO } from '@kyso-io/kyso-model'
 import { Api } from '@kyso-io/kyso-store'
@@ -64,9 +64,9 @@ export const authenticateWithGoogle = async (kysoInstallUrl: string): Promise<{ 
           resolve({ code: null, redirectUrl: googleAuthCallback, errorMessage: error.message })
         }
         clearTimeout(timeout)
-        server.close()
-        // eslint-disable-next-line semi-style
-        ;(server as any).destroy()
+        server.close();
+
+        (server as any).destroy()
       })
       .listen(PORT, () => {
         open(authorizeUrl, { wait: false }).then(cp => cp.unref())
@@ -82,9 +82,9 @@ export const authenticateWithGoogle = async (kysoInstallUrl: string): Promise<{ 
     destroyer(server)
     timeout = setTimeout(() => {
       if (!serverClosed) {
-        server.close()
-        // eslint-disable-next-line semi-style
-        ;(server as any).destroy()
+        server.close();
+
+        (server as any).destroy()
         resolve({ code: null, redirectUrl: googleAuthCallback, errorMessage: 'No response received from the user.' })
       }
     }, TIMEOUT_HTTP_SERVER)
@@ -135,9 +135,9 @@ export const authenticateWithGithub = async (kysoInstallUrl: string): Promise<{ 
           resolve({ code: null, redirectUrl: githubAuthCallback, errorMessage: error.message })
         }
         clearTimeout(timeout)
-        server.close()
-        // eslint-disable-next-line semi-style
-        ;(server as any).destroy()
+        server.close();
+
+        (server as any).destroy()
       })
       .listen(PORT, () => {
         open(`https://github.com/login/oauth/authorize?client_id=${githubClientIdSetting.value}&redirect_uri=${githubAuthCallback}&scope=user%20repo`, { wait: false }).then(cp => cp.unref())
@@ -153,9 +153,9 @@ export const authenticateWithGithub = async (kysoInstallUrl: string): Promise<{ 
     destroyer(server)
     timeout = setTimeout(() => {
       if (!serverClosed) {
-        server.close()
-        // eslint-disable-next-line semi-style
-        ;(server as any).destroy()
+        server.close();
+
+        (server as any).destroy()
         resolve({ code: null, redirectUrl: githubAuthCallback, errorMessage: 'No response received from the user.' })
       }
     }, TIMEOUT_HTTP_SERVER)
@@ -204,9 +204,9 @@ export const authenticateWithBitbucket = async (kysoInstallUrl: string): Promise
           resolve({ code: null, redirectUrl: bitbucketAuthCallback, errorMessage: error.message })
         }
         clearTimeout(timeout)
-        server.close()
-        // eslint-disable-next-line semi-style
-        ;(server as any).destroy()
+        server.close();
+
+        (server as any).destroy()
       })
       .listen(PORT, () => {
         open(`https://bitbucket.org/site/oauth2/authorize?client_id=${bitbucketClientIdSetting.value}&response_type=code`, { wait: false }).then(cp => cp.unref())
@@ -222,9 +222,9 @@ export const authenticateWithBitbucket = async (kysoInstallUrl: string): Promise
     destroyer(server)
     timeout = setTimeout(() => {
       if (!serverClosed) {
-        server.close()
-        // eslint-disable-next-line semi-style
-        ;(server as any).destroy()
+        server.close();
+
+        (server as any).destroy()
         resolve({ code: null, redirectUrl: bitbucketAuthCallback, errorMessage: 'No response received from the user.' })
       }
     }, TIMEOUT_HTTP_SERVER)
@@ -273,9 +273,9 @@ export const authenticateWithGitlab = async (kysoInstallUrl: string): Promise<{ 
           resolve({ code: null, redirectUrl: gitlabAuthCallback, errorMessage: error.message })
         }
         clearTimeout(timeout)
-        server.close()
-        // eslint-disable-next-line semi-style
-        ;(server as any).destroy()
+        server.close();
+
+        (server as any).destroy()
       })
       .listen(PORT, () => {
         open(`https://gitlab.com/oauth/authorize?client_id=${gitlabClientIdSetting.value}&redirect_uri=${gitlabAuthCallback}&response_type=code`, { wait: false }).then(cp => cp.unref())
@@ -291,9 +291,9 @@ export const authenticateWithGitlab = async (kysoInstallUrl: string): Promise<{ 
     destroyer(server)
     timeout = setTimeout(() => {
       if (!serverClosed) {
-        server.close()
-        // eslint-disable-next-line semi-style
-        ;(server as any).destroy()
+        server.close();
+
+        (server as any).destroy()
         resolve({ code: null, redirectUrl: gitlabAuthCallback, errorMessage: 'No response received from the user.' })
       }
     }, TIMEOUT_HTTP_SERVER)

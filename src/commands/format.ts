@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 /* eslint-disable max-depth */
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable no-negated-condition */
@@ -10,12 +10,12 @@ import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
 import { getAllFiles } from '../helpers/get-all-files'
 import { getValidFiles } from '../helpers/get-valid-files'
 import { KysoCommand } from './kyso-command'
-import inquirer = require('inquirer')
+import inquirer = require('inquirer');
 
 export default class Format extends KysoCommand {
-  static description = 'Format your current report files to add new great features'
+  static description = 'Format your current report files to add new great features';
 
-  static examples = [`$ kyso format --jupyter`]
+  static examples = [`$ kyso format --jupyter`];
 
   static flags = {
     path: Flags.string({
@@ -40,9 +40,9 @@ export default class Format extends KysoCommand {
       required: false,
       default: false,
     }),
-  }
+  };
 
-  static args = []
+  static args = [];
 
   async run(): Promise<void> {
     const { flags } = await this.parse(Format)

@@ -18,9 +18,9 @@ import { KysoCredentials } from '../types/kyso-credentials'
 import { KysoCommand } from './kyso-command'
 
 export default class Push extends KysoCommand {
-  static description = 'Upload local repository to Kyso'
+  static description = 'Upload local repository to Kyso';
 
-  static examples = [`$ kyso push --path ./my-report`]
+  static examples = [`$ kyso push --path ./my-report`];
 
   static flags = {
     path: Flags.string({
@@ -35,9 +35,9 @@ export default class Push extends KysoCommand {
       required: false,
       default: false,
     }),
-  }
+  };
 
-  static args = []
+  static args = [];
 
   private async uploadReportAux(reportFolder: string, basePath: string): Promise<void> {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials()
@@ -53,7 +53,7 @@ export default class Push extends KysoCommand {
     const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(payload.username)
     const tokenPermissions: TokenPermissions = resultPermissions.data
     const indexOrganization: number = tokenPermissions.organizations.findIndex(
-      (resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === kysoConfigFile.organization
+      (resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === kysoConfigFile.organization,
     )
     if (indexOrganization === -1) {
       this.log(`\nError: You don't have permissions to create reports in the '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`)
@@ -69,19 +69,19 @@ export default class Push extends KysoCommand {
       if (resultCheckPermission.data) {
         const indexTeam: number = tokenPermissions.teams.findIndex(
           (resourcePermissionTeam: ResourcePermissions) =>
-            resourcePermissionTeam.name === kysoConfigFile.team && resourcePermissionTeam.organization_id === tokenPermissions.organizations[indexOrganization].id
+            resourcePermissionTeam.name === kysoConfigFile.team && resourcePermissionTeam.organization_id === tokenPermissions.organizations[indexOrganization].id,
         )
         if (indexTeam > -1) {
           teamId = tokenPermissions.teams[indexTeam].id
         } else {
           this.log(
-            `\nError: You don't have permission to create reports in the '${kysoConfigFile.team}' team of the '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`
+            `\nError: You don't have permission to create reports in the '${kysoConfigFile.team}' team of the '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`,
           )
           return
         }
       } else {
         this.log(
-          `\nError: You don't have permission to create reports in the '${kysoConfigFile.team}' team of the '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`
+          `\nError: You don't have permission to create reports in the '${kysoConfigFile.team}' team of the '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`,
         )
         return
       }
@@ -144,7 +144,7 @@ export default class Push extends KysoCommand {
 
     // Check if report has defined main file
     if (kysoConfigFile.main && validFiles.length > 0) {
-      const indexMainFile: number = validFiles.findIndex((file: {path: string, sha: string}) => {
+      const indexMainFile: number = validFiles.findIndex((file: { path: string; sha: string }) => {
         let validFilePathWithoutBasePath: string = basePath === '.' ? file.path : file.path.replace(basePath, '')
         if (validFilePathWithoutBasePath.startsWith('/')) {
           validFilePathWithoutBasePath = validFilePathWithoutBasePath.slice(1)
@@ -181,7 +181,7 @@ export default class Push extends KysoCommand {
           unmodifiedFiles,
           deletedFiles,
           version,
-        })
+        }),
       )
     } else {
       result = await store.dispatch(
@@ -189,7 +189,7 @@ export default class Push extends KysoCommand {
           filePaths: getAllFiles(basePath, []),
           basePath,
           maxFileSizeStr: resultKysoSettings.data || '500mb',
-        })
+        }),
       )
     }
     const { error } = store.getState()

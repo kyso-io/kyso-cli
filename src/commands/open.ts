@@ -9,9 +9,9 @@ import { KysoCredentials } from '../types/kyso-credentials'
 import { KysoCommand } from './kyso-command'
 
 export default class Open extends KysoCommand {
-  static description = 'Open a report in the browser'
+  static description = 'Open a report in the browser';
 
-  static examples = [`$ kyso open --path <report_path>`]
+  static examples = [`$ kyso open --path <report_path>`];
 
   static flags = {
     path: Flags.string({
@@ -26,9 +26,9 @@ export default class Open extends KysoCommand {
       required: false,
       default: false,
     }),
-  }
+  };
 
-  static args = []
+  static args = [];
 
   async run(): Promise<void> {
     const { flags } = await this.parse(Open)

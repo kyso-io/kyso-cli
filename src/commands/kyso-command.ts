@@ -10,16 +10,16 @@ import { CheckCredentialsResultEnum } from '../types/check-credentials-result.en
 import { KysoCredentials } from '../types/kyso-credentials'
 
 dotenv.config({
-  // eslint-disable-next-line unicorn/prefer-module
+
   path: join(__dirname, '../../.env'),
 })
 
 export abstract class KysoCommand extends Command {
-  protected static readonly DATA_DIRECTORY = process.env.KYSO_DATA_DIRECTORY ? process.env.KYSO_DATA_DIRECTORY : join(homedir(), '.kyso')
+  protected static readonly DATA_DIRECTORY = process.env.KYSO_DATA_DIRECTORY ? process.env.KYSO_DATA_DIRECTORY : join(homedir(), '.kyso');
 
-  public static tokenFilePath: string = join(this.DATA_DIRECTORY, 'auth.json')
-  private verbose: boolean
-  private previousKysoCliVerbose = process.env.KYSO_CLI_VERBOSE
+  public static tokenFilePath: string = join(this.DATA_DIRECTORY, 'auth.json');
+  private verbose: boolean;
+  private previousKysoCliVerbose = process.env.KYSO_CLI_VERBOSE;
 
   constructor(argv: string[], config: Config) {
     super(argv, config)

@@ -9,6 +9,10 @@
     "no-else-return": "off",
     "padding-line-between-statements": "off",
     "quotes": "off",
-    "node/no-extraneous-import": "off"
+    "node/no-extraneous-import": "off",
+    "unicorn/prefer-module": "off",
+    "no-prototype-builtins": "warn",
+    "unicorn/prefer-logical-operator-over-ternary": "off",
+    "no-lonely-if": "warn"
   }
 }
