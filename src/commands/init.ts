@@ -146,12 +146,14 @@ export default class Init extends KysoCommand {
       },
     ])
 
+    const defaultFile = ''
+    /* https://gitlab.kyso.io/kyso-io/qa/issues/-/issues/134
     let defaultFile = 'index.html'
     if (reportTypeResponse.reportType === ReportTypes.jupyter) {
       defaultFile = 'index.ipynb'
     } else if (reportTypeResponse.reportType === ReportTypes.markdown) {
       defaultFile = 'index.md'
-    }
+    } */
 
     const mainFileResponse: { mainFile: string } = await inquirer.prompt([
       {
