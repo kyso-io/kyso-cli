@@ -1,15 +1,14 @@
-
 /* eslint-disable max-depth */
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable no-negated-condition */
-import { Flags } from '@oclif/core'
-import { readFileSync, writeFileSync } from 'fs'
-import { isAbsolute, join } from 'path'
-import { v4 as uuidv4 } from 'uuid'
-import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
-import { getAllFiles } from '../helpers/get-all-files'
-import { getValidFiles } from '../helpers/get-valid-files'
-import { KysoCommand } from './kyso-command'
+import { Flags } from '@oclif/core';
+import { readFileSync, writeFileSync } from 'fs';
+import { isAbsolute, join } from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import { findKysoConfigFile } from '../helpers/find-kyso-config-file';
+import { getAllFiles } from '../helpers/get-all-files';
+import { getValidFiles } from '../helpers/get-valid-files';
+import { KysoCommand } from './kyso-command';
 import inquirer = require('inquirer');
 
 export default class Format extends KysoCommand {
@@ -45,25 +44,25 @@ export default class Format extends KysoCommand {
   static args = [];
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(Format)
+    const { flags } = await this.parse(Format);
 
     if (flags.verbose) {
-      this.log('Enabled verbose mode')
-      this.enableVerbose()
+      this.log('Enabled verbose mode');
+      this.enableVerbose();
     }
 
     if (flags.jupyter) {
-      this.formatJupyterFiles(flags)
+      this.formatJupyterFiles(flags);
     }
 
     if (flags.verbose) {
-      this.log('Disabling verbose mode')
-      this.disableVerbose()
+      this.log('Disabling verbose mode');
+      this.disableVerbose();
     }
   }
 
   async formatJupyterFiles(flags: any): Promise<void> {
-    let _yes = false
+    let _yes = false;
 
     if (!flags.yes) {
       const result: { inlineComments: boolean } = await inquirer.prompt([
@@ -76,60 +75,60 @@ These changes will modify your .ipynb files in your local filesystem, do you wan
 
           default: true,
         },
-      ])
+      ]);
 
-      _yes = result.inlineComments
+      _yes = result.inlineComments;
     } else {
-      _yes = true
+      _yes = true;
     }
-    const _files: { path: string; sha: string }[] = getValidFiles(flags.path)
-    const hasIpynbFiles: boolean = _files.some((x: { path: string; sha: string }) => x.path.includes('.ipynb'))
+    const _files: { path: string; sha: string }[] = getValidFiles(flags.path);
+    const hasIpynbFiles: boolean = _files.some((x: { path: string; sha: string }) => x.path.includes('.ipynb'));
 
     if (!hasIpynbFiles) {
-      this.log(`Can't find any .ipynb files in the base path ${flags.path}`)
-      return
+      this.log(`Can't find any .ipynb files in the base path ${flags.path}`);
+      return;
     }
 
     if (_yes) {
-      const basePath: string = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
+      const basePath: string = isAbsolute(flags.path) ? flags.path : join('.', flags.path);
 
-      let files: string[] = getAllFiles(basePath, [])
+      let files: string[] = getAllFiles(basePath, []);
 
-      const { kysoConfigFile, valid, message } = findKysoConfigFile(files)
+      const { kysoConfigFile, valid, message } = findKysoConfigFile(files);
       if (!valid) {
-        this.error(`Could not format the report: ${message}`)
+        this.error(`Could not format the report: ${message}`);
       }
 
       if (kysoConfigFile?.reports) {
         for (const reportFolderName of kysoConfigFile.reports) {
-          const folderBasePath = join(basePath, reportFolderName)
-          const folderFiles: { path: string; sha: string }[] = getValidFiles(folderBasePath)
-          files = [...files, ...folderFiles.map((x: { path: string; sha: string }) => x.path)]
+          const folderBasePath = join(basePath, reportFolderName);
+          const folderFiles: { path: string; sha: string }[] = getValidFiles(folderBasePath);
+          files = [...files, ...folderFiles.map((x: { path: string; sha: string }) => x.path)];
         }
       } else {
-        const a: { path: string; sha: string }[] = getValidFiles(basePath)
-        files = a.map((x: { path: string; sha: string }) => x.path)
+        const a: { path: string; sha: string }[] = getValidFiles(basePath);
+        files = a.map((x: { path: string; sha: string }) => x.path);
       }
 
       for (const file of files) {
         if (file.endsWith('.ipynb') && !file.includes('ipynb_checkpoints')) {
-          this.log(`🔍 Processing ${file}...`)
-          let modifiedFile = false
-          const fileContent: any = JSON.parse(readFileSync(file, 'utf8').toString())
+          this.log(`🔍 Processing ${file}...`);
+          let modifiedFile = false;
+          const fileContent: any = JSON.parse(readFileSync(file, 'utf8').toString());
 
-          let identifiersAdded = 0
+          let identifiersAdded = 0;
 
           for (const cell of fileContent.cells) {
             if (!cell.hasOwnProperty('id')) {
-              cell.id = (uuidv4() as string).slice(0, 8)
-              modifiedFile = true
-              identifiersAdded++
+              cell.id = (uuidv4() as string).slice(0, 8);
+              modifiedFile = true;
+              identifiersAdded++;
             }
           }
           if (modifiedFile) {
-            this.log(`⚙️  Added ${identifiersAdded} identifiers. Using git? Remember to push your changes! `)
-            writeFileSync(file, JSON.stringify(fileContent, null, 2))
-            this.log(`💾 Saved ${file}`)
+            this.log(`⚙️  Added ${identifiersAdded} identifiers. Using git? Remember to push your changes! `);
+            writeFileSync(file, JSON.stringify(fileContent, null, 2));
+            this.log(`💾 Saved ${file}`);
           }
         }
       }

@@ -1,4 +1,4 @@
-import { KysoCommand } from './kyso-command'
+import { KysoCommand } from './kyso-command';
 
 export default class Logout extends KysoCommand {
   static description = 'Logout from Kyso';
@@ -10,7 +10,7 @@ export default class Logout extends KysoCommand {
   static args = [];
 
   async run(): Promise<void> {
-    KysoCommand.removeCredentials()
-    this.log('Logged out from Kyso')
+    KysoCommand.removeCredentials();
+    this.log('Logged out from Kyso');
   }
 }

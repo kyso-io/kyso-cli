@@ -1,18 +1,18 @@
 /* eslint-disable indent */
 
-import { Login, LoginProviderEnum, NormalizedResponseDTO } from '@kyso-io/kyso-model'
-import { Api, loginAction, store } from '@kyso-io/kyso-store'
-import { KysoCommand } from '../commands/kyso-command'
-import { CheckCredentialsResultEnum } from '../types/check-credentials-result.enum'
-import { KysoCredentials } from '../types/kyso-credentials'
-import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitlab, authenticateWithGoogle } from './oauths'
+import { Login, LoginProviderEnum, NormalizedResponseDTO } from '@kyso-io/kyso-model';
+import { Api, loginAction, store } from '@kyso-io/kyso-store';
+import { KysoCommand } from '../commands/kyso-command';
+import { CheckCredentialsResultEnum } from '../types/check-credentials-result.enum';
+import { KysoCredentials } from '../types/kyso-credentials';
+import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitlab, authenticateWithGoogle } from './oauths';
 import inquirer = require('inquirer');
 
 export const launchInteractiveLoginIfNotLogged = async (): Promise<void> => {
-  const checkCredentialsResult: CheckCredentialsResultEnum = await KysoCommand.checkCredentials()
+  const checkCredentialsResult: CheckCredentialsResultEnum = await KysoCommand.checkCredentials();
   switch (checkCredentialsResult) {
     case CheckCredentialsResultEnum.NOT_EXIST: {
-      const login: Login = await interactiveLogin(KysoCommand.getCredentials())
+      const login: Login = await interactiveLogin(KysoCommand.getCredentials());
       /**
        * WTF?
        * Argument of type
@@ -22,41 +22,41 @@ export const launchInteractiveLoginIfNotLogged = async (): Promise<void> => {
        *
        * Casting to any for now
        */
-      await store.dispatch(loginAction(login as any))
-      const { auth } = store.getState()
+      await store.dispatch(loginAction(login as any));
+      const { auth } = store.getState();
       if (auth.token) {
-        KysoCommand.saveToken(auth.token, null, null, login.kysoInstallUrl, null)
+        KysoCommand.saveToken(auth.token, null, null, login.kysoInstallUrl, null);
       } else {
-        throw new Error('An error occurred making login request')
+        throw new Error('An error occurred making login request');
       }
-      break
+      break;
     }
     case CheckCredentialsResultEnum.EXPIRED_TOKEN: {
       try {
-        const savedCredentials: KysoCredentials = KysoCommand.getCredentials()
-        const api: Api = new Api()
-        api.configure(savedCredentials.kysoInstallUrl + '/api/v1', savedCredentials.token)
-        const refreshedToken: NormalizedResponseDTO<string> = await api.refreshToken()
+        const savedCredentials: KysoCredentials = KysoCommand.getCredentials();
+        const api: Api = new Api();
+        api.configure(savedCredentials.kysoInstallUrl + '/api/v1', savedCredentials.token);
+        const refreshedToken: NormalizedResponseDTO<string> = await api.refreshToken();
         if (refreshedToken.data) {
-          KysoCommand.saveToken(refreshedToken.data, null, null, savedCredentials.kysoInstallUrl, null)
+          KysoCommand.saveToken(refreshedToken.data, null, null, savedCredentials.kysoInstallUrl, null);
         }
       } catch {
-        console.error('Error refreshing token. Please run kyso login manually')
+        console.error('Error refreshing token. Please run kyso login manually');
       }
-      break
+      break;
     }
     case CheckCredentialsResultEnum.VALID: {
       // All right, nothing to do
-      break
+      break;
     }
   }
-}
+};
 
 export const interactiveLogin = async (kysoCredentials: KysoCredentials | null): Promise<Login> => {
-  const login: Login = new Login('', LoginProviderEnum.KYSO, '', null, null)
+  const login: Login = new Login('', LoginProviderEnum.KYSO, '', null, null);
 
   if (kysoCredentials?.fixedKysoInstallUrl) {
-    login.kysoInstallUrl = kysoCredentials.fixedKysoInstallUrl
+    login.kysoInstallUrl = kysoCredentials.fixedKysoInstallUrl;
   } else {
     const kysoApiResponse: { kysoInstallUrl: string } = await inquirer.prompt([
       {
@@ -66,19 +66,19 @@ export const interactiveLogin = async (kysoCredentials: KysoCredentials | null):
         default: kysoCredentials?.kysoInstallUrl,
         validate: function (password: string) {
           if (password === '') {
-            return 'Url cannot be empty'
+            return 'Url cannot be empty';
           }
-          return true
+          return true;
         },
         filter: (input: string) => {
           if (input.endsWith('/')) {
-            input = input.slice(0, -1)
+            input = input.slice(0, -1);
           }
-          return input.trim()
+          return input.trim();
         },
       },
-    ])
-    login.kysoInstallUrl = kysoApiResponse.kysoInstallUrl
+    ]);
+    login.kysoInstallUrl = kysoApiResponse.kysoInstallUrl;
   }
 
   const providerResponse: { provider: LoginProviderEnum } = await inquirer.prompt([
@@ -95,8 +95,8 @@ export const interactiveLogin = async (kysoCredentials: KysoCredentials | null):
         // { name: 'Github', value: LoginProviderEnum.GITHUB },
       ],
     },
-  ])
-  login.provider = providerResponse.provider
+  ]);
+  login.provider = providerResponse.provider;
   switch (login.provider) {
     case LoginProviderEnum.KYSO:
     case LoginProviderEnum.KYSO_ACCESS_TOKEN: {
@@ -107,14 +107,14 @@ export const interactiveLogin = async (kysoCredentials: KysoCredentials | null):
           type: 'input',
           validate: function (password: string) {
             if (password === '') {
-              return 'Email cannot be empty'
+              return 'Email cannot be empty';
             }
-            return true
+            return true;
           },
         },
-      ])
-      login.email = emailResponse.email
-      break
+      ]);
+      login.email = emailResponse.email;
+      break;
     }
   }
   switch (providerResponse.provider) {
@@ -127,14 +127,14 @@ export const interactiveLogin = async (kysoCredentials: KysoCredentials | null):
           mask: '*',
           validate: function (password: string) {
             if (password === '') {
-              return 'Password cannot be empty'
+              return 'Password cannot be empty';
             }
-            return true
+            return true;
           },
         },
-      ])
-      login.password = passwordResponse.password
-      break
+      ]);
+      login.password = passwordResponse.password;
+      break;
     }
     case LoginProviderEnum.KYSO_ACCESS_TOKEN: {
       const accessTokenResponse: { accessToken: string } = await inquirer.prompt([
@@ -145,52 +145,52 @@ export const interactiveLogin = async (kysoCredentials: KysoCredentials | null):
           mask: '*',
           validate: function (accessToken: string) {
             if (accessToken === '') {
-              return 'Access token cannot be empty'
+              return 'Access token cannot be empty';
             }
-            return true
+            return true;
           },
         },
-      ])
-      login.password = accessTokenResponse.accessToken
-      break
+      ]);
+      login.password = accessTokenResponse.accessToken;
+      break;
     }
     case LoginProviderEnum.GOOGLE: {
-      const googleResult: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithGoogle(login.kysoInstallUrl)
+      const googleResult: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithGoogle(login.kysoInstallUrl);
       if (googleResult.errorMessage) {
-        throw new Error(googleResult.errorMessage)
+        throw new Error(googleResult.errorMessage);
       }
-      login.password = googleResult.code
-      login.payload = googleResult.redirectUrl
-      break
+      login.password = googleResult.code;
+      login.payload = googleResult.redirectUrl;
+      break;
     }
     case LoginProviderEnum.GITHUB: {
-      const githubResult: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithGithub(login.kysoInstallUrl)
+      const githubResult: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithGithub(login.kysoInstallUrl);
       if (githubResult.errorMessage) {
-        throw new Error(githubResult.errorMessage)
+        throw new Error(githubResult.errorMessage);
       }
-      login.password = githubResult.code
-      break
+      login.password = githubResult.code;
+      break;
     }
     case LoginProviderEnum.BITBUCKET: {
-      const bitbucketResult: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithBitbucket(login.kysoInstallUrl)
+      const bitbucketResult: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithBitbucket(login.kysoInstallUrl);
       if (bitbucketResult.errorMessage) {
-        throw new Error(bitbucketResult.errorMessage)
+        throw new Error(bitbucketResult.errorMessage);
       }
-      login.password = bitbucketResult.code
-      break
+      login.password = bitbucketResult.code;
+      break;
     }
     case LoginProviderEnum.GITLAB: {
-      const gitlabResponse: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithGitlab(login.kysoInstallUrl)
+      const gitlabResponse: { code: string; redirectUrl: string; errorMessage: string | null } = await authenticateWithGitlab(login.kysoInstallUrl);
       if (gitlabResponse.errorMessage) {
-        throw new Error(gitlabResponse.errorMessage)
+        throw new Error(gitlabResponse.errorMessage);
       }
-      login.password = gitlabResponse.code
-      login.payload = gitlabResponse.redirectUrl
-      break
+      login.password = gitlabResponse.code;
+      login.payload = gitlabResponse.redirectUrl;
+      break;
     }
   }
   if (login.kysoInstallUrl) {
-    process.env.KYSO_API = `${login.kysoInstallUrl}/api/v1`
+    process.env.KYSO_API = `${login.kysoInstallUrl}/api/v1`;
   }
-  return login
-}
+  return login;
+};

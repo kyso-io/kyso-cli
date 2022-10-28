@@ -1,4 +1,4 @@
-import slugify from 'slugify'
+import slugify from 'slugify';
 
 export default function slug(url: string): string {
   return slugify(url, {
@@ -6,5 +6,5 @@ export default function slug(url: string): string {
     lower: true,
     strict: true,
     trim: true,
-  })
+  });
 }

@@ -1,9 +1,9 @@
 /* eslint-disable indent */
-import { RepositoryProvider } from '@kyso-io/kyso-model'
-import { importBitbucketRepositoryAction, importGithubRepositoryAction, importGitlabRepositoryAction, store } from '@kyso-io/kyso-store'
-import { Flags } from '@oclif/core'
-import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login'
-import { KysoCommand } from './kyso-command'
+import { RepositoryProvider } from '@kyso-io/kyso-model';
+import { importBitbucketRepositoryAction, importGithubRepositoryAction, importGitlabRepositoryAction, store } from '@kyso-io/kyso-store';
+import { Flags } from '@oclif/core';
+import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
+import { KysoCommand } from './kyso-command';
 
 export default class ImportRepository extends KysoCommand {
   static description = 'Import repository to Kyso';
@@ -42,48 +42,48 @@ export default class ImportRepository extends KysoCommand {
   static args = [];
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(ImportRepository)
+    const { flags } = await this.parse(ImportRepository);
 
     if (flags.verbose) {
-      this.log('Enabled verbose mode')
-      this.enableVerbose()
+      this.log('Enabled verbose mode');
+      this.enableVerbose();
     }
 
-    await launchInteractiveLoginIfNotLogged()
+    await launchInteractiveLoginIfNotLogged();
 
-    this.log(`Importing ${flags.provider} repository ${flags.name}. Will take a while...`)
+    this.log(`Importing ${flags.provider} repository ${flags.name}. Will take a while...`);
 
     const args: any = {
       repositoryName: flags.name,
-    }
+    };
     if (flags.branch) {
-      args.branch = flags.branch
+      args.branch = flags.branch;
     }
 
-    let result: any = null
+    let result: any = null;
     switch (flags.provider) {
       case RepositoryProvider.GITHUB: {
-        result = await store.dispatch(importGithubRepositoryAction(args))
-        break
+        result = await store.dispatch(importGithubRepositoryAction(args));
+        break;
       }
       case RepositoryProvider.BITBUCKET: {
-        result = await store.dispatch(importBitbucketRepositoryAction(args))
-        break
+        result = await store.dispatch(importBitbucketRepositoryAction(args));
+        break;
       }
       case RepositoryProvider.GITLAB: {
-        result = await store.dispatch(importGitlabRepositoryAction(args))
-        break
+        result = await store.dispatch(importGitlabRepositoryAction(args));
+        break;
       }
     }
     if (result?.error) {
-      this.error(result.error.message)
+      this.error(result.error.message);
     } else {
-      this.log(`Successfully uploaded report`)
+      this.log(`Successfully uploaded report`);
     }
 
     if (flags.verbose) {
-      this.log('Disabling verbose mode')
-      this.disableVerbose()
+      this.log('Disabling verbose mode');
+      this.disableVerbose();
     }
   }
 }
