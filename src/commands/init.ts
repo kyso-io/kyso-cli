@@ -1,14 +1,14 @@
-import { NormalizedResponseDTO, ReportPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model'
-import { Api } from '@kyso-io/kyso-store'
-import { Flags } from '@oclif/core'
-import { existsSync, lstatSync, readdirSync, writeFileSync } from 'fs'
-import * as jsYaml from 'js-yaml'
-import jwtDecode from 'jwt-decode'
-import { basename, isAbsolute, join } from 'path'
-import { findKysoConfigFile } from '../helpers/find-kyso-config-file'
-import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login'
-import { KysoCredentials } from '../types/kyso-credentials'
-import { KysoCommand } from './kyso-command'
+import { NormalizedResponseDTO, ReportPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import { Api } from '@kyso-io/kyso-store';
+import { Flags } from '@oclif/core';
+import { existsSync, lstatSync, readdirSync, writeFileSync } from 'fs';
+import * as jsYaml from 'js-yaml';
+import jwtDecode from 'jwt-decode';
+import { basename, isAbsolute, join } from 'path';
+import { findKysoConfigFile } from '../helpers/find-kyso-config-file';
+import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
+import { KysoCredentials } from '../types/kyso-credentials';
+import { KysoCommand } from './kyso-command';
 import inquirer = require('inquirer');
 
 enum ReportTypes {
@@ -41,26 +41,26 @@ export default class Init extends KysoCommand {
   static args = [];
 
   public async run(): Promise<void> {
-    const { flags } = await this.parse(Init)
+    const { flags } = await this.parse(Init);
 
     if (flags.verbose) {
-      this.log('Enabled verbose mode')
-      this.enableVerbose()
+      this.log('Enabled verbose mode');
+      this.enableVerbose();
     }
 
-    await launchInteractiveLoginIfNotLogged()
+    await launchInteractiveLoginIfNotLogged();
 
     if (!existsSync(flags.path)) {
-      this.error('Invalid path')
+      this.error('Invalid path');
     }
 
     if (!lstatSync(flags.path).isDirectory()) {
-      this.error('Path must be a directory')
+      this.error('Path must be a directory');
     }
 
-    const basePath = isAbsolute(flags.path) ? flags.path : join('.', flags.path)
-    const files: string[] = readdirSync(basePath)
-    const { kysoConfigFile } = findKysoConfigFile(files)
+    const basePath = isAbsolute(flags.path) ? flags.path : join('.', flags.path);
+    const files: string[] = readdirSync(basePath);
+    const { kysoConfigFile } = findKysoConfigFile(files);
     if (kysoConfigFile) {
       const confirmResponse: { confirmOverwrite } = await inquirer.prompt([
         {
@@ -69,39 +69,39 @@ export default class Init extends KysoCommand {
           message: 'kyso.yaml already exists, overwrite?',
           type: 'confirm',
         },
-      ])
+      ]);
       if (!confirmResponse.confirmOverwrite) {
-        return
+        return;
       }
     }
 
-    const kysoCredentials: KysoCredentials = KysoCommand.getCredentials()
-    const decoded: { payload: any } = jwtDecode(kysoCredentials.token)
-    const api: Api = new Api(kysoCredentials.token)
-    const resultTokenPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(decoded.payload.username)
+    const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
+    const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
+    const api: Api = new Api(kysoCredentials.token);
+    const resultTokenPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(decoded.payload.username);
 
     if (resultTokenPermissions.data.organizations.length === 0) {
-      this.error('You need to be part of an organization to initialize a report')
+      this.error('You need to be part of an organization to initialize a report');
     }
 
     const organizationsPermissions: ResourcePermissions[] = resultTokenPermissions.data.organizations.filter((organizationResourcePermission: ResourcePermissions) => {
-      const organizationHasCreateReportPermission: boolean = organizationResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE)
+      const organizationHasCreateReportPermission: boolean = organizationResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE);
       if (organizationHasCreateReportPermission) {
-        return true
+        return true;
       }
-      const teamsOrganizationResourcePermissions: ResourcePermissions[] = []
+      const teamsOrganizationResourcePermissions: ResourcePermissions[] = [];
       for (const teamResourcePermission of resultTokenPermissions.data.teams) {
         if (teamResourcePermission.organization_id !== organizationResourcePermission.id) {
-          continue
+          continue;
         }
         if (teamResourcePermission.organization_inherited && organizationHasCreateReportPermission) {
-          teamsOrganizationResourcePermissions.push(teamResourcePermission)
+          teamsOrganizationResourcePermissions.push(teamResourcePermission);
         } else if (teamResourcePermission?.permissions && teamResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE)) {
-          teamsOrganizationResourcePermissions.push(teamResourcePermission)
+          teamsOrganizationResourcePermissions.push(teamResourcePermission);
         }
       }
-      return teamsOrganizationResourcePermissions.length > 0
-    })
+      return teamsOrganizationResourcePermissions.length > 0;
+    });
 
     const organizationResponse: { organization: string } = await inquirer.prompt([
       {
@@ -110,21 +110,21 @@ export default class Init extends KysoCommand {
         type: 'list',
         choices: organizationsPermissions.map((resourcePermission: ResourcePermissions) => ({ name: resourcePermission.name })),
       },
-    ])
+    ]);
 
     const organizationResourcePermission: ResourcePermissions = organizationsPermissions.find(
       (resourcePermission: ResourcePermissions) => resourcePermission.name === organizationResponse.organization,
-    )!
-    const organizationHasCreateReportPermission: boolean = organizationResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE)
-    const teamsOrganizationResourcePermissions: ResourcePermissions[] = []
+    )!;
+    const organizationHasCreateReportPermission: boolean = organizationResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE);
+    const teamsOrganizationResourcePermissions: ResourcePermissions[] = [];
     for (const teamResourcePermission of resultTokenPermissions.data.teams) {
       if (teamResourcePermission.organization_id !== organizationResourcePermission.id) {
-        continue
+        continue;
       }
       if (teamResourcePermission.organization_inherited && organizationHasCreateReportPermission) {
-        teamsOrganizationResourcePermissions.push(teamResourcePermission)
+        teamsOrganizationResourcePermissions.push(teamResourcePermission);
       } else if (teamResourcePermission?.permissions && teamResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE)) {
-        teamsOrganizationResourcePermissions.push(teamResourcePermission)
+        teamsOrganizationResourcePermissions.push(teamResourcePermission);
       }
     }
 
@@ -135,7 +135,7 @@ export default class Init extends KysoCommand {
         type: 'list',
         choices: teamsOrganizationResourcePermissions.map((teamResourcePermissions: ResourcePermissions) => ({ name: teamResourcePermissions.name })),
       },
-    ])
+    ]);
 
     const reportTypeResponse: { reportType: ReportTypes } = await inquirer.prompt([
       {
@@ -144,9 +144,9 @@ export default class Init extends KysoCommand {
         type: 'list',
         choices: [{ name: ReportTypes.website }, { name: ReportTypes.jupyter }, { name: ReportTypes.markdown }, { name: ReportTypes.other }],
       },
-    ])
+    ]);
 
-    const defaultFile = ''
+    const defaultFile = '';
     /* https://gitlab.kyso.io/kyso-io/qa/issues/-/issues/134
     let defaultFile = 'index.html'
     if (reportTypeResponse.reportType === ReportTypes.jupyter) {
@@ -163,13 +163,13 @@ export default class Init extends KysoCommand {
         default: defaultFile,
         validate: function (mainFile: string) {
           if (mainFile === '') {
-            return 'main file cannot be empty'
+            return 'main file cannot be empty';
           }
-          return true
+          return true;
         },
         filter: (input: string) => input.trim(),
       },
-    ])
+    ]);
 
     const titleResponse: { title: string } = await inquirer.prompt([
       {
@@ -179,13 +179,13 @@ export default class Init extends KysoCommand {
         default: basename(process.cwd()),
         validate: function (title: string) {
           if (title === '') {
-            return 'title cannot be empty'
+            return 'title cannot be empty';
           }
-          return true
+          return true;
         },
         filter: (input: string) => input.trim(),
       },
-    ])
+    ]);
 
     const config = {
       organization: organizationResponse.organization,
@@ -193,15 +193,15 @@ export default class Init extends KysoCommand {
       type: reportTypeResponse.reportType,
       title: titleResponse.title,
       main: mainFileResponse.mainFile,
-    }
+    };
 
-    writeFileSync(join(flags.path, 'kyso.yaml'), jsYaml.dump(config))
+    writeFileSync(join(flags.path, 'kyso.yaml'), jsYaml.dump(config));
 
-    this.log(`Wrote config to ${join(flags.path, 'kyso.yaml')}`)
+    this.log(`Wrote config to ${join(flags.path, 'kyso.yaml')}`);
 
     if (flags.verbose) {
-      this.log('Disabling verbose mode')
-      this.disableVerbose()
+      this.log('Disabling verbose mode');
+      this.disableVerbose();
     }
   }
 }

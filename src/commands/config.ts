@@ -1,7 +1,7 @@
-import { Flags } from '@oclif/core'
-import inquirer from 'inquirer'
-import { KysoCredentials } from '../types/kyso-credentials'
-import { KysoCommand } from './kyso-command'
+import { Flags } from '@oclif/core';
+import inquirer from 'inquirer';
+import { KysoCredentials } from '../types/kyso-credentials';
+import { KysoCommand } from './kyso-command';
 
 export default class Config extends KysoCommand {
   static description = 'Login into Kyso';
@@ -23,12 +23,12 @@ export default class Config extends KysoCommand {
   static args = [];
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(Config)
+    const { flags } = await this.parse(Config);
 
-    const kysoCredentials: KysoCredentials = KysoCommand.getCredentials()
-    let fixedKysoInstallUrl: string
+    const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
+    let fixedKysoInstallUrl: string;
     if (flags.kysoInstallUrl) {
-      fixedKysoInstallUrl = flags.kysoInstallUrl
+      fixedKysoInstallUrl = flags.kysoInstallUrl;
     } else {
       const kysoApiResponse: { kysoInstallUrl: string } = await inquirer.prompt([
         {
@@ -38,20 +38,20 @@ export default class Config extends KysoCommand {
           default: kysoCredentials?.fixedKysoInstallUrl || kysoCredentials?.kysoInstallUrl,
           validate: function (password: string) {
             if (password === '') {
-              return 'Url cannot be empty'
+              return 'Url cannot be empty';
             }
-            return true
+            return true;
           },
           filter: (input: string) => {
             if (input.endsWith('/')) {
-              input = input.slice(0, -1)
+              input = input.slice(0, -1);
             }
-            return input.trim()
+            return input.trim();
           },
         },
-      ])
-      fixedKysoInstallUrl = kysoApiResponse.kysoInstallUrl
+      ]);
+      fixedKysoInstallUrl = kysoApiResponse.kysoInstallUrl;
     }
-    KysoCommand.saveToken(kysoCredentials.token, kysoCredentials.organization, kysoCredentials.team, kysoCredentials.kysoInstallUrl, kysoCredentials.username, fixedKysoInstallUrl)
+    KysoCommand.saveToken(kysoCredentials.token, kysoCredentials.organization, kysoCredentials.team, kysoCredentials.kysoInstallUrl, kysoCredentials.username, fixedKysoInstallUrl);
   }
 }
