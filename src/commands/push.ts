@@ -1,6 +1,4 @@
 /* eslint-disable complexity */
-/* eslint-disable unicorn/prefer-ternary */
-/* eslint-disable unicorn/no-array-for-each */
 /* eslint-disable no-await-in-loop */
 import { File as KysoFile, KysoConfigFile, KysoSettingsEnum, NormalizedResponseDTO, ReportDTO, ReportPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
 import { Api, createKysoReportAction, setOrganizationAuthAction, setTeamAuthAction, store, updateKysoReportAction } from '@kyso-io/kyso-store';
@@ -36,11 +34,17 @@ export default class Push extends KysoCommand {
       required: false,
       default: false,
     }),
+    message: Flags.string({
+      char: 'm',
+      description: 'Push message',
+      required: false,
+      default: undefined,
+    }),
   };
 
   static args = [];
 
-  private async uploadReportAux(reportFolder: string, basePath: string): Promise<void> {
+  private async uploadReportAux(reportFolder: string, basePath: string, pushMessage: string): Promise<void> {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api(kysoCredentials.token);
 
@@ -192,6 +196,7 @@ export default class Push extends KysoCommand {
           unmodifiedFiles,
           deletedFiles,
           version,
+          message: pushMessage,
         }),
       );
     } else {
@@ -200,6 +205,7 @@ export default class Push extends KysoCommand {
           filePaths: getAllFiles(basePath, []),
           basePath,
           maxFileSizeStr: resultKysoSettings.data || '500mb',
+          message: pushMessage,
         }),
       );
     }
@@ -225,7 +231,7 @@ export default class Push extends KysoCommand {
     }
   }
 
-  private async uploadReport(basePath: string): Promise<void> {
+  private async uploadReport(basePath: string, pushMessage: string): Promise<void> {
     // Check if report is a multiple report
     const files: string[] = readdirSync(basePath).map((file: string) => join(basePath, file));
     let mainKysoConfigFile: KysoConfigFile | null = null;
@@ -249,12 +255,12 @@ export default class Push extends KysoCommand {
         if (!valid) {
           this.error(`Folder '${reportFolder}' does not have a valid Kyso config file: ${message}`);
         }
-        await this.uploadReportAux(reportFolder, reportPath);
+        await this.uploadReportAux(reportFolder, reportPath, pushMessage);
       }
     } else {
       const parts: string[] = basePath.split('/');
       const reportFolder: string = parts[parts.length - 1];
-      await this.uploadReportAux(reportFolder, basePath);
+      await this.uploadReportAux(reportFolder, basePath, pushMessage);
     }
   }
 
@@ -277,7 +283,7 @@ export default class Push extends KysoCommand {
     }
 
     const basePath: string = isAbsolute(flags.path) ? flags.path : join('.', flags.path);
-    await this.uploadReport(basePath);
+    await this.uploadReport(basePath, flags.message);
 
     if (flags.verbose) {
       this.log('Disabling verbose mode');
