@@ -1,13 +1,15 @@
 /* eslint-disable complexity */
 /* eslint-disable no-await-in-loop */
-import { File as KysoFile, KysoConfigFile, KysoSettingsEnum, NormalizedResponseDTO, ReportDTO, ReportPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import { File as KysoFile, GitMetadata, KysoConfigFile, KysoSettingsEnum, NormalizedResponseDTO, ReportDTO, ReportPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
 import { Api, createKysoReportAction, setOrganizationAuthAction, setTeamAuthAction, store, updateKysoReportAction } from '@kyso-io/kyso-store';
 import { Flags } from '@oclif/core';
 import axios from 'axios';
 import { existsSync, lstatSync, readdirSync, readFileSync, writeFileSync } from 'fs';
+import hostedGitInfo from 'hosted-git-info';
 import * as jsYaml from 'js-yaml';
 import jwtDecode from 'jwt-decode';
 import { isAbsolute, join } from 'path';
+import { BranchSummary, CleanOptions, SimpleGit, simpleGit } from 'simple-git';
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file';
 import { getAllFiles } from '../helpers/get-all-files';
 import { getValidFiles } from '../helpers/get-valid-files';
@@ -43,6 +45,36 @@ export default class Push extends KysoCommand {
   };
 
   static args = [];
+
+  private async getGitMetadata(localPath: string): Promise<GitMetadata> {
+    try {
+      const options = {
+        baseDir: localPath,
+        binary: 'git',
+        maxConcurrentProcesses: 6,
+        trimmed: false,
+      };
+      simpleGit().clean(CleanOptions.FORCE);
+      const git: SimpleGit = simpleGit(options);
+      const logResult = await git.log();
+      let repository: string | null = null;
+      try {
+        const remoteUrl: string = await git.listRemote(['--get-url']);
+        const hostedGitInfoUrl = hostedGitInfo.fromUrl(remoteUrl);
+        repository = hostedGitInfoUrl ? hostedGitInfoUrl.https().replace('git+', '') : remoteUrl;
+      } catch (e) {
+        // Do nothing
+      }
+      const branchSummary: BranchSummary = await git.branchLocal();
+      return {
+        repository,
+        branch: branchSummary.current,
+        latest_commit: logResult.all.slice(0, 10),
+      };
+    } catch (e) {
+      return null;
+    }
+  }
 
   private async uploadReportAux(reportFolder: string, basePath: string, pushMessage: string): Promise<void> {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
@@ -197,6 +229,7 @@ export default class Push extends KysoCommand {
           deletedFiles,
           version,
           message: pushMessage,
+          git_metadata: await this.getGitMetadata(basePath),
         }),
       );
     } else {
@@ -206,6 +239,7 @@ export default class Push extends KysoCommand {
           basePath,
           maxFileSizeStr: resultKysoSettings.data || '500mb',
           message: pushMessage,
+          git_metadata: await this.getGitMetadata(basePath),
         }),
       );
     }
