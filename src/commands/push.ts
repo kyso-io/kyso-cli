@@ -1,6 +1,18 @@
 /* eslint-disable complexity */
 /* eslint-disable no-await-in-loop */
-import { File as KysoFile, GitMetadata, KysoConfigFile, KysoSettingsEnum, NormalizedResponseDTO, ReportDTO, ReportPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import {
+  CheckPermissionDto,
+  File as KysoFile,
+  GitMetadata,
+  KysoConfigFile,
+  KysoSettingsEnum,
+  NormalizedResponseDTO,
+  ReportDTO,
+  ReportPermissionsEnum,
+  ReportType,
+  ResourcePermissions,
+  TokenPermissions,
+} from '@kyso-io/kyso-model';
 import { Api, createKysoReportAction, setOrganizationAuthAction, setTeamAuthAction, store, updateKysoReportAction } from '@kyso-io/kyso-store';
 import { Flags } from '@oclif/core';
 import axios from 'axios';
@@ -45,6 +57,35 @@ export default class Push extends KysoCommand {
   };
 
   static args = [];
+
+  private getEmbeddedReportHTML(title: string, url: string): string {
+    return `
+      <!DOCTYPE html>
+      <html lang="EN" xml:lang="en">
+        <head>
+          <meta charset="utf-8">
+          <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500&amp;amp;display=swap">
+          <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+          <title>${title}</title>
+          <script type="text/javascript"></script>
+        </head>
+        <body>
+          <iframe title="${title}" id="theframe" style="width: 100%; height: 950px; border: none;" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups" src="${url}"></iframe>
+          <script type="text/javascript">
+            function onInitIFrame() {
+              try {
+                const myIframe = document.getElementById('theframe');
+                setTimeout(() => {
+                    setHeight(myIframe.contentWindow.document.body.scrollHeight + 20px");
+                }, 1500);
+              } catch (ex) {
+              }
+            }
+          </script>
+        </body>
+      </html>
+    `;
+  }
 
   private async getGitMetadata(localPath: string): Promise<GitMetadata> {
     try {
@@ -98,11 +139,8 @@ export default class Push extends KysoCommand {
     }
     let teamId: string | null = null;
     try {
-      const resultCheckPermission: NormalizedResponseDTO<boolean> = await api.checkPermission({
-        organization: kysoConfigFile.organization,
-        team: kysoConfigFile.team,
-        permission: ReportPermissionsEnum.CREATE,
-      });
+      const checkPermissionDto: CheckPermissionDto = new CheckPermissionDto(kysoConfigFile.organization, kysoConfigFile.team, ReportPermissionsEnum.CREATE);
+      const resultCheckPermission: NormalizedResponseDTO<boolean> = await api.checkPermission(checkPermissionDto);
       if (resultCheckPermission.data) {
         const indexTeam: number = tokenPermissions.teams.findIndex(
           (resourcePermissionTeam: ResourcePermissions) =>
@@ -133,6 +171,12 @@ export default class Push extends KysoCommand {
     if (kysoConfigFile?.team && kysoConfigFile.team.length > 0) {
       store.dispatch(setTeamAuthAction(kysoConfigFile.team));
     }
+
+    delete kysoConfigFile.id;
+    delete kysoConfigFile.links;
+    delete kysoConfigFile.created_at;
+    delete kysoConfigFile.updated_at;
+    delete kysoConfigFile.team;
 
     const validFiles: { path: string; sha: string }[] = getValidFiles(basePath);
     let newFiles: string[] = [];
@@ -194,9 +238,17 @@ export default class Push extends KysoCommand {
       }
     }
 
-    // Check if kysoConfigFile has defined authors
+    let updateKysoConfigFile = false;
     if (!kysoConfigFile.authors || kysoConfigFile.authors.length === 0) {
       kysoConfigFile.authors = [payload.email];
+      updateKysoConfigFile = true;
+    }
+    if (kysoConfigFile?.type === ReportType.Embedded) {
+      kysoConfigFile.main = 'index.html';
+      writeFileSync(`${basePath}/index.html`, this.getEmbeddedReportHTML(kysoConfigFile.title, kysoConfigFile.url));
+      updateKysoConfigFile = true;
+    }
+    if (updateKysoConfigFile) {
       if (kysoConfigPath.endsWith('.json')) {
         writeFileSync(kysoConfigPath, JSON.stringify(kysoConfigFile, null, 2));
       } else {
