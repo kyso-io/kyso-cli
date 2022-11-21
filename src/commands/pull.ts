@@ -103,7 +103,8 @@ export default class Push extends KysoCommand {
 
     // Check if team is public
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
-    const api: Api = new Api(kysoCredentials?.token);
+    const api: Api = new Api();
+    api.configure(kysoCredentials?.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
     let organization: Organization | null = null;
     try {
       const resultOrganization: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(organizationSlug);
@@ -112,6 +113,7 @@ export default class Push extends KysoCommand {
       this.log(`\nError: Organization ${organizationSlug} does not exist.\n`);
       return;
     }
+    api.setOrganizationSlug(organizationSlug);
     try {
       const resultTeam: NormalizedResponseDTO<Team> = await api.getTeamBySlug(organization.id, teamSlug);
       const team: Team = resultTeam.data;
@@ -145,7 +147,9 @@ export default class Push extends KysoCommand {
 
   async extractReport(organization: string, team: string, report: string, version: number | null, path: string, kysoConfigFile: KysoConfigFile | null): Promise<void> {
     try {
-      const api: Api = new Api(KysoCommand.getCredentials()?.token, organization, team);
+      const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
+      const api: Api = new Api();
+      api.configure(kysoCredentials?.kysoInstallUrl + '/api/v1', kysoCredentials?.token, organization, team);
       const result: Buffer = await api.pullReport(report, team, version);
       const zip: AdmZip = new AdmZip(result);
       let finalPath: string = path;
