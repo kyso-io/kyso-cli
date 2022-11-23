@@ -38,7 +38,8 @@ export default class Get extends KysoCommand {
       zip.extractAllTo(destinationPath, true);
       this.log(`\n🎉🎉🎉 Success! Theme downloaded to ${resolve(destinationPath)} 🎉🎉🎉\n`);
     } catch (e: any) {
-      this.log(`Error downloading theme: ${e.response.data.message}`);
+      const errorResponse: { statusCode: number; message: string; error: string } = JSON.parse(e.response.data.toString());
+      this.log(`Error downloading theme: ${errorResponse.message}`);
     }
   }
 }
