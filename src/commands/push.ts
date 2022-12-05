@@ -120,6 +120,7 @@ export default class Push extends KysoCommand {
   private async uploadReportAux(reportFolder: string, basePath: string, pushMessage: string): Promise<void> {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api(kysoCredentials.token);
+    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials.token);
 
     const filesBasePath: string[] = readdirSync(basePath).map((file: string) => join(basePath, file));
     const { kysoConfigFile, valid, message, kysoConfigPath } = findKysoConfigFile(filesBasePath);
