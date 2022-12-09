@@ -1,18 +1,17 @@
-import { NormalizedResponseDTO, UserDTO } from '@kyso-io/kyso-model';
+import { NormalizedResponseDTO, Organization } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import { Flags } from '@oclif/core';
 import axios from 'axios';
 import { writeFileSync } from 'fs';
-import jwtDecode from 'jwt-decode';
 import { join, resolve } from 'path';
 import { launchInteractiveLoginIfNotLogged } from '../../../helpers/interactive-login';
 import { KysoCredentials } from '../../../types/kyso-credentials';
 import { KysoCommand } from '../../kyso-command';
 
-export default class DownloadUserPhoto extends KysoCommand {
-  static description = 'Download user photo from Kyso';
+export default class DownloadOrganizationPhoto extends KysoCommand {
+  static description = 'Download organization photo from Kyso';
 
-  static examples = [`$ kyso profile download photo`, `$ kyso profile download photo -p <path>`];
+  static examples = [`$ kyso organization download photo <org_name>`, `$ kyso organization download photo <org_name> -p <path>`];
 
   static flags = {
     path: Flags.string({
@@ -23,20 +22,28 @@ export default class DownloadUserPhoto extends KysoCommand {
     }),
   };
 
+  static args = [
+    {
+      name: 'org_name',
+      description: 'Organization name',
+      required: true,
+    },
+  ];
+
   async run(): Promise<void> {
-    const { flags } = await this.parse(DownloadUserPhoto);
+    const { flags, args } = await this.parse(DownloadOrganizationPhoto);
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
     api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
-    const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     try {
-      const result: NormalizedResponseDTO<UserDTO> = await api.getUserProfileByUsername(decoded.payload.username);
-      const userDTO: UserDTO = result.data;
-      if (!userDTO.avatar_url) {
-        this.error('User has no photo');
+      const result: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(args.org_name);
+      const organization: Organization = result.data;
+      if (!organization.avatar_url) {
+        this.log('Organization has no photo');
+        return;
       }
-      const imageUrl: string = userDTO.avatar_url.startsWith('http') ? userDTO.avatar_url : kysoCredentials.kysoInstallUrl + userDTO.avatar_url;
+      const imageUrl: string = organization.avatar_url.startsWith('http') ? organization.avatar_url : kysoCredentials.kysoInstallUrl + organization.avatar_url;
       const axiosResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
       const urlParts: string[] = axiosResponse.request.res.responseUrl.split('/');
       if (urlParts.length === 0) {
