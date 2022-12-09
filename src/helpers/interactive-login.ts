@@ -23,11 +23,11 @@ export const launchInteractiveLoginIfNotLogged = async (): Promise<void> => {
        * Casting to any for now
        */
       await store.dispatch(loginAction(login as any));
-      const { auth } = store.getState();
+      const { auth, error } = store.getState();
       if (auth.token) {
         KysoCommand.saveToken(auth.token, null, null, login.kysoInstallUrl, null);
       } else {
-        throw new Error('An error occurred making login request');
+        throw new Error(error?.text ?? 'An error occurred making login request');
       }
       break;
     }

@@ -1,7 +1,5 @@
 import { Api } from '@kyso-io/kyso-store';
 import { Flags } from '@oclif/core';
-import axios from 'axios';
-import FormData from 'form-data';
 import { createReadStream, existsSync, ReadStream } from 'fs';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
 import { KysoCredentials } from '../../types/kyso-credentials';
