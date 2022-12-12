@@ -1,4 +1,5 @@
 export interface OrganizationData {
+  slug: string;
   display_name: string;
   allowed_access_domains: string[];
   location: string | null;

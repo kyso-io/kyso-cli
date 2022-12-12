@@ -70,6 +70,7 @@ export default class OrganizationGet extends KysoCommand {
       const resultOrganization: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(organizationSlug);
       organization = resultOrganization.data;
       organizationData = {
+        slug: organization.sluglified_name,
         display_name: organization.display_name,
         allowed_access_domains: organization.allowed_access_domains,
         location: organization.location,

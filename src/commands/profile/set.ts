@@ -10,7 +10,7 @@ import { KysoCredentials } from '../../types/kyso-credentials';
 import { ProfileData } from '../../types/profile-data';
 import { KysoCommand } from '../kyso-command';
 
-export default class UserProfileGet extends KysoCommand {
+export default class UserProfileSet extends KysoCommand {
   static description = 'Update user profile data given yaml file';
 
   static examples = [`$ kyso profile set <yaml_file>`];
@@ -60,7 +60,7 @@ export default class UserProfileGet extends KysoCommand {
   }
 
   async run(): Promise<void> {
-    const { args } = await this.parse(UserProfileGet);
+    const { args } = await this.parse(UserProfileSet);
     if (!args.yaml_file.endsWith('.yaml') && !args.yaml_file.endsWith('.yml')) {
       this.error('File is not a yaml file');
     }
@@ -122,11 +122,15 @@ export default class UserProfileGet extends KysoCommand {
         console.log(e);
       }
     }
+    let updatedPhoto = false;
     if ((!photoBase64 && yamlProfileData.photo) || (photoBase64 && yamlProfileData.photo && photoBase64 !== yamlProfileData.photo)) {
       await this.updatePhoto(api, yamlProfileData.photo);
+      updatedPhoto = true;
     }
+    let updatedBackgroundImage = false;
     if ((!backgroundImageBase64 && yamlProfileData.background) || (backgroundImageBase64 && yamlProfileData.background && backgroundImageBase64 !== yamlProfileData.background)) {
       await this.updateBackgroundImage(api, yamlProfileData.background);
+      updatedBackgroundImage = true;
     }
     const updateUserRequestDTO: any = {};
     if (yamlProfileData.name && yamlProfileData.name !== profileData.name) {
@@ -152,7 +156,9 @@ export default class UserProfileGet extends KysoCommand {
         this.error(`Error updating user profile: ${e.response.data.message}`);
       }
     } else {
-      this.log('No changes to update');
+      if (!updatedPhoto && !updatedBackgroundImage) {
+        this.log('No changes to update');
+      }
     }
   }
 }
