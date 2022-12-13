@@ -10,7 +10,7 @@ import { KysoCommand } from '../kyso-command';
 import inquirer = require('inquirer');
 
 export default class AddUsers extends KysoCommand {
-  static description = 'Add user to the system';
+  static description = 'Add users to the system';
 
   static examples = [`$ kyso user add`, `$ kyso user add -o <list_of_users>`];
 
