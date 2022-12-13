@@ -7,6 +7,7 @@ import { Api } from '@kyso-io/kyso-store';
 import { Flags } from '@oclif/core';
 import { interactiveLogin } from '../helpers/interactive-login';
 import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitlab, authenticateWithGoogle } from '../helpers/oauths';
+import { ErrorResponse } from '../types/error-response';
 import { KysoCommand } from './kyso-command';
 
 export default class Login extends KysoCommand {
@@ -181,7 +182,8 @@ export default class Login extends KysoCommand {
         this.log('Logged successfully');
       }
     } catch (error: any) {
-      this.error(`Login failed: ${error.response.data.message}`);
+      const errorResponse: ErrorResponse = error.response.data;
+      this.error(`Login failed: ${errorResponse.message}`);
     }
 
     if (flags.verbose) {

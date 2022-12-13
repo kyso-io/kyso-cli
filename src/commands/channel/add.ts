@@ -10,11 +10,11 @@ import inquirer = require('inquirer');
 export default class AddChannel extends KysoCommand {
   static description = 'Add channels to the system';
 
-  static examples = [`$ kyso channel add <organization>`, `$ kyso channel add <organization> -c <list_of_channels>`];
+  static examples = [`$ kyso channel add <organization>`, `$ kyso channel add <organization> -l <list_of_channels>`];
 
   static flags = {
     channels: Flags.string({
-      char: 'c',
+      char: 'l',
       description: 'List of channels separated by spaces',
       required: false,
       multiple: true,

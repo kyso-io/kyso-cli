@@ -6,14 +6,14 @@ import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 import inquirer = require('inquirer');
 
-export default class AddOrganization extends KysoCommand {
+export default class AddOrganizations extends KysoCommand {
   static description = 'Add organization to the system';
 
-  static examples = [`$ kyso organization add`, `$ kyso organization add -o <list_of_orgs>`];
+  static examples = [`$ kyso organization add`, `$ kyso organization add -l <list_of_orgs>`];
 
   static flags = {
     organizations: Flags.string({
-      char: 'o',
+      char: 'l',
       description: 'List of organizations separated by spaces',
       required: false,
       multiple: true,
@@ -91,7 +91,7 @@ export default class AddOrganization extends KysoCommand {
   }
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(AddOrganization);
+    const { flags } = await this.parse(AddOrganizations);
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
