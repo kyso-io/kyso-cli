@@ -78,19 +78,24 @@ export default class Init extends KysoCommand {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     const api: Api = new Api(kysoCredentials.token);
-    const resultTokenPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(decoded.payload.username);
-
-    if (resultTokenPermissions.data.organizations.length === 0) {
+    let tokenPermissions: TokenPermissions | null = null;
+    try {
+      const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(decoded.payload.username);
+      tokenPermissions = resultPermissions.data;
+    } catch (e) {
+      this.error('Error getting user permissions');
+    }
+    if (tokenPermissions.organizations.length === 0) {
       this.error('You need to be part of an organization to initialize a report');
     }
 
-    const organizationsPermissions: ResourcePermissions[] = resultTokenPermissions.data.organizations.filter((organizationResourcePermission: ResourcePermissions) => {
+    const organizationsPermissions: ResourcePermissions[] = tokenPermissions.organizations.filter((organizationResourcePermission: ResourcePermissions) => {
       const organizationHasCreateReportPermission: boolean = organizationResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE);
       if (organizationHasCreateReportPermission) {
         return true;
       }
       const teamsOrganizationResourcePermissions: ResourcePermissions[] = [];
-      for (const teamResourcePermission of resultTokenPermissions.data.teams) {
+      for (const teamResourcePermission of tokenPermissions.teams) {
         if (teamResourcePermission.organization_id !== organizationResourcePermission.id) {
           continue;
         }
@@ -117,7 +122,7 @@ export default class Init extends KysoCommand {
     )!;
     const organizationHasCreateReportPermission: boolean = organizationResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE);
     const teamsOrganizationResourcePermissions: ResourcePermissions[] = [];
-    for (const teamResourcePermission of resultTokenPermissions.data.teams) {
+    for (const teamResourcePermission of tokenPermissions.teams) {
       if (teamResourcePermission.organization_id !== organizationResourcePermission.id) {
         continue;
       }

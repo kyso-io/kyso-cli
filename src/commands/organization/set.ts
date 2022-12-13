@@ -11,15 +11,15 @@ import { KysoCredentials } from '../../types/kyso-credentials';
 import { OrganizationData } from '../../types/organization-data';
 import { KysoCommand } from '../kyso-command';
 
-export default class OrganizationSet extends KysoCommand {
-  static description = 'Update organization data given yaml file';
+export default class OrganizationsSet extends KysoCommand {
+  static description = 'Update organizations data given yaml file';
 
   static examples = [`$ kyso organization set <yaml_file>`];
 
   static args = [
     {
       name: 'yaml_file',
-      description: 'Yaml file with user profile data',
+      description: 'Yaml file with organizations data',
       required: true,
     },
   ];
@@ -141,7 +141,7 @@ export default class OrganizationSet extends KysoCommand {
   }
 
   async run(): Promise<void> {
-    const { args } = await this.parse(OrganizationSet);
+    const { args } = await this.parse(OrganizationsSet);
     if (!args.yaml_file.endsWith('.yaml') && !args.yaml_file.endsWith('.yml')) {
       this.error('File is not a yaml file');
     }

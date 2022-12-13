@@ -9,6 +9,7 @@ import { printErrorMessage } from '../helpers/error-handler';
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file';
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
 import slugify from '../helpers/slugify';
+import { ErrorResponse } from '../types/error-response';
 import { KysoCredentials } from '../types/kyso-credentials';
 import { KysoCommand } from './kyso-command';
 
@@ -121,12 +122,12 @@ export default class Push extends KysoCommand {
         await launchInteractiveLoginIfNotLogged();
       }
     } catch (error: any) {
-      const { statusCode, message } = error.response.data;
-      if (statusCode === 404) {
+      const errorResponse: ErrorResponse = error.response.data;
+      if (errorResponse.statusCode === 404) {
         this.log(`\nError: Team ${teamSlug} does not exist.\n`);
-      } else if (statusCode === 403) {
+      } else if (errorResponse.statusCode === 403) {
         if (kysoCredentials?.token) {
-          this.log(`\nError: ${message}\n`);
+          this.log(`\nError: ${errorResponse.message}\n`);
         } else {
           await launchInteractiveLoginIfNotLogged();
           this.run();

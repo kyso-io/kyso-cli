@@ -11,14 +11,14 @@ import { KysoCredentials } from '../../types/kyso-credentials';
 import { OrganizationData } from '../../types/organization-data';
 import { KysoCommand } from '../kyso-command';
 
-export default class OrganizationGet extends KysoCommand {
-  static description = 'Save in a yaml file the organization data';
+export default class OrganizationsGet extends KysoCommand {
+  static description = 'Save in a yaml file the organizations data';
 
   static examples = [
-    `$ kyso organization get get <list_of_orgs> <yaml_file>`,
-    `$ kyso organization get get <list_of_orgs> <yaml_file> --images`,
-    `$ kyso organization get get <list_of_orgs> <yaml_file> --no-channels`,
-    `$ kyso organization get get <list_of_orgs> <yaml_file> --images --no-channels`,
+    `$ kyso organization get <list_of_orgs> <yaml_file>`,
+    `$ kyso organization get <list_of_orgs> <yaml_file> --images`,
+    `$ kyso organization get <list_of_orgs> <yaml_file> --no-channels`,
+    `$ kyso organization get <list_of_orgs> <yaml_file> --images --no-channels`,
   ];
 
   static flags = {
@@ -45,7 +45,7 @@ export default class OrganizationGet extends KysoCommand {
     },
     {
       name: 'yaml_file',
-      description: 'Yaml file name where the user profile data will be saved',
+      description: 'Yaml file where the organization data will be saved',
       required: true,
     },
   ];
@@ -54,14 +54,14 @@ export default class OrganizationGet extends KysoCommand {
     let organizationData: OrganizationData | null = null;
     const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === organizationSlug);
     if (indexOrganization === -1) {
-      this.log(`Error: You don't have permissions to get the information for the organization ${organizationSlug}`);
+      this.log(`Error: You don't have permissions to get the information for the organization '${organizationSlug}'`);
       return organizationData;
     }
     const resourcePermissions: ResourcePermissions = tokenPermissions.organizations[indexOrganization];
     const isOrgAdmin: boolean = resourcePermissions.permissions.includes(OrganizationPermissionsEnum.ADMIN);
     const isGlobalAdmin: boolean = tokenPermissions.global.includes(GlobalPermissionsEnum.GLOBAL_ADMIN);
     if (!isOrgAdmin && !isGlobalAdmin) {
-      this.log(`Error: You don't have permissions to get the information for the organization ${organizationSlug}`);
+      this.log(`Error: You don't have permissions to get the information for the organization '${organizationSlug}'`);
       return organizationData;
     }
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
@@ -119,7 +119,7 @@ export default class OrganizationGet extends KysoCommand {
   }
 
   async run(): Promise<void> {
-    const { args, flags } = await this.parse(OrganizationGet);
+    const { args, flags } = await this.parse(OrganizationsGet);
     const organizationsNames: string[] = args.list_of_orgs.split(',');
     if (!args.yaml_file.endsWith('.yaml') && !args.yaml_file.endsWith('.yml')) {
       this.error('Yaml file name must end with .yaml or .yml');

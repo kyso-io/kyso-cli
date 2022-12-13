@@ -27,6 +27,7 @@ import { getAllFiles } from '../helpers/get-all-files';
 import { getValidFiles } from '../helpers/get-valid-files';
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
 import slugify from '../helpers/slugify';
+import { ErrorResponse } from '../types/error-response';
 import { KysoCredentials } from '../types/kyso-credentials';
 import { KysoCommand } from './kyso-command';
 
@@ -129,8 +130,13 @@ export default class Push extends KysoCommand {
       return;
     }
     const { payload }: any = jwtDecode(kysoCredentials.token);
-    const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(payload.username);
-    const tokenPermissions: TokenPermissions = resultPermissions.data;
+    let tokenPermissions: TokenPermissions | null = null;
+    try {
+      const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(payload.username);
+      tokenPermissions = resultPermissions.data;
+    } catch (e) {
+      this.error('Error getting user permissions');
+    }
     const indexOrganization: number = tokenPermissions.organizations.findIndex(
       (resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === kysoConfigFile.organization,
     );
@@ -218,8 +224,8 @@ export default class Push extends KysoCommand {
         }
       });
     } catch (error: any) {
-      const errorData: { statusCode: number; message: string; error: string } = error.response.data;
-      if (errorData.statusCode === 404) {
+      const errorResponse: ErrorResponse = error.response.data;
+      if (errorResponse.statusCode === 404) {
         newFiles = validFiles.map((file: { path: string; sha: string }) => file.path);
       }
     }
@@ -264,7 +270,7 @@ export default class Push extends KysoCommand {
       const url = `${kysoCredentials.kysoInstallUrl}/api/v1/reports/kyso/XXXX`;
       await axios.put(url, {});
     } catch (error: any) {
-      const errorResponse: { statusCode: number; message: string; error: string } = error.response.data;
+      const errorResponse: ErrorResponse = error.response.data;
       if (errorResponse.statusCode === 404) {
         existsMethod = false;
       }

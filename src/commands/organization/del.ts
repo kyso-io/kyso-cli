@@ -21,7 +21,7 @@ export default class DeleteOrganization extends KysoCommand {
   private async deleteOrganization(api: Api, tokenPermissions: TokenPermissions, organizationSlug: string): Promise<void> {
     const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === organizationSlug);
     if (indexOrganization === -1) {
-      this.log(`Error: You don't have permissions to delete the organization ${organizationSlug}`);
+      this.log(`Error: You don't have permissions to delete the organization '${organizationSlug}'`);
       return;
     }
     api.setOrganizationSlug(organizationSlug);
@@ -30,14 +30,14 @@ export default class DeleteOrganization extends KysoCommand {
     const isOrgAdmin: boolean = resourcePermissions.permissions.includes(OrganizationPermissionsEnum.ADMIN);
     const isGlobalAdmin: boolean = tokenPermissions.global.includes(GlobalPermissionsEnum.GLOBAL_ADMIN);
     if (!hasPermissionDelete && !isOrgAdmin && !isGlobalAdmin) {
-      this.log(`Error: You don't have permissions to delete the organization ${organizationSlug}`);
+      this.log(`Error: You don't have permissions to delete the organization '${organizationSlug}'`);
       return;
     }
     try {
       await api.deleteOrganization(resourcePermissions.id);
-      this.log(`Organization ${organizationSlug} deleted`);
+      this.log(`Organization '${organizationSlug}' deleted`);
     } catch (e: any) {
-      this.log(`Error deleting the organization ${organizationSlug}: ${e.response.data.message}`);
+      this.log(`Error deleting the organization '${organizationSlug}': ${e.response.data.message}`);
     }
   }
 
@@ -49,8 +49,13 @@ export default class DeleteOrganization extends KysoCommand {
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     const api: Api = new Api();
     api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
-    const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(decoded.payload.username);
-    const tokenPermissions: TokenPermissions = resultPermissions.data;
+    let tokenPermissions: TokenPermissions | null = null;
+    try {
+      const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(decoded.payload.username);
+      tokenPermissions = resultPermissions.data;
+    } catch (e) {
+      this.error('Error getting user permissions');
+    }
     for (const organizationSlug of organizationsNames) {
       await this.deleteOrganization(api, tokenPermissions, organizationSlug);
     }

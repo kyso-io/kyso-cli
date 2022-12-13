@@ -42,8 +42,13 @@ export default class UploadPhoto extends KysoCommand {
     const api: Api = new Api();
     api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token, args.org_name);
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
-    const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(decoded.payload.username);
-    const tokenPermissions: TokenPermissions = resultPermissions.data;
+    let tokenPermissions: TokenPermissions | null = null;
+    try {
+      const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(decoded.payload.username);
+      tokenPermissions = resultPermissions.data;
+    } catch (e) {
+      this.error('Error getting user permissions');
+    }
     const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === args.org_name);
     if (indexOrganization === -1) {
       this.log(`Error: You don't have permissions to upload the photo for the organization ${args.org_name}`);

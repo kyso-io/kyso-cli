@@ -9,6 +9,7 @@ import { join, resolve } from 'path';
 import { printErrorMessage } from '../helpers/error-handler';
 import { findKysoConfigFile } from '../helpers/find-kyso-config-file';
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
+import { ErrorResponse } from '../types/error-response';
 import { KysoCredentials } from '../types/kyso-credentials';
 import { KysoCommand } from './kyso-command';
 
@@ -74,7 +75,7 @@ export default class Clone extends KysoCommand {
       const resultOrganization: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(organizationSlug);
       organization = resultOrganization.data;
     } catch (error: any) {
-      const errorResponse: { statusCode: number; message: string; error: string } = error.response.data;
+      const errorResponse: ErrorResponse = error.response.data;
       if (errorResponse.statusCode === 404) {
         this.log(`\nError: Organization ${organizationSlug} does not exist.\n`);
       } else {
@@ -90,12 +91,12 @@ export default class Clone extends KysoCommand {
         await launchInteractiveLoginIfNotLogged();
       }
     } catch (error: any) {
-      const { statusCode, message } = error.response.data;
-      if (statusCode === 404) {
+      const errorResponse: ErrorResponse = error.response.data;
+      if (errorResponse.statusCode === 404) {
         this.log(`\nError: Team ${teamSlug} does not exist.\n`);
-      } else if (statusCode === 403) {
+      } else if (errorResponse.statusCode === 403) {
         if (kysoCredentials?.token) {
-          this.log(`\nError: ${message}\n`);
+          this.log(`\nError: ${errorResponse.message}\n`);
         } else {
           await launchInteractiveLoginIfNotLogged();
           this.run();
@@ -125,8 +126,8 @@ export default class Clone extends KysoCommand {
       }
     } catch (error: any) {
       try {
-        const errorJson: { statusCode: number; message: string; error: string } = JSON.parse(error.response.data.toString());
-        this.log(`Error: ${errorJson.message}`);
+        const errorResponse: ErrorResponse = JSON.parse(error.response.data.toString());
+        this.log(`Error: ${errorResponse.message}`);
       } catch {
         printErrorMessage(error);
       }
