@@ -46,7 +46,7 @@ export default class DeleteUsers extends KysoCommand {
     } else {
       desiredEmail = email;
     }
-    let user: UserDTO | null = null;
+    let userDto: UserDTO | null = null;
     try {
       const usersResponse: NormalizedResponseDTO<UserDTO[]> = await api.getUsers({ userIds: [], page: 1, per_page: 1000, sort: 'email', search: encodeURIComponent(desiredEmail) });
       const users: UserDTO[] = usersResponse.data;
@@ -59,13 +59,13 @@ export default class DeleteUsers extends KysoCommand {
         this.log(`Error: User with email '${desiredEmail}' not found`);
         return;
       }
-      user = users[index];
+      userDto = users[index];
     } catch (e: any) {
       const errorResponse: ErrorResponse = e.response.data;
       this.log(`Error getting the user '${desiredEmail}': ${errorResponse.message}`);
     }
     try {
-      await api.deleteUser(user.id);
+      await api.deleteUser(userDto.id);
       this.log(`User '${desiredEmail}' deleted`);
     } catch (e: any) {
       const errorResponse: ErrorResponse = e.response.data;

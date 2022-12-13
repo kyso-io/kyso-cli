@@ -9,7 +9,7 @@ import { launchInteractiveLoginIfNotLogged } from '../../../helpers/interactive-
 import { KysoCredentials } from '../../../types/kyso-credentials';
 import { KysoCommand } from '../../kyso-command';
 
-export default class DownloadUserBackground extends KysoCommand {
+export default class DownloadProfileBackground extends KysoCommand {
   static description = 'Download user background profile from Kyso';
 
   static examples = [`$ kyso profile download background`, `$ kyso profile download background -p <path>`];
@@ -24,7 +24,7 @@ export default class DownloadUserBackground extends KysoCommand {
   };
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(DownloadUserBackground);
+    const { flags } = await this.parse(DownloadProfileBackground);
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
