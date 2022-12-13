@@ -118,9 +118,9 @@ The available _init_flags_ are:
 
   *--multireport*:::
     Assume that the `.kyso/meta.yaml` is going to be for a multireport, in
-	that case we create the main `.kyso/meta.yaml` file and assume that the
-	user will be responsible of creating each report configuration independently
-	unless the `--subfolders` flag is passed.
+    that case we create the main `.kyso/meta.yaml` file and assume that the
+    user will be responsible of creating each report configuration independently
+    unless the `--subfolders` flag is passed.
 
   *--subfolders*:::
     Instead of working on the _local_directory_ or the working directory process
@@ -138,7 +138,7 @@ the `--dirname-as-title` has not been used, etc.).
   *--use-metadata*:::
     If the main file of a report is an office file, use the file metadata to get
     the `.kyso/meta.yaml` field values and the proposed values for
-	_organization_ and _channel_ for the `.kyso/repo.json` file.
+    _organization_ and _channel_ for the `.kyso/repo.json` file.
 
 *format* [ _<format_flags>_ ] [ _<local_directory>_ ]::
   Format the files on the working directory (or the _local_directory_ if
@@ -273,14 +273,14 @@ updated if there are changes.
 +
 Valid _subcommands_ and their _arguments_ are:
 
-  *add* _<list_of_orgs>_:::
-    Add the organizations in the _list_of_orgs_ to the system. This command asks
-    interactively for the minimum data required to create them and later the
-    user can update the information using the frontend or the `get` and `set`
-    subcommands.
+  *add* _<comma_separated_list_of_orgs>_:::
+    Add the organizations in the _comma_separated_list_of_orgs_ to the system.
+    This command asks interactively for the minimum data required to create
+    them and later the user can update the information using the frontend or
+    the `get` and `set` subcommands.
 
-  *del* _<list_of_orgs>_:::
-    Remove the organizations included in the _list_of_orgs_.
+  *del* _<comma_separated_list_of_orgs>_:::
+    Remove the organizations included in the _comma_separated_list_of_orgs_.
 
   *download* _<organization>_ *background*|*photo* _<image_file>_:::
     Download the `background` or `photo` images of the given _organization_
@@ -292,7 +292,7 @@ Valid _subcommands_ and their _arguments_ are:
 
   *get* [ _--images_ ] [ _--no-channels_ ] _<list_of_orgs>_ _<yaml_file>_:::
     Save the configuration values (profile data, access settings and list of
-    channels) of the organizations in the _list_of_organizations_ on a
+    channels) of the organizations in the _comma_separated_list_of_orgs_ on a
     _yaml_file_.
 +
 If the `--images` flag is passed the _<yaml_file>_ will contain copies of the
@@ -319,18 +319,20 @@ manage channels you should use the `channel` subcommand.
 +
 Valid _subcommands_ and their _arguments_ are:
 
-  *add* _<organization>_ _<list_of_channels>_:::
-    Add the channels on the _list_of_channels_ to the given _organization_.
-    This command asks interactively for the minimum data required to create
-    each organization and later the user can update the information using the
-    frontend or the `get` and `set` subcommands.
+  *add* _<organization>_ _<comma_separated_list_of_channels>_:::
+    Add the channels on the _comma_separated_list_of_channels_ to the given
+    _organization_. This command asks interactively for the minimum data
+    required to create each organization and later the user can update the
+    information using the frontend or the `get` and `set` subcommands.
 
-  *del* _<organization>_ _<list_of_channels>_:::
-    Remove the channels on the _list_of_channels_ from the given _organization_.
+  *del* _<organization>_ _<comma_separated_list_of_channels>_:::
+    Remove the channels on the _comma_separated_list_of_channels_ from the
+    given _organization_.
 
-  *get* _<organization>_ _<list_of_channels>_ _<yaml_file>_:::
-    Save the configuration values of the channels on the _list_of_channels_
-    from the given _organization_ on a _yaml_file_.
+  *get* _<organization>_ _<comma_separated_list_of_channels>_ _<yaml_file>_:::
+    Save the configuration values of the channels on the
+    _comma_separated_list_of_channels_ from the given _organization_ on a
+    _yaml_file_.
 
   *set* _<yaml_file>_:::
     Pass the channels configuration values from the _yaml_file_ to the backend
@@ -344,13 +346,13 @@ name and the organization it belongs to.
   Get and set user related values. Valid _subcommands_ and their _arguments_
   are:
 
-  *add* _<list_of_users>_:::
-    Add the users on the _list_of_users_ to the system; the command asks
-    interactively for the required parameters and later an admin can update
-    values using the `get` and `set` subcommands.
+  *add* _<comma_separated_list_of_users>_:::
+    Add the users on the _comma_separated_list_of_users_ to the system; the
+    command asks interactively for the required parameters and later an admin
+    can update values using the `get` and `set` subcommands.
 
-  *del* _<list_of_users>_:::
-    Remove the users on the _list_of_users_ from the system.
+  *del* _<comma_separated_list_of_users>_:::
+    Remove the users on the _comma_separated_list_of_users_ from the system.
 
   *download* _<user>_ *background*|*photo* _<image_file>_:::
     Download the `background` or `photo` images of the given _<user>_ and save
@@ -360,12 +362,12 @@ name and the organization it belongs to.
     Upload the _image_file_ as the `background` or `photo` image of the given
     _user_.
 
-  *get* [ _--images_ ] _<list_of_users>_ _<yaml_file>_:::
-    Save the configuration values of the users in the _list_of_organizations_
-    on a _yaml_file_.
+  *get* [ _--images_ ] _<comma_separated_list_of_users>_ _<yaml_file>_:::
+    Save the configuration values of the users in the
+    _comma_separated_list_of_users_ on a _yaml_file_.
 +
 If the `--images` flag is passed the _<yaml_file>_ will contain copies of the
-background and photo images encoded in base64.
+background and photo images encoded in `base64`.
 
   *set* _<yaml_file>_:::
     Pass the user configuration values from the _yaml_file_ to the backend and
