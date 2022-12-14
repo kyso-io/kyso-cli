@@ -136,6 +136,8 @@ export default class OrganizationsSet extends KysoCommand {
     } else {
       if (!updatedPhoto) {
         this.log(`No changes to update for the organization ${organizationData.slug}`);
+      } else {
+        this.log(`Organization ${organizationData.slug} updated`);
       }
     }
   }
@@ -149,7 +151,6 @@ export default class OrganizationsSet extends KysoCommand {
       this.log(`File ${args.yaml_file} does not exist`);
       return;
     }
-    // Read yaml file
     const yamlFileContent: string = readFileSync(args.yaml_file, 'utf8');
     let organizationsData: OrganizationData[] | null = null;
     try {

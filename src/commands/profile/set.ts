@@ -132,25 +132,25 @@ export default class UserProfileSet extends KysoCommand {
       await this.updateBackgroundImage(api, userDto.id, yamlProfileData.background);
       updatedBackgroundImage = true;
     }
-    const updateUserRequestDTO: any = {};
+    const updateUserRequestDto: any = {};
     if (yamlProfileData.name && yamlProfileData.name !== profileData.name) {
-      updateUserRequestDTO.name = yamlProfileData.name;
+      updateUserRequestDto.name = yamlProfileData.name;
     }
     if (yamlProfileData.display_name && yamlProfileData.display_name !== profileData.display_name) {
-      updateUserRequestDTO.display_name = yamlProfileData.display_name;
+      updateUserRequestDto.display_name = yamlProfileData.display_name;
     }
     if (yamlProfileData.location && yamlProfileData.location !== profileData.location) {
-      updateUserRequestDTO.location = yamlProfileData.location;
+      updateUserRequestDto.location = yamlProfileData.location;
     }
     if (yamlProfileData.link && yamlProfileData.link !== profileData.link) {
-      updateUserRequestDTO.link = yamlProfileData.link;
+      updateUserRequestDto.link = yamlProfileData.link;
     }
     if (yamlProfileData.bio && yamlProfileData.bio !== profileData.bio) {
-      updateUserRequestDTO.bio = yamlProfileData.bio;
+      updateUserRequestDto.bio = yamlProfileData.bio;
     }
-    if (Object.keys(updateUserRequestDTO).length > 0) {
+    if (Object.keys(updateUserRequestDto).length > 0) {
       try {
-        await api.updateUser(userDto.id, updateUserRequestDTO);
+        await api.updateUser(userDto.id, updateUserRequestDto);
         this.log('User profile updated');
       } catch (e: any) {
         this.error(`Error updating user profile: ${e.response.data.message}`);
@@ -158,6 +158,8 @@ export default class UserProfileSet extends KysoCommand {
     } else {
       if (!updatedPhoto && !updatedBackgroundImage) {
         this.log('No changes to update');
+      } else {
+        this.log('User profile updated');
       }
     }
   }
