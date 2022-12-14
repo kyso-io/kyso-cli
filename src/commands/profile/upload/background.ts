@@ -1,5 +1,6 @@
 import { Api } from '@kyso-io/kyso-store';
 import { createReadStream, existsSync, ReadStream } from 'fs';
+import jwtDecode from 'jwt-decode';
 import { launchInteractiveLoginIfNotLogged } from '../../../helpers/interactive-login';
 import { isImage } from '../../../helpers/is-image';
 import { KysoCredentials } from '../../../types/kyso-credentials';
@@ -34,9 +35,10 @@ export default class UploadBackground extends KysoCommand {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
     api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
+    const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     try {
       const readStream: ReadStream = createReadStream(args.path);
-      await api.uploadUserBackgroundImage(readStream);
+      await api.uploadUserBackgroundImage(decoded.payload.id, readStream);
       this.log(`Background uploaded successfully`);
     } catch (e: any) {
       this.log(`Error uploading background profile image: ${e.response.data.message}`);
