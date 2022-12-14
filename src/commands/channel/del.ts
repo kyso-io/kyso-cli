@@ -1,4 +1,4 @@
-import { Team, GlobalPermissionsEnum, NormalizedResponseDTO, OrganizationPermissionsEnum, ResourcePermissions, TeamPermissionsEnum, TokenPermissions } from '@kyso-io/kyso-model';
+import { GlobalPermissionsEnum, NormalizedResponseDTO, OrganizationPermissionsEnum, ResourcePermissions, Team, TeamPermissionsEnum, TokenPermissions } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import jwtDecode from 'jwt-decode';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
@@ -68,7 +68,7 @@ export default class DeleteChannel extends KysoCommand {
 
   async run(): Promise<void> {
     const { args } = await this.parse(DeleteChannel);
-    const channelsNames: string[] = args.list_of_channels.split(',');
+    const channelsSlugs: string[] = args.list_of_channels.split(',');
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
@@ -81,7 +81,7 @@ export default class DeleteChannel extends KysoCommand {
     } catch (e) {
       this.error('Error getting user permissions');
     }
-    for (const channelSlug of channelsNames) {
+    for (const channelSlug of channelsSlugs) {
       await this.deleteChannel(api, tokenPermissions, args.organization, channelSlug);
     }
   }

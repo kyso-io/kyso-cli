@@ -1,6 +1,5 @@
 import { CreateOrganizationDto, NormalizedResponseDTO, Organization } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
-import { Flags } from '@oclif/core';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
@@ -9,35 +8,18 @@ import inquirer = require('inquirer');
 export default class AddOrganizations extends KysoCommand {
   static description = 'Add organization to the system';
 
-  static examples = [`$ kyso organization add`, `$ kyso organization add -l <list_of_orgs>`];
+  static examples = [`$ kyso organization add <list_of_orgs>`];
 
-  static flags = {
-    organizations: Flags.string({
-      char: 'l',
-      description: 'List of organizations separated by spaces',
-      required: false,
-      multiple: true,
-    }),
-  };
+  static args = [
+    {
+      name: 'list_of_orgs',
+      description: 'List of organizations separated by commas',
+      required: true,
+    },
+  ];
 
-  private async createOrganization(api: Api, organizationDisplayName?: string): Promise<void> {
+  private async createOrganization(api: Api, organizationDisplayName: string): Promise<void> {
     const createOrganizationDto: CreateOrganizationDto = new CreateOrganizationDto(organizationDisplayName, '', '', '');
-    if (!createOrganizationDto.display_name) {
-      const displayNameResponse: { displayName: string } = await inquirer.prompt([
-        {
-          type: 'input',
-          name: 'displayName',
-          message: 'What is the name of the organization?',
-          validate: function (displayName: string) {
-            if (displayName === '') {
-              return 'Name cannot be empty';
-            }
-            return true;
-          },
-        },
-      ]);
-      createOrganizationDto.display_name = displayNameResponse.displayName;
-    }
     const locationResponse: { location: string } = await inquirer.prompt([
       {
         type: 'input',
@@ -91,17 +73,14 @@ export default class AddOrganizations extends KysoCommand {
   }
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(AddOrganizations);
+    const { args } = await this.parse(AddOrganizations);
+    const organizationsNames: string[] = args.list_of_orgs.split(',');
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
     api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
-    if (flags?.organizations && flags.organizations.length > 0) {
-      for (const organizationDisplayName of flags.organizations) {
-        await this.createOrganization(api, organizationDisplayName);
-      }
-    } else {
-      await this.createOrganization(api);
+    for (const organizationDisplayName of organizationsNames) {
+      await this.createOrganization(api, organizationDisplayName);
     }
   }
 }

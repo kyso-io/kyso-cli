@@ -120,7 +120,7 @@ export default class OrganizationsGet extends KysoCommand {
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(OrganizationsGet);
-    const organizationsNames: string[] = args.list_of_orgs.split(',');
+    const organizationsSlugs: string[] = args.list_of_orgs.split(',');
     if (!args.yaml_file.endsWith('.yaml') && !args.yaml_file.endsWith('.yml')) {
       this.error('Yaml file name must end with .yaml or .yml');
     }
@@ -129,11 +129,16 @@ export default class OrganizationsGet extends KysoCommand {
     const api: Api = new Api();
     api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
-    const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(decoded.payload.username);
-    const tokenPermissions: TokenPermissions = resultPermissions.data;
+    let tokenPermissions: TokenPermissions | null = null;
+    try {
+      const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(decoded.payload.username);
+      tokenPermissions = resultPermissions.data;
+    } catch (e) {
+      this.error('Error getting user permissions');
+    }
     const result: OrganizationData[] = [];
-    for (const organizationName of organizationsNames) {
-      const organizationData: OrganizationData = await this.getOrganizationData(api, tokenPermissions, organizationName, flags.channels, flags.images);
+    for (const organizationSlug of organizationsSlugs) {
+      const organizationData: OrganizationData = await this.getOrganizationData(api, tokenPermissions, organizationSlug, flags.channels, flags.images);
       if (!organizationData) {
         continue;
       }

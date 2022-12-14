@@ -43,7 +43,7 @@ export default class DeleteOrganization extends KysoCommand {
 
   async run(): Promise<void> {
     const { args } = await this.parse(DeleteOrganization);
-    const organizationsNames: string[] = args.list_of_orgs.split(',');
+    const organizationsSlugs: string[] = args.list_of_orgs.split(',');
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
@@ -56,7 +56,7 @@ export default class DeleteOrganization extends KysoCommand {
     } catch (e) {
       this.error('Error getting user permissions');
     }
-    for (const organizationSlug of organizationsNames) {
+    for (const organizationSlug of organizationsSlugs) {
       await this.deleteOrganization(api, tokenPermissions, organizationSlug);
     }
   }

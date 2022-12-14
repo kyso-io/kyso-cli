@@ -1,6 +1,5 @@
-import { TeamPermissionsEnum, NormalizedResponseDTO, ResourcePermissions, Organization, Team, TeamVisibilityEnum, TokenPermissions } from '@kyso-io/kyso-model';
+import { NormalizedResponseDTO, Organization, ResourcePermissions, Team, TeamPermissionsEnum, TeamVisibilityEnum, TokenPermissions } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
-import { Flags } from '@oclif/core';
 import jwtDecode from 'jwt-decode';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
 import { KysoCredentials } from '../../types/kyso-credentials';
@@ -10,22 +9,18 @@ import inquirer = require('inquirer');
 export default class AddChannel extends KysoCommand {
   static description = 'Add channels to the system';
 
-  static examples = [`$ kyso channel add <organization>`, `$ kyso channel add <organization> -l <list_of_channels>`];
-
-  static flags = {
-    channels: Flags.string({
-      char: 'l',
-      description: 'List of channels separated by spaces',
-      required: false,
-      multiple: true,
-    }),
-  };
+  static examples = [`$ kyso channel add <organization> <list_of_channels>`];
 
   static args = [
     {
       name: 'organization',
       required: true,
       description: 'Organization name',
+    },
+    {
+      name: 'list_of_channels',
+      description: 'List of channels separated by commas',
+      required: true,
     },
   ];
 
@@ -89,7 +84,8 @@ export default class AddChannel extends KysoCommand {
   }
 
   async run(): Promise<void> {
-    const { args, flags } = await this.parse(AddChannel);
+    const { args } = await this.parse(AddChannel);
+    const channelsNames: string[] = args.list_of_channels.split(',');
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
@@ -118,12 +114,8 @@ export default class AddChannel extends KysoCommand {
     } catch (e) {
       this.error(`Error getting the organization ${args.organization}`);
     }
-    if (flags?.channels && flags.channels.length > 0) {
-      for (const channelDisplayName of flags.channels) {
-        await this.createChannel(api, organization, decoded.payload.id, channelDisplayName);
-      }
-    } else {
-      await this.createChannel(api, organization, decoded.payload.id);
+    for (const channelDisplayName of channelsNames) {
+      await this.createChannel(api, organization, decoded.payload.id, channelDisplayName);
     }
   }
 }

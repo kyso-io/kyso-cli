@@ -1,6 +1,5 @@
 import { GlobalPermissionsEnum, NormalizedResponseDTO, TokenPermissions, UserDTO } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
-import { Flags } from '@oclif/core';
 import jwtDecode from 'jwt-decode';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
 import { isEmail } from '../../helpers/is-email';
@@ -12,18 +11,17 @@ import inquirer = require('inquirer');
 export default class DeleteUsers extends KysoCommand {
   static description = 'Delete users from the system';
 
-  static examples = [`$ kyso user delete`, `$ kyso user delete -o <list_of_users>`];
+  static examples = [`$ kyso user delete <list_of_emails>`];
 
-  static flags = {
-    emails: Flags.string({
-      char: 'l',
-      description: 'List of users separated by spaces',
-      required: false,
-      multiple: true,
-    }),
-  };
+  static args = [
+    {
+      name: 'list_of_emails',
+      description: 'List of emails separated by commas',
+      required: true,
+    },
+  ];
 
-  private async deleteUser(api: Api, email?: string): Promise<void> {
+  private async deleteUser(api: Api, email: string): Promise<void> {
     let desiredEmail: string | null;
     if (!isEmail(email)) {
       const emailResponse: { email: string } = await inquirer.prompt([
@@ -74,7 +72,8 @@ export default class DeleteUsers extends KysoCommand {
   }
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(DeleteUsers);
+    const { args } = await this.parse(DeleteUsers);
+    const emails: string[] = args.list_of_emails.split(',');
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
@@ -90,12 +89,8 @@ export default class DeleteUsers extends KysoCommand {
     if (!tokenPermissions.global || !tokenPermissions.global.includes(GlobalPermissionsEnum.GLOBAL_ADMIN)) {
       this.error("You don't have permissions to delete users");
     }
-    if (flags?.emails && flags.emails.length > 0) {
-      for (const email of flags.emails) {
-        await this.deleteUser(api, email);
-      }
-    } else {
-      await this.deleteUser(api);
+    for (const email of emails) {
+      await this.deleteUser(api, email);
     }
   }
 }

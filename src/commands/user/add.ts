@@ -1,6 +1,5 @@
 import { GlobalPermissionsEnum, NormalizedResponseDTO, SignUpDto, TokenPermissions, User } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
-import { Flags } from '@oclif/core';
 import jwtDecode from 'jwt-decode';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
 import { isEmail } from '../../helpers/is-email';
@@ -12,20 +11,19 @@ import inquirer = require('inquirer');
 export default class AddUsers extends KysoCommand {
   static description = 'Add users to the system';
 
-  static examples = [`$ kyso user add`, `$ kyso user add -o <list_of_users>`];
+  static examples = [`$ kyso user add <list_of_emails>`];
 
-  static flags = {
-    emails: Flags.string({
-      char: 'l',
-      description: 'List of users separated by spaces',
-      required: false,
-      multiple: true,
-    }),
-  };
+  static args = [
+    {
+      name: 'list_of_emails',
+      description: 'List of emails separated by commas',
+      required: true,
+    },
+  ];
 
-  private async createUser(api: Api, email?: string): Promise<void> {
+  private async createUser(api: Api, email: string): Promise<void> {
     const signUpDto: SignUpDto = new SignUpDto(email, '', '', '');
-    if (!signUpDto.email || !isEmail(email)) {
+    if (!isEmail(signUpDto.email)) {
       const emailResponse: { email: string } = await inquirer.prompt([
         {
           type: 'input',
@@ -114,7 +112,8 @@ export default class AddUsers extends KysoCommand {
   }
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(AddUsers);
+    const { args } = await this.parse(AddUsers);
+    const emails: string[] = args.list_of_emails.split(',');
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
@@ -130,12 +129,8 @@ export default class AddUsers extends KysoCommand {
     if (!tokenPermissions.global || !tokenPermissions.global.includes(GlobalPermissionsEnum.GLOBAL_ADMIN)) {
       this.error("You don't have permissions to add users");
     }
-    if (flags?.emails && flags.emails.length > 0) {
-      for (const email of flags.emails) {
-        await this.createUser(api, email);
-      }
-    } else {
-      await this.createUser(api);
+    for (const email of emails) {
+      await this.createUser(api, email);
     }
   }
 }
