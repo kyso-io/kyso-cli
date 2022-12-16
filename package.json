@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@kyso-io/kyso-store": "99.99.12",
+    "@oclif/color": "^1.0.2",
     "@oclif/core": "^1",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.0.1",

@@ -135,7 +135,7 @@ export default class SetUsers extends KysoCommand {
     if (Object.keys(updateUserRequestDto).length > 0) {
       try {
         await api.updateUser(userDto.id, updateUserRequestDto);
-        this.log(`User ${profileData.email} updated`);
+        this.log(`User '${profileData.email}' updated`);
       } catch (e: any) {
         this.error(`Error updating user ${profileData.email}: ${e.response.data.message}`);
       }
@@ -143,7 +143,7 @@ export default class SetUsers extends KysoCommand {
       if (!updatedPhoto && !updatedBackgroundImage) {
         this.log(`No changes for the user '${profileData.email}'`);
       } else {
-        this.log(`User ${profileData.email} updated`);
+        this.log(`User '${profileData.email}' updated`);
       }
     }
   }

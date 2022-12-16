@@ -129,7 +129,7 @@ export default class OrganizationsSet extends KysoCommand {
       try {
         api.setOrganizationSlug(organizationData.slug);
         await api.updateOrganization(organization.id, updateOrganizationDto);
-        this.log(`Organization ${organizationData.slug} updated`);
+        this.log(`Organization '${organizationData.slug}' updated`);
       } catch (e: any) {
         this.log(`Error updating organization ${organizationData.slug}: ${e.response.data.message}`);
       }
@@ -137,7 +137,7 @@ export default class OrganizationsSet extends KysoCommand {
       if (!updatedPhoto) {
         this.log(`No changes to update for the organization ${organizationData.slug}`);
       } else {
-        this.log(`Organization ${organizationData.slug} updated`);
+        this.log(`Organization '${organizationData.slug}' updated`);
       }
     }
   }

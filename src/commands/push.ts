@@ -15,7 +15,6 @@ import {
 } from '@kyso-io/kyso-model';
 import { Api, createKysoReportAction, setOrganizationAuthAction, setTeamAuthAction, store, updateKysoReportAction } from '@kyso-io/kyso-store';
 import { Flags } from '@oclif/core';
-import axios from 'axios';
 import { existsSync, lstatSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import hostedGitInfo from 'hosted-git-info';
 import * as jsYaml from 'js-yaml';
@@ -267,8 +266,8 @@ export default class Push extends KysoCommand {
     let existsMethod = true;
     // Check the put endpoint is available in the api
     try {
-      const url = `${kysoCredentials.kysoInstallUrl}/api/v1/reports/kyso/XXXX`;
-      await axios.put(url, {});
+      api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials.token, kysoConfigFile.organization, kysoConfigFile.team || kysoConfigFile.channel);
+      await api.getHttpClient().put(`/reports/kyso/XXXX`);
     } catch (error: any) {
       const errorResponse: ErrorResponse = error.response.data;
       if (errorResponse.statusCode === 404) {
