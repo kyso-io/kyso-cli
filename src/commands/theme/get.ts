@@ -3,11 +3,12 @@ import { Flags } from '@oclif/core';
 import AdmZip from 'adm-zip';
 import { join, resolve } from 'path';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
+import { ErrorResponse } from '../../types/error-response';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 
 export default class Get extends KysoCommand {
-  static description = 'Downloads the contents of the <theme_name> and stores it given a path.';
+  static description = 'Downloads the contents of the theme_name folder and stores it on the given zip_file or on the theme_name.zip file on the current directory if no zip_file is provided.';
 
   static examples = [`$ kyso theme get -n <theme_name> -p <destination_folder>`];
 
@@ -38,7 +39,7 @@ export default class Get extends KysoCommand {
       zip.extractAllTo(destinationPath, true);
       this.log(`\n🎉🎉🎉 Success! Theme downloaded to ${resolve(destinationPath)} 🎉🎉🎉\n`);
     } catch (e: any) {
-      const errorResponse: { statusCode: number; message: string; error: string } = JSON.parse(e.response.data.toString());
+      const errorResponse: ErrorResponse = JSON.parse(e.response.data.toString());
       this.log(`Error downloading theme: ${errorResponse.message}`);
     }
   }

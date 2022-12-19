@@ -15,7 +15,6 @@ import {
 } from '@kyso-io/kyso-model';
 import { Api, createKysoReportAction, setOrganizationAuthAction, setTeamAuthAction, store, updateKysoReportAction } from '@kyso-io/kyso-store';
 import { Flags } from '@oclif/core';
-import axios from 'axios';
 import { existsSync, lstatSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import hostedGitInfo from 'hosted-git-info';
 import * as jsYaml from 'js-yaml';
@@ -27,6 +26,7 @@ import { getAllFiles } from '../helpers/get-all-files';
 import { getValidFiles } from '../helpers/get-valid-files';
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
 import slugify from '../helpers/slugify';
+import { ErrorResponse } from '../types/error-response';
 import { KysoCredentials } from '../types/kyso-credentials';
 import { KysoCommand } from './kyso-command';
 
@@ -129,8 +129,13 @@ export default class Push extends KysoCommand {
       return;
     }
     const { payload }: any = jwtDecode(kysoCredentials.token);
-    const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(payload.username);
-    const tokenPermissions: TokenPermissions = resultPermissions.data;
+    let tokenPermissions: TokenPermissions | null = null;
+    try {
+      const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(payload.username);
+      tokenPermissions = resultPermissions.data;
+    } catch (e) {
+      this.error('Error getting user permissions');
+    }
     const indexOrganization: number = tokenPermissions.organizations.findIndex(
       (resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === kysoConfigFile.organization,
     );
@@ -218,8 +223,8 @@ export default class Push extends KysoCommand {
         }
       });
     } catch (error: any) {
-      const errorData: { statusCode: number; message: string; error: string } = error.response.data;
-      if (errorData.statusCode === 404) {
+      const errorResponse: ErrorResponse = error.response.data;
+      if (errorResponse.statusCode === 404) {
         newFiles = validFiles.map((file: { path: string; sha: string }) => file.path);
       }
     }
@@ -261,10 +266,10 @@ export default class Push extends KysoCommand {
     let existsMethod = true;
     // Check the put endpoint is available in the api
     try {
-      const url = `${kysoCredentials.kysoInstallUrl}/api/v1/reports/kyso/XXXX`;
-      await axios.put(url, {});
+      api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials.token, kysoConfigFile.organization, kysoConfigFile.team || kysoConfigFile.channel);
+      await api.getHttpClient().put(`/reports/kyso/XXXX`);
     } catch (error: any) {
-      const errorResponse: { statusCode: number; message: string; error: string } = error.response.data;
+      const errorResponse: ErrorResponse = error.response.data;
       if (errorResponse.statusCode === 404) {
         existsMethod = false;
       }
