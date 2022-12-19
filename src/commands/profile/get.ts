@@ -12,7 +12,7 @@ import { ProfileData } from '../../types/profile-data';
 import { KysoCommand } from '../kyso-command';
 
 export default class UserProfileGet extends KysoCommand {
-  static description = 'Save in a yaml file user profile data';
+  static description = 'Save the user profile values on a yaml_file.\nIf the --images flag is passed the yaml_file will contain copies of the background and photo images encoded in base64.';
 
   static examples = [`$ kyso profile get <yaml_file>`];
 

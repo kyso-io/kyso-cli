@@ -12,7 +12,8 @@ import { OrganizationData } from '../../types/organization-data';
 import { KysoCommand } from '../kyso-command';
 
 export default class OrganizationsSet extends KysoCommand {
-  static description = 'Update organizations data given yaml file';
+  static description =
+    'Pass the organizations configuration values from the yaml_file to the backend and merge its values with the existing ones (that is, missing values keep their value).\nThis command does not get the organization names from the command line because we can pass multiple organizations on the YAML file and each of them includes its name.\nNote that when updating the information of an organization the list of channels is not used, that is, no channel is added or removed with this command, to manage channels you should use the channel subcommand.';
 
   static examples = [`$ kyso organization set <yaml_file>`];
 

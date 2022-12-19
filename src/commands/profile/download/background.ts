@@ -10,7 +10,7 @@ import { KysoCredentials } from '../../../types/kyso-credentials';
 import { KysoCommand } from '../../kyso-command';
 
 export default class DownloadProfileBackground extends KysoCommand {
-  static description = 'Download user background profile from Kyso';
+  static description = 'Download the background image and save them on the provided image_file.';
 
   static examples = [`$ kyso profile download background`, `$ kyso profile download background -p <path>`];
 

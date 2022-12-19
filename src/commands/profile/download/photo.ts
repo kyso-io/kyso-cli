@@ -10,7 +10,7 @@ import { KysoCredentials } from '../../../types/kyso-credentials';
 import { KysoCommand } from '../../kyso-command';
 
 export default class DownloadProfilePhoto extends KysoCommand {
-  static description = 'Download user photo from Kyso';
+  static description = 'Download the photo image and save them on the provided image_file.';
 
   static examples = [`$ kyso profile download photo`, `$ kyso profile download photo -p <path>`];
 

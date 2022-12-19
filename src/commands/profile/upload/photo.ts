@@ -7,7 +7,7 @@ import { KysoCredentials } from '../../../types/kyso-credentials';
 import { KysoCommand } from '../../kyso-command';
 
 export default class UploadPhoto extends KysoCommand {
-  static description = 'Upload user photo to Kyso';
+  static description = 'Upload the image_file as the photo image.';
 
   static examples = [`$ kyso profile upload photo <path>`];
 

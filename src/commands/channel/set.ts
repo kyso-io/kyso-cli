@@ -10,7 +10,8 @@ import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 
 export default class ChannelsSet extends KysoCommand {
-  static description = 'Update channels data given yaml file';
+  static description =
+    'Pass the channels configuration values from the yaml_file to the backend and merge its values with the existing ones.\nThis command does not get the organization or the channel names because we can pass multiple channels on the YAML file and each of them includes the channel name and the organization it belongs to.';
 
   static examples = [`$ kyso channel set <yaml_file>`];
 

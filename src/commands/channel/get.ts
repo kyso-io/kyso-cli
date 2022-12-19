@@ -10,7 +10,7 @@ import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 
 export default class ChannelsGet extends KysoCommand {
-  static description = 'Save in a yaml file the channels data of an organization';
+  static description = 'Save the configuration values of the channels on the list_of_channels from the given organization on a yaml_file.';
 
   static examples = [`$ kyso organization get <organization> <list_of_channels> <yaml_file>`];
 

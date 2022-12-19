@@ -7,7 +7,7 @@ import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 
 export default class DeleteChannel extends KysoCommand {
-  static description = 'Delete organization from the system';
+  static description = 'Remove the channels on the list_of_channels from the given organization.';
 
   static examples = [`$ kyso organization del <organization> <list_of_channels>`];
 

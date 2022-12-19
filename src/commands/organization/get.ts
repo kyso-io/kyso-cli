@@ -12,7 +12,8 @@ import { OrganizationData } from '../../types/organization-data';
 import { KysoCommand } from '../kyso-command';
 
 export default class OrganizationsGet extends KysoCommand {
-  static description = 'Save in a yaml file the organizations data';
+  static description =
+    'Save the configuration values (profile data, access settings and list of channels) of the organizations in the comma_separated_list_of_orgs on a yaml_file.\nIf the --images flag is passed the <yaml_file> will contain copies of the background and photo images encoded in base64.\nIf the --no-channels flag is passed the <yaml_file> will not include the list of channels for the organizations.';
 
   static examples = [
     `$ kyso organization get <list_of_orgs> <yaml_file>`,

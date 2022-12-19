@@ -6,7 +6,8 @@ import { KysoCommand } from '../kyso-command';
 import inquirer = require('inquirer');
 
 export default class AddOrganizations extends KysoCommand {
-  static description = 'Add organization to the system';
+  static description =
+    'Add the organizations in the list_of_orgs to the system. This command asks interactively for the minimum data required to create them and later the user can update the information using the frontend or the get and set subcommands.';
 
   static examples = [`$ kyso organization add <list_of_orgs>`];
 

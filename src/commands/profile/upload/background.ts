@@ -7,7 +7,7 @@ import { KysoCredentials } from '../../../types/kyso-credentials';
 import { KysoCommand } from '../../kyso-command';
 
 export default class UploadBackground extends KysoCommand {
-  static description = 'Upload user background profile to Kyso';
+  static description = 'Upload the image_file as the background image.';
 
   static examples = [`$ kyso profile upload background <path>`];
 

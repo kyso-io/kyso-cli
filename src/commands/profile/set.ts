@@ -11,7 +11,8 @@ import { ProfileData } from '../../types/profile-data';
 import { KysoCommand } from '../kyso-command';
 
 export default class UserProfileSet extends KysoCommand {
-  static description = 'Update user profile data given yaml file';
+  static description =
+    'Pass the user profile values from the yaml_file to the backend and merge its values with the existing ones (that is, missing values keep their value).\nIf we pass the images encoded in base64 on the yaml_file the images are updated if there are changes.';
 
   static examples = [`$ kyso profile set <yaml_file>`];
 

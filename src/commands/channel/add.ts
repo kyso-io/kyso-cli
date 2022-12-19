@@ -7,7 +7,8 @@ import { KysoCommand } from '../kyso-command';
 import inquirer = require('inquirer');
 
 export default class AddChannel extends KysoCommand {
-  static description = 'Add channels to the system';
+  static description =
+    'Add the channels on the list_of_channels to the given organization. This command asks interactively for the minimum data required to create each organization and later the user can update the information using the frontend or the get and set subcommands.';
 
   static examples = [`$ kyso channel add <organization> <list_of_channels>`];
 
