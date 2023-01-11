@@ -26,6 +26,8 @@ export default class Set extends KysoCommand {
     try {
       await api.setDefaultTheme(args.name);
       this.log(`\n🎉🎉🎉 Success! The theme has been changed 🎉🎉🎉\n`);
+      this.log(`\n`);
+      this.log(`Remember that users must close and reopen their browser for the changes to take effect.`);
     } catch (e: any) {
       this.log(`Error changing the theme: ${e.response.data.message}`);
     }
