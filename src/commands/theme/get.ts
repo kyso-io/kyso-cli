@@ -12,30 +12,30 @@ export default class Get extends KysoCommand {
 
   static examples = [`$ kyso theme get -n <theme_name> -p <destination_folder>`];
 
-  static flags = {
-    name: Flags.string({
-      char: 'n',
+  static args = [
+    {
+      name: 'name',
       description: 'Theme name',
       required: true,
-    }),
-    path: Flags.string({
-      char: 'p',
+    },
+    {
+      name: 'path',
       description: 'Path where to save the theme',
       required: false,
       default: '.',
-    }),
-  };
+    },
+  ];
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(Get);
+    const { args } = await this.parse(Get);
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
     api.configure(kysoCredentials?.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
     try {
-      const buffer: Buffer = await api.downloadTheme(flags.name);
+      const buffer: Buffer = await api.downloadTheme(args.name);
       const zip: AdmZip = new AdmZip(buffer);
-      const destinationPath: string = join(flags.path, flags.name);
+      const destinationPath: string = join(args.path, args.name);
       zip.extractAllTo(destinationPath, true);
       this.log(`\n🎉🎉🎉 Success! Theme downloaded to ${resolve(destinationPath)} 🎉🎉🎉\n`);
     } catch (e: any) {
