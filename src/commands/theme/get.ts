@@ -10,7 +10,7 @@ import { KysoCommand } from '../kyso-command';
 export default class Get extends KysoCommand {
   static description = 'Downloads the contents of the theme_name folder and stores it on the given zip_file or on the theme_name.zip file on the current directory if no zip_file is provided.';
 
-  static examples = [`$ kyso theme get -n <theme_name> -p <destination_folder>`];
+  static examples = [`$ kyso theme get <theme_name> <destination_folder>`];
 
   static args = [
     {

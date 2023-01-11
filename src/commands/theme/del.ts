@@ -7,24 +7,24 @@ import { KysoCommand } from '../kyso-command';
 export default class Del extends KysoCommand {
   static description = 'Removes the <theme_name> folder.';
 
-  static examples = [`$ kyso theme del -n <theme_name>`];
+  static examples = [`$ kyso theme del <theme_name>`];
 
-  static flags = {
-    name: Flags.string({
-      char: 'n',
+  static args = [
+    {
+      name: 'name',
       description: 'Theme name',
       required: true,
-    }),
-  };
+    },
+  ];
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(Del);
+    const { args } = await this.parse(Del);
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
     api.configure(kysoCredentials?.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
     try {
-      await api.deleteTheme(flags.name);
+      await api.deleteTheme(args.name);
       this.log(`\n🎉🎉🎉 Success! Theme deleted 🎉🎉🎉\n`);
     } catch (e: any) {
       this.log(`Error deleting theme: ${e.response.data.message}`);
