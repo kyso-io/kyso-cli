@@ -282,11 +282,11 @@ Valid _subcommands_ and their _arguments_ are:
   *del* _<comma_separated_list_of_orgs>_:::
     Remove the organizations included in the _comma_separated_list_of_orgs_.
 
-  *download* _<organization>_ *background*|*photo* _<image_file>_:::
+  *download* *background*|*photo* _<organization>_ _<image_file>_:::
     Download the `background` or `photo` images of the given _organization_
     and save them on the provided _image_file_.
 
-  *upload* _<organization>_ *background*|*photo* _<image_file>_:::
+  *upload* *background*|*photo* _<organization>_ _<image_file>_:::
     Upload the _image_file_ as the `background` or `photo` image of the given
     _organization_.
 
