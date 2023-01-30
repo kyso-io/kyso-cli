@@ -9,24 +9,20 @@ import { KysoCredentials } from '../../../types/kyso-credentials';
 import { KysoCommand } from '../../kyso-command';
 
 export default class DownloadOrganizationPhoto extends KysoCommand {
-  static description = 'Download organization photo from Kyso';
+  static description = 'Download the photo images of the given organization and save them on the provided image_file';
 
-  static examples = [`$ kyso organization download photo <org_name>`, `$ kyso organization download photo <org_name> -p <path>`];
-
-  static flags = {
-    path: Flags.string({
-      char: 'p',
-      description: 'Destination folder in which the photo will be downloaded',
-      required: false,
-      default: '.',
-    }),
-  };
+  static examples = [`$ kyso organization download photo <organization> <image_file>`];
 
   static args = [
     {
-      name: 'org_name',
-      description: 'Organization name',
+      name: 'organization',
+      description: `Organization's slugified name`,
       required: true,
+    },
+    {
+      name: 'image_file',
+      description: 'Destination file name',
+      required: false,
     },
   ];
 
@@ -37,7 +33,7 @@ export default class DownloadOrganizationPhoto extends KysoCommand {
     const api: Api = new Api();
     api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
     try {
-      const result: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(args.org_name);
+      const result: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(args.organization);
       const organization: Organization = result.data;
       if (!organization.avatar_url) {
         this.log('Organization has no photo');
@@ -53,10 +49,18 @@ export default class DownloadOrganizationPhoto extends KysoCommand {
       if (!fileName.includes('.')) {
         this.error('User profile photo has no extension');
       }
-      const filePath: string = resolve(join(flags.path, fileName));
-      writeFileSync(filePath, axiosResponse.data, 'binary');
-      this.log(`Photo downloaded to ${filePath}`);
+
+      let downloadPathAndName: string;
+      if (args.image_file) {
+        downloadPathAndName = resolve(args.image_file);
+      } else {
+        downloadPathAndName = resolve(join('.', fileName));
+      }
+
+      writeFileSync(downloadPathAndName, axiosResponse.data, 'binary');
+      this.log(`Photo downloaded to ${downloadPathAndName}`);
     } catch (e) {
+      console.log(e);
       this.error('Error downloading photo');
     }
   }
