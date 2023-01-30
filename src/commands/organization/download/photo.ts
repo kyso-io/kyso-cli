@@ -60,7 +60,6 @@ export default class DownloadOrganizationPhoto extends KysoCommand {
       writeFileSync(downloadPathAndName, axiosResponse.data, 'binary');
       this.log(`Photo downloaded to ${downloadPathAndName}`);
     } catch (e) {
-      console.log(e);
       this.error('Error downloading photo');
     }
   }

@@ -8,18 +8,18 @@ import { KysoCredentials } from '../../../types/kyso-credentials';
 import { KysoCommand } from '../../kyso-command';
 
 export default class UploadPhoto extends KysoCommand {
-  static description = 'Upload organization upload photo to Kyso';
+  static description = 'Upload the image_file as the `photo` image of the given organization';
 
-  static examples = [`$ kyso organization upload photo <org_name> <path>`];
+  static examples = [`$ kyso organization upload photo <organization> <image_file>`];
 
   static args = [
     {
-      name: 'org_name',
+      name: 'organization',
       description: 'Organization name',
       required: true,
     },
     {
-      name: 'path',
+      name: 'image_file',
       required: true,
       description: 'Path to the image',
     },
@@ -28,19 +28,19 @@ export default class UploadPhoto extends KysoCommand {
   async run(): Promise<void> {
     const { args } = await this.parse(UploadPhoto);
     // Check if file exists
-    if (!existsSync(args.path)) {
-      this.log(`File ${args.path} does not exist`);
+    if (!existsSync(args.image_file)) {
+      this.log(`File ${args.image_file} does not exist`);
       return;
     }
     // Check if file is an image
-    if (!isImage(args.path)) {
-      this.log(`File ${args.path} is not an image. Valid formats are: png, jpg, jpeg, gif`);
+    if (!isImage(args.image_file)) {
+      this.log(`File ${args.image_file} is not an image. Valid formats are: png, jpg, jpeg, gif`);
       return;
     }
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token, args.org_name);
+    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token, args.organization);
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     let tokenPermissions: TokenPermissions | null = null;
     try {
@@ -49,9 +49,9 @@ export default class UploadPhoto extends KysoCommand {
     } catch (e) {
       this.error('Error getting user permissions');
     }
-    const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === args.org_name);
+    const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === args.organization);
     if (indexOrganization === -1) {
-      this.log(`Error: You don't have permissions to upload the photo for the organization ${args.org_name}`);
+      this.log(`Error: You don't have permissions to upload the photo for the organization ${args.organization}`);
       return;
     }
     const resourcePermissions: ResourcePermissions = tokenPermissions.organizations[indexOrganization];
@@ -59,11 +59,11 @@ export default class UploadPhoto extends KysoCommand {
     const isOrgAdmin: boolean = resourcePermissions.permissions.includes(OrganizationPermissionsEnum.ADMIN);
     const isGlobalAdmin: boolean = tokenPermissions.global.includes(GlobalPermissionsEnum.GLOBAL_ADMIN);
     if (!hasPermissionDelete && !isOrgAdmin && !isGlobalAdmin) {
-      this.log(`Error: You don't have permissions to upload the photo for the organization ${args.org_name}`);
+      this.log(`Error: You don't have permissions to upload the photo for the organization ${args.organization}`);
       return;
     }
     try {
-      const readStream: ReadStream = createReadStream(args.path);
+      const readStream: ReadStream = createReadStream(args.image_file);
       await api.uploadOrganizationImage(resourcePermissions.id, readStream);
       this.log(`Photo uploaded successfully`);
     } catch (e: any) {
