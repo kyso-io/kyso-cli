@@ -7,6 +7,7 @@ import jwtDecode from 'jwt-decode';
 import * as _ from 'lodash';
 import { join } from 'path';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
+import slug from '../../helpers/slugify';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { OrganizationData } from '../../types/organization-data';
 import { KysoCommand } from '../kyso-command';
@@ -178,6 +179,9 @@ export default class OrganizationsSet extends KysoCommand {
       if (!organizationData.slug) {
         continue;
       }
+      // Slug the organization to ensure that if someone introduced the name of the organization in
+      // capital letters we are going to be able to answer properly
+      organizationData.slug = slug(organizationData.slug);
       await this.updateOrganization(api, tokenPermissions, organizationData);
     }
   }

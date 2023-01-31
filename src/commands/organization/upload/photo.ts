@@ -4,6 +4,7 @@ import { createReadStream, existsSync, ReadStream } from 'fs';
 import jwtDecode from 'jwt-decode';
 import { launchInteractiveLoginIfNotLogged } from '../../../helpers/interactive-login';
 import { isImage } from '../../../helpers/is-image';
+import slug from '../../../helpers/slugify';
 import { KysoCredentials } from '../../../types/kyso-credentials';
 import { KysoCommand } from '../../kyso-command';
 
@@ -27,6 +28,10 @@ export default class UploadPhoto extends KysoCommand {
 
   async run(): Promise<void> {
     const { args } = await this.parse(UploadPhoto);
+    // Slug the organization to ensure that if someone introduced the name of the organization in
+    // capital letters we are going to be able to answer properly
+    const slugifiedOrganization = slug(args.organization);
+
     // Check if file exists
     if (!existsSync(args.image_file)) {
       this.log(`File ${args.image_file} does not exist`);
@@ -40,7 +45,7 @@ export default class UploadPhoto extends KysoCommand {
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token, args.organization);
+    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token, slugifiedOrganization);
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     let tokenPermissions: TokenPermissions | null = null;
     try {
@@ -49,7 +54,7 @@ export default class UploadPhoto extends KysoCommand {
     } catch (e) {
       this.error('Error getting user permissions');
     }
-    const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === args.organization);
+    const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === slugifiedOrganization);
     if (indexOrganization === -1) {
       this.log(`Error: You don't have permissions to upload the photo for the organization ${args.organization}`);
       return;

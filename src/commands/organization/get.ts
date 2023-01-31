@@ -7,6 +7,7 @@ import * as jsYaml from 'js-yaml';
 import jwtDecode from 'jwt-decode';
 import { resolve } from 'path';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
+import slug from '../../helpers/slugify';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { OrganizationData } from '../../types/organization-data';
 import { KysoCommand } from '../kyso-command';
@@ -121,7 +122,11 @@ export default class OrganizationsGet extends KysoCommand {
 
   async run(): Promise<void> {
     const { args, flags } = await this.parse(OrganizationsGet);
-    const organizationsSlugs: string[] = args.list_of_orgs.split(',');
+
+    // Slug the organization to ensure that if someone introduced the name of the organization in
+    // capital letters we are going to be able to answer properly
+    const organizationsSlugs: string[] = args.list_of_orgs.split(',').map((x) => slug(x));
+
     if (!args.yaml_file.endsWith('.yaml') && !args.yaml_file.endsWith('.yml')) {
       this.error('Yaml file name must end with .yaml or .yml');
     }

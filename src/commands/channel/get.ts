@@ -5,6 +5,7 @@ import * as jsYaml from 'js-yaml';
 import jwtDecode from 'jwt-decode';
 import { resolve } from 'path';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
+import slug from '../../helpers/slugify';
 import { ChannelData } from '../../types/channels-data';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
@@ -63,6 +64,11 @@ export default class ChannelsGet extends KysoCommand {
 
   async run(): Promise<void> {
     const { args } = await this.parse(ChannelsGet);
+
+    // Slug the organization to ensure that if someone introduced the name of the organization in
+    // capital letters we are going to be able to answer properly
+    const slugifiedOrganization = slug(args.organization);
+
     const channelsNames: string[] = args.list_of_channels.split(',');
     if (!args.yaml_file.endsWith('.yaml') && !args.yaml_file.endsWith('.yml')) {
       this.error('Yaml file name must end with .yaml or .yml');
@@ -79,13 +85,13 @@ export default class ChannelsGet extends KysoCommand {
     } catch (e) {
       this.error('Error getting user permissions');
     }
-    const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === args.organization);
+    const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === slugifiedOrganization);
     if (indexOrganization === -1) {
       this.error(`You don't belong to the organization '${args.organization}'`);
     }
     let organization: Organization | null = null;
     try {
-      const resultOrganization: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(args.organization);
+      const resultOrganization: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(slugifiedOrganization);
       organization = resultOrganization.data;
     } catch (e: any) {
       if (e.response.status === 404) {
@@ -95,7 +101,8 @@ export default class ChannelsGet extends KysoCommand {
     }
     const result: ChannelData[] = [];
     for (const channelName of channelsNames) {
-      const channelData: ChannelData = await this.getChannelData(api, tokenPermissions, organization, channelName);
+      const slugifiedChannel = slug(channelName);
+      const channelData: ChannelData = await this.getChannelData(api, tokenPermissions, organization, slugifiedChannel);
       if (!channelData) {
         continue;
       }

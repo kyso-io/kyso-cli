@@ -5,6 +5,7 @@ import axios from 'axios';
 import { writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { launchInteractiveLoginIfNotLogged } from '../../../helpers/interactive-login';
+import slug from '../../../helpers/slugify';
 import { KysoCredentials } from '../../../types/kyso-credentials';
 import { KysoCommand } from '../../kyso-command';
 
@@ -27,13 +28,19 @@ export default class DownloadOrganizationPhoto extends KysoCommand {
   ];
 
   async run(): Promise<void> {
-    const { flags, args } = await this.parse(DownloadOrganizationPhoto);
+    const { args } = await this.parse(DownloadOrganizationPhoto);
+
+    // Slug the organization to ensure that if someone introduced the name of the organization in
+    // capital letters we are going to be able to answer properly
+    const slugifiedOrganization = slug(args.organization);
+
     await launchInteractiveLoginIfNotLogged();
+
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
     api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
     try {
-      const result: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(args.organization);
+      const result: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(slugifiedOrganization);
       const organization: Organization = result.data;
       if (!organization.avatar_url) {
         this.log('Organization has no photo');

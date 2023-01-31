@@ -5,6 +5,7 @@ import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-log
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 import inquirer = require('inquirer');
+import slug from '../../helpers/slugify';
 
 export default class AddChannel extends KysoCommand {
   static description =
@@ -86,6 +87,11 @@ export default class AddChannel extends KysoCommand {
 
   async run(): Promise<void> {
     const { args } = await this.parse(AddChannel);
+
+    // Slug the organization to ensure that if someone introduced the name of the organization in
+    // capital letters we are going to be able to answer properly
+    const slugifiedOrganization = slug(args.organization);
+
     const channelsNames: string[] = args.list_of_channels.split(',');
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
@@ -99,7 +105,7 @@ export default class AddChannel extends KysoCommand {
     } catch (e) {
       this.error('Error getting user permissions');
     }
-    const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === args.organization);
+    const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === slugifiedOrganization);
     if (indexOrganization === -1) {
       this.error(`You don't have permissions to create channels the organization ${args.organization}`);
     }
@@ -110,7 +116,7 @@ export default class AddChannel extends KysoCommand {
     }
     let organization: Organization | null = null;
     try {
-      const resultOrganization: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(args.organization);
+      const resultOrganization: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(slugifiedOrganization);
       organization = resultOrganization.data;
     } catch (e) {
       this.error(`Error getting the organization ${args.organization}`);

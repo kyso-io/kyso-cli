@@ -2,6 +2,7 @@ import { GlobalPermissionsEnum, NormalizedResponseDTO, OrganizationPermissionsEn
 import { Api } from '@kyso-io/kyso-store';
 import jwtDecode from 'jwt-decode';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
+import slug from '../../helpers/slugify';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 
@@ -43,7 +44,11 @@ export default class DeleteOrganization extends KysoCommand {
 
   async run(): Promise<void> {
     const { args } = await this.parse(DeleteOrganization);
-    const organizationsSlugs: string[] = args.list_of_orgs.split(',');
+
+    // Slug the organization to ensure that if someone introduced the name of the organization in
+    // capital letters we are going to be able to answer properly
+    const organizationsSlugs: string[] = args.list_of_orgs.split(',').map((x) => slug(x));
+
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);

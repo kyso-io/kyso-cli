@@ -2,6 +2,7 @@ import { GlobalPermissionsEnum, NormalizedResponseDTO, OrganizationPermissionsEn
 import { Api } from '@kyso-io/kyso-store';
 import jwtDecode from 'jwt-decode';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
+import slug from '../../helpers/slugify';
 import { ErrorResponse } from '../../types/error-response';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
@@ -68,6 +69,11 @@ export default class DeleteChannel extends KysoCommand {
 
   async run(): Promise<void> {
     const { args } = await this.parse(DeleteChannel);
+
+    // Slug the organization to ensure that if someone introduced the name of the organization in
+    // capital letters we are going to be able to answer properly
+    const slugifiedOrganization = slug(args.organization);
+
     const channelsSlugs: string[] = args.list_of_channels.split(',');
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
@@ -82,7 +88,8 @@ export default class DeleteChannel extends KysoCommand {
       this.error('Error getting user permissions');
     }
     for (const channelSlug of channelsSlugs) {
-      await this.deleteChannel(api, tokenPermissions, args.organization, channelSlug);
+      const slugChannelAgainJustInCase = slug(channelSlug);
+      await this.deleteChannel(api, tokenPermissions, slugifiedOrganization, slugChannelAgainJustInCase);
     }
   }
 }

@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from 'fs';
 import * as jsYaml from 'js-yaml';
 import jwtDecode from 'jwt-decode';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
+import slug from '../../helpers/slugify';
 import { ChannelData } from '../../types/channels-data';
 import { ErrorResponse } from '../../types/error-response';
 import { KysoCredentials } from '../../types/kyso-credentials';
@@ -142,6 +143,10 @@ export default class ChannelsSet extends KysoCommand {
       if (!channelData.slug) {
         continue;
       }
+
+      // Re-slug just in case
+      channelData.slug = slug(channelData.slug);
+
       await this.updateChannel(api, tokenPermissions, channelData);
     }
   }
