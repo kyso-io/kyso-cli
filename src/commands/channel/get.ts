@@ -4,6 +4,7 @@ import { writeFileSync } from 'fs';
 import * as jsYaml from 'js-yaml';
 import jwtDecode from 'jwt-decode';
 import { resolve } from 'path';
+import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
 import slug from '../../helpers/slugify';
 import { ChannelData } from '../../types/channels-data';
@@ -65,16 +66,18 @@ export default class ChannelsGet extends KysoCommand {
   async run(): Promise<void> {
     const { args } = await this.parse(ChannelsGet);
 
-    // Slug the organization to ensure that if someone introduced the name of the organization in
-    // capital letters we are going to be able to answer properly
-    const slugifiedOrganization = slug(args.organization);
-
-    const channelsNames: string[] = args.list_of_channels.split(',');
     if (!args.yaml_file.endsWith('.yaml') && !args.yaml_file.endsWith('.yml')) {
       this.error('Yaml file name must end with .yaml or .yml');
     }
+
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
+
+    const secureOrg: NormalizedResponseDTO<Organization> = await Helper.getOrganizationFromSlugSecurely(args.organization, kysoCredentials);
+    const slugifiedOrganization = secureOrg.data.sluglified_name;
+
+    const channelsNames: string[] = await Helper.getRealChannelsSlugFromStringArray(secureOrg.data, args.list_of_channels, kysoCredentials);
+
     const api: Api = new Api();
     api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
@@ -101,8 +104,7 @@ export default class ChannelsGet extends KysoCommand {
     }
     const result: ChannelData[] = [];
     for (const channelName of channelsNames) {
-      const slugifiedChannel = slug(channelName);
-      const channelData: ChannelData = await this.getChannelData(api, tokenPermissions, organization, slugifiedChannel);
+      const channelData: ChannelData = await this.getChannelData(api, tokenPermissions, organization, channelName);
       if (!channelData) {
         continue;
       }

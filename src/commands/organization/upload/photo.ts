@@ -1,10 +1,10 @@
-import { GlobalPermissionsEnum, NormalizedResponseDTO, OrganizationPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import { GlobalPermissionsEnum, NormalizedResponseDTO, Organization, OrganizationPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import { createReadStream, existsSync, ReadStream } from 'fs';
 import jwtDecode from 'jwt-decode';
+import { Helper } from '../../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../../helpers/interactive-login';
 import { isImage } from '../../../helpers/is-image';
-import slug from '../../../helpers/slugify';
 import { KysoCredentials } from '../../../types/kyso-credentials';
 import { KysoCommand } from '../../kyso-command';
 
@@ -28,9 +28,6 @@ export default class UploadPhoto extends KysoCommand {
 
   async run(): Promise<void> {
     const { args } = await this.parse(UploadPhoto);
-    // Slug the organization to ensure that if someone introduced the name of the organization in
-    // capital letters we are going to be able to answer properly
-    const slugifiedOrganization = slug(args.organization);
 
     // Check if file exists
     if (!existsSync(args.image_file)) {
@@ -42,10 +39,14 @@ export default class UploadPhoto extends KysoCommand {
       this.log(`File ${args.image_file} is not an image. Valid formats are: png, jpg, jpeg, gif`);
       return;
     }
+
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
+
+    const organization: NormalizedResponseDTO<Organization> = await Helper.getOrganizationFromSlugSecurely(args.organization, kysoCredentials);
+
     const api: Api = new Api();
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token, slugifiedOrganization);
+    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token, organization.data.sluglified_name);
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     let tokenPermissions: TokenPermissions | null = null;
     try {
@@ -54,7 +55,9 @@ export default class UploadPhoto extends KysoCommand {
     } catch (e) {
       this.error('Error getting user permissions');
     }
-    const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === slugifiedOrganization);
+    const indexOrganization: number = tokenPermissions.organizations.findIndex(
+      (resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === organization.data.sluglified_name,
+    );
     if (indexOrganization === -1) {
       this.log(`Error: You don't have permissions to upload the photo for the organization ${args.organization}`);
       return;

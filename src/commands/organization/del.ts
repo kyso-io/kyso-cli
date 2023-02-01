@@ -1,8 +1,8 @@
-import { GlobalPermissionsEnum, NormalizedResponseDTO, OrganizationPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import { Organization, GlobalPermissionsEnum, NormalizedResponseDTO, OrganizationPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import jwtDecode from 'jwt-decode';
+import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import slug from '../../helpers/slugify';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 
@@ -45,12 +45,13 @@ export default class DeleteOrganization extends KysoCommand {
   async run(): Promise<void> {
     const { args } = await this.parse(DeleteOrganization);
 
-    // Slug the organization to ensure that if someone introduced the name of the organization in
-    // capital letters we are going to be able to answer properly
-    const organizationsSlugs: string[] = args.list_of_orgs.split(',').map((x) => slug(x));
-
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
+
+    // Slug the organization to ensure that if someone introduced the name of the organization in
+    // capital letters we are going to be able to answer properly
+    const organizationsSlugs: string[] = await Helper.getRealOrganizationSlugFromStringArray(args.list_of_orgs, kysoCredentials);
+
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     const api: Api = new Api();
     api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);

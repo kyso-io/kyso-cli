@@ -6,6 +6,7 @@ import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 import inquirer = require('inquirer');
 import slug from '../../helpers/slugify';
+import { Helper } from '../../helpers/helper';
 
 export default class AddChannel extends KysoCommand {
   static description =
@@ -88,13 +89,14 @@ export default class AddChannel extends KysoCommand {
   async run(): Promise<void> {
     const { args } = await this.parse(AddChannel);
 
-    // Slug the organization to ensure that if someone introduced the name of the organization in
-    // capital letters we are going to be able to answer properly
-    const slugifiedOrganization = slug(args.organization);
-
-    const channelsNames: string[] = args.list_of_channels.split(',');
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
+
+    const result: NormalizedResponseDTO<Organization> = await Helper.getOrganizationFromSlugSecurely(args.organization, kysoCredentials);
+    const slugifiedOrganization = result.data.sluglified_name;
+
+    const channelsNames: string[] = await Helper.getRealChannelsSlugFromStringArray(result.data, args.list_of_channels, kysoCredentials);
+
     const api: Api = new Api();
     api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);

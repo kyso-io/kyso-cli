@@ -1,6 +1,7 @@
-import { GlobalPermissionsEnum, NormalizedResponseDTO, OrganizationPermissionsEnum, ResourcePermissions, Team, TeamPermissionsEnum, TokenPermissions } from '@kyso-io/kyso-model';
+import { Organization, GlobalPermissionsEnum, NormalizedResponseDTO, OrganizationPermissionsEnum, ResourcePermissions, Team, TeamPermissionsEnum, TokenPermissions } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import jwtDecode from 'jwt-decode';
+import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
 import slug from '../../helpers/slugify';
 import { ErrorResponse } from '../../types/error-response';
@@ -70,13 +71,14 @@ export default class DeleteChannel extends KysoCommand {
   async run(): Promise<void> {
     const { args } = await this.parse(DeleteChannel);
 
-    // Slug the organization to ensure that if someone introduced the name of the organization in
-    // capital letters we are going to be able to answer properly
-    const slugifiedOrganization = slug(args.organization);
-
-    const channelsSlugs: string[] = args.list_of_channels.split(',');
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
+
+    const result: NormalizedResponseDTO<Organization> = await Helper.getOrganizationFromSlugSecurely(args.organization, kysoCredentials);
+    const slugifiedOrganization = result.data.sluglified_name;
+
+    const channelsSlugs: string[] = await Helper.getRealChannelsSlugFromStringArray(result.data, args.list_of_channels, kysoCredentials);
+
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     const api: Api = new Api();
     api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
@@ -88,8 +90,7 @@ export default class DeleteChannel extends KysoCommand {
       this.error('Error getting user permissions');
     }
     for (const channelSlug of channelsSlugs) {
-      const slugChannelAgainJustInCase = slug(channelSlug);
-      await this.deleteChannel(api, tokenPermissions, slugifiedOrganization, slugChannelAgainJustInCase);
+      await this.deleteChannel(api, tokenPermissions, slugifiedOrganization, channelSlug);
     }
   }
 }

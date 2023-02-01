@@ -6,6 +6,7 @@ import { writeFileSync } from 'fs';
 import * as jsYaml from 'js-yaml';
 import jwtDecode from 'jwt-decode';
 import { resolve } from 'path';
+import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
 import slug from '../../helpers/slugify';
 import { KysoCredentials } from '../../types/kyso-credentials';
@@ -123,15 +124,17 @@ export default class OrganizationsGet extends KysoCommand {
   async run(): Promise<void> {
     const { args, flags } = await this.parse(OrganizationsGet);
 
-    // Slug the organization to ensure that if someone introduced the name of the organization in
-    // capital letters we are going to be able to answer properly
-    const organizationsSlugs: string[] = args.list_of_orgs.split(',').map((x) => slug(x));
-
     if (!args.yaml_file.endsWith('.yaml') && !args.yaml_file.endsWith('.yml')) {
       this.error('Yaml file name must end with .yaml or .yml');
     }
+
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
+
+    // Slug the organization to ensure that if someone introduced the name of the organization in
+    // capital letters we are going to be able to answer properly
+    const organizationsSlugs: string[] = await Helper.getRealOrganizationSlugFromStringArray(args.list_of_orgs, kysoCredentials);
+
     const api: Api = new Api();
     api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
