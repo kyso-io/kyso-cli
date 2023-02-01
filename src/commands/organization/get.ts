@@ -160,7 +160,15 @@ export default class OrganizationsGet extends KysoCommand {
       this.log('No organizations found');
       return;
     }
-    const yamlData: string = jsYaml.dump(result);
+
+    // Remove every options.auth because it's not being used for now
+    const finalResult: OrganizationData[] = [];
+    for (const iData of result) {
+      delete iData.options.auth;
+      finalResult.push(iData);
+    }
+
+    const yamlData: string = jsYaml.dump(finalResult);
     const yamlFilePath: string = resolve(args.yaml_file);
     writeFileSync(yamlFilePath, yamlData);
     this.log(`Organizations data saved in ${yamlFilePath}`);
