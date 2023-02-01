@@ -179,6 +179,7 @@ export default class OrganizationsSet extends KysoCommand {
     }
     for (const organizationData of organizationsData) {
       if (!organizationData.slug) {
+        this.log(`Slug not specified for ${organizationData.display_name ? organizationData.display_name : '?'}. Ignoring it`);
         continue;
       }
       // Slug the organization to ensure that if someone introduced the name of the organization in
