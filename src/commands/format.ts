@@ -5,11 +5,9 @@ import { Flags } from '@oclif/core';
 import { readFileSync, writeFileSync } from 'fs';
 import { isAbsolute, join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { findKysoConfigFile } from '../helpers/find-kyso-config-file';
-import { getAllFiles } from '../helpers/get-all-files';
-import { getValidFiles } from '../helpers/get-valid-files';
 import { KysoCommand } from './kyso-command';
 import inquirer = require('inquirer');
+import { Helper } from '../helpers/helper';
 
 export default class Format extends KysoCommand {
   static description = 'Format your current report files to add new great features';
@@ -81,7 +79,7 @@ These changes will modify your .ipynb files in your local filesystem, do you wan
     } else {
       _yes = true;
     }
-    const _files: { path: string; sha: string }[] = getValidFiles(flags.path);
+    const _files: { path: string; sha: string }[] = Helper.getValidFiles(flags.path);
     const hasIpynbFiles: boolean = _files.some((x: { path: string; sha: string }) => x.path.includes('.ipynb'));
 
     if (!hasIpynbFiles) {
@@ -92,9 +90,9 @@ These changes will modify your .ipynb files in your local filesystem, do you wan
     if (_yes) {
       const basePath: string = isAbsolute(flags.path) ? flags.path : join('.', flags.path);
 
-      let files: string[] = getAllFiles(basePath, []);
+      let files: string[] = Helper.getAllFiles(basePath, []);
 
-      const { kysoConfigFile, valid, message } = findKysoConfigFile(files);
+      const { kysoConfigFile, valid, message } = Helper.findKysoConfigFile(files);
       if (!valid) {
         this.error(`Could not format the report: ${message}`);
       }
@@ -102,11 +100,11 @@ These changes will modify your .ipynb files in your local filesystem, do you wan
       if (kysoConfigFile?.reports) {
         for (const reportFolderName of kysoConfigFile.reports) {
           const folderBasePath = join(basePath, reportFolderName);
-          const folderFiles: { path: string; sha: string }[] = getValidFiles(folderBasePath);
+          const folderFiles: { path: string; sha: string }[] = Helper.getValidFiles(folderBasePath);
           files = [...files, ...folderFiles.map((x: { path: string; sha: string }) => x.path)];
         }
       } else {
-        const a: { path: string; sha: string }[] = getValidFiles(basePath);
+        const a: { path: string; sha: string }[] = Helper.getValidFiles(basePath);
         files = a.map((x: { path: string; sha: string }) => x.path);
       }
 

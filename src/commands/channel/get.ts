@@ -6,7 +6,6 @@ import jwtDecode from 'jwt-decode';
 import { resolve } from 'path';
 import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import slug from '../../helpers/slugify';
 import { ChannelData } from '../../types/channels-data';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';

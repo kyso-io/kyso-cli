@@ -5,7 +5,6 @@ import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-log
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 import inquirer = require('inquirer');
-import slug from '../../helpers/slugify';
 import { Helper } from '../../helpers/helper';
 
 export default class AddChannel extends KysoCommand {

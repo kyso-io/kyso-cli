@@ -2,11 +2,11 @@ import { GlobalPermissionsEnum, NormalizedResponseDTO, TokenPermissions, UserDTO
 import { Api } from '@kyso-io/kyso-store';
 import jwtDecode from 'jwt-decode';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import { isEmail } from '../../helpers/is-email';
 import { ErrorResponse } from '../../types/error-response';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 import inquirer = require('inquirer');
+import { Helper } from '../../helpers/helper';
 
 export default class DeleteUsers extends KysoCommand {
   static description = 'Delete users from the system';
@@ -23,7 +23,7 @@ export default class DeleteUsers extends KysoCommand {
 
   private async deleteUser(api: Api, email: string): Promise<void> {
     let desiredEmail: string | null;
-    if (!isEmail(email)) {
+    if (!Helper.isEmail(email)) {
       const emailResponse: { email: string } = await inquirer.prompt([
         {
           type: 'input',
@@ -33,7 +33,7 @@ export default class DeleteUsers extends KysoCommand {
             if (email === '') {
               return 'Email cannot be empty';
             }
-            if (!isEmail(email)) {
+            if (!Helper.isEmail(email)) {
               return 'Email is not valid';
             }
             return true;

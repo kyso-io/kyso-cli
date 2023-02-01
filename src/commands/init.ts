@@ -5,11 +5,11 @@ import { existsSync, lstatSync, readdirSync, writeFileSync } from 'fs';
 import * as jsYaml from 'js-yaml';
 import jwtDecode from 'jwt-decode';
 import { basename, isAbsolute, join } from 'path';
-import { findKysoConfigFile } from '../helpers/find-kyso-config-file';
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
 import { KysoCredentials } from '../types/kyso-credentials';
 import { KysoCommand } from './kyso-command';
 import inquirer = require('inquirer');
+import { Helper } from '../helpers/helper';
 
 enum ReportTypes {
   website = 'website',
@@ -60,7 +60,7 @@ export default class Init extends KysoCommand {
 
     const basePath = isAbsolute(flags.path) ? flags.path : join('.', flags.path);
     const files: string[] = readdirSync(basePath);
-    const { kysoConfigFile } = findKysoConfigFile(files);
+    const { kysoConfigFile } = Helper.findKysoConfigFile(files);
     if (kysoConfigFile) {
       const confirmResponse: { confirmOverwrite } = await inquirer.prompt([
         {

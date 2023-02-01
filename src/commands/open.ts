@@ -3,8 +3,7 @@ import { Flags } from '@oclif/core';
 import { existsSync, lstatSync, readdirSync } from 'fs';
 import open from 'open';
 import { isAbsolute, join } from 'path';
-import { findKysoConfigFile } from '../helpers/find-kyso-config-file';
-import slugify from '../helpers/slugify';
+import { Helper } from '../helpers/helper';
 import { KysoCredentials } from '../types/kyso-credentials';
 import { KysoCommand } from './kyso-command';
 
@@ -54,7 +53,7 @@ export default class Open extends KysoCommand {
     const basePath: string = isAbsolute(flags.path) ? flags.path : join('.', flags.path);
     const files: string[] = readdirSync(basePath).map((file: string) => join(basePath, file));
 
-    const { kysoConfigFile, valid, message } = findKysoConfigFile(files);
+    const { kysoConfigFile, valid, message } = Helper.findKysoConfigFile(files);
     if (!valid) {
       this.error(`Could not open the report using Kyso config file: ${message}`);
     }
@@ -70,7 +69,7 @@ export default class Open extends KysoCommand {
     }
 
     const domain: URL = new URL(kysoCredentials.kysoInstallUrl);
-    const reportUrl = `${domain.protocol}//${domain.hostname}/${kysoConfigFile.organization}/${kysoConfigFile.team}/${slugify(kysoConfigFile.title)}`;
+    const reportUrl = `${domain.protocol}//${domain.hostname}/${kysoConfigFile.organization}/${kysoConfigFile.team}/${Helper.slug(kysoConfigFile.title)}`;
     this.log(`Opening "${reportUrl}" the in browser...`);
     await open(reportUrl);
 

@@ -6,8 +6,7 @@ import { Flags } from '@oclif/core';
 import AdmZip from 'adm-zip';
 import { readdirSync } from 'fs';
 import { join, resolve } from 'path';
-import { printErrorMessage } from '../helpers/error-handler';
-import { findKysoConfigFile } from '../helpers/find-kyso-config-file';
+import { Helper } from '../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
 import { ErrorResponse } from '../types/error-response';
 import { KysoCredentials } from '../types/kyso-credentials';
@@ -102,7 +101,7 @@ export default class Clone extends KysoCommand {
           this.run();
         }
       } else {
-        printErrorMessage(error);
+        Helper.printErrorMessage(error);
       }
       return;
     }
@@ -118,7 +117,7 @@ export default class Clone extends KysoCommand {
         if (flags?.path) {
           files = files.map((file: string) => join(flags.path, file));
         }
-        const { kysoConfigFile, valid, message } = findKysoConfigFile(files);
+        const { kysoConfigFile, valid, message } = Helper.findKysoConfigFile(files);
         if (!valid) {
           this.error(`Could not clone report using Kyso config file: ${message}`);
         }
@@ -129,7 +128,7 @@ export default class Clone extends KysoCommand {
         const errorResponse: ErrorResponse = JSON.parse(error.response.data.toString());
         this.log(`Error: ${errorResponse.message}`);
       } catch {
-        printErrorMessage(error);
+        Helper.printErrorMessage(error);
       }
     }
 

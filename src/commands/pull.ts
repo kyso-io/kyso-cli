@@ -5,10 +5,8 @@ import { Flags } from '@oclif/core';
 import AdmZip from 'adm-zip';
 import { readdirSync } from 'fs';
 import { join, resolve } from 'path';
-import { printErrorMessage } from '../helpers/error-handler';
-import { findKysoConfigFile } from '../helpers/find-kyso-config-file';
+import { Helper } from '../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
-import slugify from '../helpers/slugify';
 import { ErrorResponse } from '../types/error-response';
 import { KysoCredentials } from '../types/kyso-credentials';
 import { KysoCommand } from './kyso-command';
@@ -78,18 +76,18 @@ export default class Push extends KysoCommand {
         }
         let files: string[] = readdirSync(flags.path);
         files = files.map((file: string) => join(flags.path, file));
-        // const { kysoConfigFile, valid, message } = findKysoConfigFile(files);
-        const resultSearch = findKysoConfigFile(files);
+
+        const resultSearch = Helper.findKysoConfigFile(files);
         if (!resultSearch.valid) {
           this.error(`Could not pull report using Kyso config file: ${resultSearch.message}`);
         }
         kysoConfigFile = resultSearch.kysoConfigFile;
         organizationSlug = kysoConfigFile.organization;
         teamSlug = kysoConfigFile.team;
-        reportSlug = slugify(kysoConfigFile.title);
+        reportSlug = Helper.slug(kysoConfigFile.title);
       }
     } catch (error: any) {
-      printErrorMessage(error);
+      Helper.printErrorMessage(error);
     }
 
     if (!organizationSlug) {
@@ -133,7 +131,7 @@ export default class Push extends KysoCommand {
           this.run();
         }
       } else {
-        printErrorMessage(error);
+        Helper.printErrorMessage(error);
       }
       return;
     }

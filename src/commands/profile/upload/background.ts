@@ -1,8 +1,8 @@
 import { Api } from '@kyso-io/kyso-store';
 import { createReadStream, existsSync, ReadStream } from 'fs';
 import jwtDecode from 'jwt-decode';
+import { Helper } from '../../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../../helpers/interactive-login';
-import { isImage } from '../../../helpers/is-image';
 import { KysoCredentials } from '../../../types/kyso-credentials';
 import { KysoCommand } from '../../kyso-command';
 
@@ -27,7 +27,7 @@ export default class UploadBackground extends KysoCommand {
       return;
     }
     // Check if file is an image
-    if (!isImage(args.path)) {
+    if (!Helper.isImage(args.path)) {
       this.log(`File ${args.path} is not an image. Valid formats are: png, jpg, jpeg, gif`);
       return;
     }

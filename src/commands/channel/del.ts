@@ -3,7 +3,6 @@ import { Api } from '@kyso-io/kyso-store';
 import jwtDecode from 'jwt-decode';
 import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import slug from '../../helpers/slugify';
 import { ErrorResponse } from '../../types/error-response';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';

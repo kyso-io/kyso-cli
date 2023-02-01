@@ -21,11 +21,9 @@ import * as jsYaml from 'js-yaml';
 import jwtDecode from 'jwt-decode';
 import { isAbsolute, join } from 'path';
 import { BranchSummary, CleanOptions, SimpleGit, simpleGit } from 'simple-git';
-import { findKysoConfigFile } from '../helpers/find-kyso-config-file';
-import { getAllFiles } from '../helpers/get-all-files';
-import { getValidFiles } from '../helpers/get-valid-files';
+import { Helper } from '../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
-import slugify from '../helpers/slugify';
+
 import { ErrorResponse } from '../types/error-response';
 import { KysoCredentials } from '../types/kyso-credentials';
 import { KysoCommand } from './kyso-command';
@@ -123,7 +121,7 @@ export default class Push extends KysoCommand {
     api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials.token);
 
     const filesBasePath: string[] = readdirSync(basePath).map((file: string) => join(basePath, file));
-    const { kysoConfigFile, valid, message, kysoConfigPath } = findKysoConfigFile(filesBasePath);
+    const { kysoConfigFile, valid, message, kysoConfigPath } = Helper.findKysoConfigFile(filesBasePath);
     if (!valid) {
       this.log(`\nError: Could not pull report of '${reportFolder}' folder using Kyso config file: ${message}\n`);
       return;
@@ -184,7 +182,7 @@ export default class Push extends KysoCommand {
     delete kysoConfigFile.updated_at;
     delete kysoConfigFile.team;
 
-    const validFiles: { path: string; sha: string }[] = getValidFiles(basePath);
+    const validFiles: { path: string; sha: string }[] = Helper.getValidFiles(basePath);
     let newFiles: string[] = [];
     const unmodifiedFiles: string[] = [];
     const deletedFiles: string[] = [];
@@ -192,7 +190,7 @@ export default class Push extends KysoCommand {
     let reportDto: ReportDTO | null = null;
     let version = 1;
     try {
-      const reportSlug: string = slugify(kysoConfigFile.title);
+      const reportSlug: string = Helper.slug(kysoConfigFile.title);
       const resultReport: NormalizedResponseDTO<ReportDTO> = await api.getReportByTeamIdAndSlug(teamId, reportSlug);
       reportDto = resultReport.data;
       version = reportDto.last_version;
@@ -293,7 +291,7 @@ export default class Push extends KysoCommand {
     } else {
       result = await store.dispatch(
         createKysoReportAction({
-          filePaths: getAllFiles(basePath, []),
+          filePaths: Helper.getAllFiles(basePath, []),
           basePath,
           maxFileSizeStr: resultKysoSettings.data || '500mb',
           message: pushMessage,
@@ -327,7 +325,7 @@ export default class Push extends KysoCommand {
     // Check if report is a multiple report
     const files: string[] = readdirSync(basePath).map((file: string) => join(basePath, file));
     let mainKysoConfigFile: KysoConfigFile | null = null;
-    const data: { kysoConfigFile: KysoConfigFile; valid: boolean; message: string } = findKysoConfigFile(files);
+    const data: { kysoConfigFile: KysoConfigFile; valid: boolean; message: string } = Helper.findKysoConfigFile(files);
     if (!data.valid) {
       this.log(`Error in Kyso config file: ${data.message}`);
       return;
@@ -343,7 +341,7 @@ export default class Push extends KysoCommand {
           this.error(`Report '${reportFolder}' folder does not exist.`);
         }
         const filesBasePath: string[] = readdirSync(reportPath).map((file: string) => join(reportPath, file));
-        const { valid, message } = findKysoConfigFile(filesBasePath);
+        const { valid, message } = Helper.findKysoConfigFile(filesBasePath);
         if (!valid) {
           this.error(`Folder '${reportFolder}' does not have a valid Kyso config file: ${message}`);
         }

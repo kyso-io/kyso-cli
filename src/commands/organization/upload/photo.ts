@@ -4,7 +4,6 @@ import { createReadStream, existsSync, ReadStream } from 'fs';
 import jwtDecode from 'jwt-decode';
 import { Helper } from '../../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../../helpers/interactive-login';
-import { isImage } from '../../../helpers/is-image';
 import { KysoCredentials } from '../../../types/kyso-credentials';
 import { KysoCommand } from '../../kyso-command';
 
@@ -35,7 +34,7 @@ export default class UploadPhoto extends KysoCommand {
       return;
     }
     // Check if file is an image
-    if (!isImage(args.image_file)) {
+    if (!Helper.isImage(args.image_file)) {
       this.log(`File ${args.image_file} is not an image. Valid formats are: png, jpg, jpeg, gif`);
       return;
     }

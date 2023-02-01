@@ -2,8 +2,8 @@ import { GlobalPermissionsEnum, NormalizedResponseDTO, TokenPermissions, UserDTO
 import { Api } from '@kyso-io/kyso-store';
 import { createReadStream, existsSync, ReadStream } from 'fs';
 import jwtDecode from 'jwt-decode';
+import { Helper } from '../../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../../helpers/interactive-login';
-import { isImage } from '../../../helpers/is-image';
 import { ErrorResponse } from '../../../types/error-response';
 import { KysoCredentials } from '../../../types/kyso-credentials';
 import { KysoCommand } from '../../kyso-command';
@@ -68,7 +68,7 @@ export default class UploadUserPhoto extends KysoCommand {
       this.log(`File ${args.path} does not exist`);
       return;
     }
-    if (!isImage(args.path)) {
+    if (!Helper.isImage(args.path)) {
       this.log(`File ${args.path} is not an image. Valid formats are: png, jpg, jpeg, gif`);
       return;
     }

@@ -8,7 +8,6 @@ import jwtDecode from 'jwt-decode';
 import { resolve } from 'path';
 import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import slug from '../../helpers/slugify';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { OrganizationData } from '../../types/organization-data';
 import { KysoCommand } from '../kyso-command';

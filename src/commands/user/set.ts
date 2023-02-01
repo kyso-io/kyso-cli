@@ -5,8 +5,8 @@ import { createReadStream, existsSync, readFileSync, ReadStream, unlinkSync, wri
 import * as jsYaml from 'js-yaml';
 import jwtDecode from 'jwt-decode';
 import { join } from 'path';
+import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import { isEmail } from '../../helpers/is-email';
 import { ErrorResponse } from '../../types/error-response';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { ProfileData } from '../../types/profile-data';
@@ -184,7 +184,7 @@ export default class SetUsers extends KysoCommand {
     }
     let index = 0;
     for (const profileData of profilesData) {
-      if (!isEmail(profileData.email)) {
+      if (!Helper.isEmail(profileData.email)) {
         this.log(`Email of item in position ${index}' is not a valid email`);
         index++;
         continue;

@@ -2,11 +2,11 @@ import { GlobalPermissionsEnum, NormalizedResponseDTO, SignUpDto, TokenPermissio
 import { Api } from '@kyso-io/kyso-store';
 import jwtDecode from 'jwt-decode';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import { isEmail } from '../../helpers/is-email';
 import { ErrorResponse } from '../../types/error-response';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 import inquirer = require('inquirer');
+import { Helper } from '../../helpers/helper';
 
 export default class AddUsers extends KysoCommand {
   static description = 'Add users to the system';
@@ -23,7 +23,7 @@ export default class AddUsers extends KysoCommand {
 
   private async createUser(api: Api, email: string): Promise<void> {
     const signUpDto: SignUpDto = new SignUpDto(email, '', '', '');
-    if (!isEmail(signUpDto.email)) {
+    if (!Helper.isEmail(signUpDto.email)) {
       const emailResponse: { email: string } = await inquirer.prompt([
         {
           type: 'input',
@@ -33,7 +33,7 @@ export default class AddUsers extends KysoCommand {
             if (email === '') {
               return 'Email cannot be empty';
             }
-            if (!isEmail(email)) {
+            if (!Helper.isEmail(email)) {
               return 'Email is not valid';
             }
             return true;

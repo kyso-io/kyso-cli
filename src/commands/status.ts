@@ -8,10 +8,8 @@ import { existsSync, lstatSync, readdirSync } from 'fs';
 import jwtDecode from 'jwt-decode';
 import moment from 'moment';
 import { join, resolve } from 'path';
-import { findKysoConfigFile } from '../helpers/find-kyso-config-file';
-import { getValidFiles } from '../helpers/get-valid-files';
+import { Helper } from '../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
-import slugify from '../helpers/slugify';
 import { ErrorResponse } from '../types/error-response';
 import { KysoCredentials } from '../types/kyso-credentials';
 import { KysoCommand } from './kyso-command';
@@ -38,7 +36,7 @@ export default class Status extends KysoCommand {
     api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials.token);
 
     const filesBasePath: string[] = readdirSync(basePath).map((file: string) => join(basePath, file));
-    const { kysoConfigFile, valid, message } = findKysoConfigFile(filesBasePath);
+    const { kysoConfigFile, valid, message } = Helper.findKysoConfigFile(filesBasePath);
     if (!valid) {
       this.log(`\nError: Could not pull report of '${reportFolder}' folder using Kyso config file: ${message}\n`);
       return;
@@ -82,7 +80,7 @@ export default class Status extends KysoCommand {
       return;
     }
 
-    const validFiles: { name: string; sha: string }[] = getValidFiles(basePath).map((validFile: { path: string; sha: string }) => {
+    const validFiles: { name: string; sha: string }[] = Helper.getValidFiles(basePath).map((validFile: { path: string; sha: string }) => {
       let name: string = basePath === '.' ? validFile.path : validFile.path.replace(basePath, '');
       if (name.startsWith('/')) {
         name = name.slice(1);
@@ -96,7 +94,7 @@ export default class Status extends KysoCommand {
 
     let reportDto: ReportDTO | null = null;
     try {
-      const reportSlug: string = slugify(kysoConfigFile.title);
+      const reportSlug: string = Helper.slug(kysoConfigFile.title);
       const resultReport: NormalizedResponseDTO<ReportDTO> = await api.getReportByTeamIdAndSlug(teamId, reportSlug);
       reportDto = resultReport.data;
       const resultFiles: NormalizedResponseDTO<KysoFile[]> = await api.getReportFiles(reportDto.id, reportDto.last_version);
@@ -163,7 +161,7 @@ export default class Status extends KysoCommand {
     // Check if report is a multiple report
     const files: string[] = readdirSync(basePath).map((file: string) => join(basePath, file));
     let mainKysoConfigFile: KysoConfigFile | null = null;
-    const data: { kysoConfigFile: KysoConfigFile; valid: boolean; message: string } = findKysoConfigFile(files);
+    const data: { kysoConfigFile: KysoConfigFile; valid: boolean; message: string } = Helper.findKysoConfigFile(files);
     if (!data.valid) {
       this.log(`Error in Kyso config file: ${data.message}`);
       return;
@@ -179,7 +177,7 @@ export default class Status extends KysoCommand {
           this.error(`Report '${reportFolder}' folder does not exist.`);
         }
         const filesBasePath: string[] = readdirSync(reportPath).map((file: string) => join(reportPath, file));
-        const { valid, message } = findKysoConfigFile(filesBasePath);
+        const { valid, message } = Helper.findKysoConfigFile(filesBasePath);
         if (!valid) {
           this.error(`Folder '${reportFolder}' does not have a valid Kyso config file: ${message}`);
         }
