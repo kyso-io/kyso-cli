@@ -1,13 +1,4 @@
-import {
-  OrganizationNotificationsDTO,
-  OrganizationOptionsDTO,
-  UpdateOrganizationDTO,
-  NormalizedResponseDTO,
-  Organization,
-  OrganizationPermissionsEnum,
-  ResourcePermissions,
-  TokenPermissions,
-} from '@kyso-io/kyso-model';
+import { OrganizationNotificationsDTO, OrganizationOptionsDTO, UpdateOrganizationDTO, NormalizedResponseDTO, Organization, Team, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import axios from 'axios';
 import { createReadStream, existsSync, readFileSync, ReadStream, unlinkSync, writeFileSync } from 'fs';
@@ -54,7 +45,7 @@ export default class OrganizationsSet extends KysoCommand {
     }
   }
 
-  private async updateOrganization(api: Api, tokenPermissions: TokenPermissions, organizationData: OrganizationData): Promise<void> {
+  private async updateOrganization(api: Api, tokenPermissions: TokenPermissions, organizationData: OrganizationData, kysoCredentials: KysoCredentials): Promise<void> {
     const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === organizationData.slug);
     const resourcePermissions: ResourcePermissions = tokenPermissions.organizations[indexOrganization];
     if (indexOrganization === -1 && !Helper.isGlobalAdmin(tokenPermissions)) {
@@ -121,6 +112,8 @@ export default class OrganizationsSet extends KysoCommand {
     if (organizationData.bio && organizationData.bio !== organization.bio) {
       this.log(`Organization bio changed from ${organization.bio} to ${organizationData.bio}`);
       updateOrganizationDto.bio = organizationData.bio;
+    } else {
+      updateOrganizationDto.bio = organization.bio;
     }
 
     if (organizationData.allowed_access_domains) {
@@ -131,9 +124,9 @@ export default class OrganizationsSet extends KysoCommand {
         this.log(`Changed allowed access domains to ${organizationData.allowed_access_domains.join(',')}`);
         updateOrganizationDto.allowed_access_domains = [...organizationData.allowed_access_domains];
       } else {
-        this.log(`Changed allowed access domains to ${organizationData.allowed_access_domains.join(',')}`);
         for (let i = 0; i < organization.allowed_access_domains.length; i++) {
           if (organization.allowed_access_domains[i] !== organizationData.allowed_access_domains[i]) {
+            this.log(`Changed allowed access domains to ${organizationData.allowed_access_domains.join(',')}`);
             updateOrganizationDto.allowed_access_domains = [...organizationData.allowed_access_domains];
             break;
           }
@@ -146,18 +139,40 @@ export default class OrganizationsSet extends KysoCommand {
     if (organizationData?.options?.notifications) {
       const objectToCompare = { centralized: organization.options?.notifications?.centralized, emails: organization?.options?.notifications?.emails };
       if (!_.isEqual(organizationData.options.notifications, objectToCompare)) {
-        options.notifications = new OrganizationNotificationsDTO(organizationData.options.notifications.centralized, organizationData.options.notifications.emails, '', '', '');
+        if (organizationData.options.notifications.centralized && organizationData.options.notifications.emails.length === 0) {
+          // Centralized notifications activated but without any email. Show error and don't update
+          this.log('Warning: enabled centralized communications without any configured mail. This change will not be applied');
+        } else {
+          options.notifications = new OrganizationNotificationsDTO(organizationData.options.notifications.centralized, organizationData.options.notifications.emails, '', '', '');
+        }
       }
     }
     if (Object.keys(options).length > 0) {
       updateOrganizationDto.options = options;
     }
+
+    // Check channels and create if not exists
+    const unexistingChannels: string[] = [];
+    for (const channelSlug of organizationData.channels) {
+      try {
+        await Helper.getChannelFromSlugSecurely(organization, channelSlug, kysoCredentials, true);
+      } catch (e) {
+        // If an exception is raised means that the channel doesn't exists in that organization
+        this.log(`Specified ${channelSlug} does not exist in organization ${organization.display_name}.`);
+        unexistingChannels.push(channelSlug);
+      }
+    }
+
+    if (unexistingChannels.length > 0) {
+      this.log('\nTo create unexisting channels please run the following command');
+      this.log(`    kyso channel add ${organization.sluglified_name} ${unexistingChannels.join(',')}\n`);
+    }
+
     if (Object.keys(updateOrganizationDto).length > 0) {
       try {
         api.setOrganizationSlug(organizationData.slug);
 
         await api.updateOrganization(organization.id, updateOrganizationDto);
-        this.log(`Organization '${organizationData.slug}' updated`);
       } catch (e: any) {
         this.log(`Error updating organization ${organizationData.slug}: ${e.response.data.message}`);
       }
@@ -209,7 +224,7 @@ export default class OrganizationsSet extends KysoCommand {
       // Slug the organization to ensure that if someone introduced the name of the organization in
       // capital letters we are going to be able to answer properly
       organizationData.slug = Helper.slug(organizationData.slug);
-      await this.updateOrganization(api, tokenPermissions, organizationData);
+      await this.updateOrganization(api, tokenPermissions, organizationData, kysoCredentials);
     }
   }
 }

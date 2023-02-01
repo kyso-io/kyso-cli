@@ -30,7 +30,7 @@ export class Helper {
     return result;
   }
 
-  public static async getChannelFromSlugSecurely(organization: Organization, channelParameter: string, credentials: KysoCredentials): Promise<NormalizedResponseDTO<Team>> {
+  public static async getChannelFromSlugSecurely(organization: Organization, channelParameter: string, credentials: KysoCredentials, silent?: boolean): Promise<NormalizedResponseDTO<Team>> {
     // Slug the organization to ensure that if someone introduced the name of the organization in
     // capital letters we are going to be able to answer properly
     const slugifiedChannel = Helper.slug(channelParameter);
@@ -41,11 +41,14 @@ export class Helper {
       api.configure(credentials.kysoInstallUrl + '/api/v1', credentials?.token, organization.sluglified_name);
       result = await api.getTeamBySlug(organization.id, slugifiedChannel);
     } catch (e) {
-      console.log(`Can't retrieve channel ${channelParameter} from organization ${organization.display_name}`);
-      if (channelParameter !== slugifiedChannel) {
-        console.log(`Detected a non-slug value, automatically slugified to ${slugifiedChannel}`);
+      if (!silent) {
+        console.log(`Can't retrieve channel ${channelParameter} from organization ${organization.display_name}`);
+
+        if (channelParameter !== slugifiedChannel) {
+          console.log(`Detected a non-slug value, automatically slugified to ${slugifiedChannel}`);
+        }
+        console.log('Please check that the name (or slug) of the channel is correct');
       }
-      console.log('Please check that the name (or slug) of the channel is correct');
       throw new Error('Please check that the name (or slug) of the channel is correct');
     }
 
