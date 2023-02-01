@@ -1,4 +1,13 @@
-import { GlobalPermissionsEnum, NormalizedResponseDTO, Organization, OrganizationPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import {
+  OrganizationNotificationsDTO,
+  OrganizationOptionsDTO,
+  UpdateOrganizationDTO,
+  NormalizedResponseDTO,
+  Organization,
+  OrganizationPermissionsEnum,
+  ResourcePermissions,
+  TokenPermissions,
+} from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import axios from 'axios';
 import { createReadStream, existsSync, readFileSync, ReadStream, unlinkSync, writeFileSync } from 'fs';
@@ -48,7 +57,7 @@ export default class OrganizationsSet extends KysoCommand {
   private async updateOrganization(api: Api, tokenPermissions: TokenPermissions, organizationData: OrganizationData): Promise<void> {
     const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === organizationData.slug);
     const resourcePermissions: ResourcePermissions = tokenPermissions.organizations[indexOrganization];
-    if (indexOrganization === -1) {
+    if (indexOrganization === -1 && !Helper.isGlobalAdmin(tokenPermissions)) {
       this.log(`Error: You don't belong to the organization ${organizationData.slug}`);
       return;
     }
@@ -86,16 +95,43 @@ export default class OrganizationsSet extends KysoCommand {
       await this.updatePhoto(api, organization.id, organizationData.photo);
       updatedPhoto = true;
     }
-    const updateOrganizationDto: any = {};
+    const updateOrganizationDto: UpdateOrganizationDTO = UpdateOrganizationDTO.createEmpty();
+
     if (organizationData.display_name && organizationData.display_name !== organization.display_name) {
+      this.log(`Organization display_name changed from ${organization.display_name} to ${organizationData.display_name}`);
       updateOrganizationDto.display_name = organizationData.display_name;
+    } else {
+      updateOrganizationDto.display_name = organization.display_name;
     }
+
+    if (organizationData.location && organizationData.location !== organization.location) {
+      this.log(`Organization location changed from ${organization.location} to ${organizationData.location}`);
+      updateOrganizationDto.location = organizationData.location;
+    } else {
+      updateOrganizationDto.location = organization.location;
+    }
+
+    if (organizationData.link && organizationData.link !== organization.link) {
+      this.log(`Organization link changed from ${organization.link} to ${organizationData.link}`);
+      updateOrganizationDto.link = organizationData.link;
+    } else {
+      updateOrganizationDto.link = organization.link;
+    }
+
+    if (organizationData.bio && organizationData.bio !== organization.bio) {
+      this.log(`Organization bio changed from ${organization.bio} to ${organizationData.bio}`);
+      updateOrganizationDto.bio = organizationData.bio;
+    }
+
     if (organizationData.allowed_access_domains) {
       if (!organization.allowed_access_domains) {
+        this.log(`Added new allowed access domains ${organizationData.allowed_access_domains.join(',')}`);
         updateOrganizationDto.allowed_access_domains = [...organizationData.allowed_access_domains];
       } else if (organization.allowed_access_domains.length !== organizationData.allowed_access_domains.length) {
+        this.log(`Changed allowed access domains to ${organizationData.allowed_access_domains.join(',')}`);
         updateOrganizationDto.allowed_access_domains = [...organizationData.allowed_access_domains];
       } else {
+        this.log(`Changed allowed access domains to ${organizationData.allowed_access_domains.join(',')}`);
         for (let i = 0; i < organization.allowed_access_domains.length; i++) {
           if (organization.allowed_access_domains[i] !== organizationData.allowed_access_domains[i]) {
             updateOrganizationDto.allowed_access_domains = [...organizationData.allowed_access_domains];
@@ -104,26 +140,13 @@ export default class OrganizationsSet extends KysoCommand {
         }
       }
     }
-    if (organizationData.location && organizationData.location !== organization.location) {
-      updateOrganizationDto.location = organizationData.location;
-    }
-    if (organizationData.link && organizationData.link !== organization.link) {
-      updateOrganizationDto.link = organizationData.link;
-    }
-    if (organizationData.bio && organizationData.bio !== organization.bio) {
-      updateOrganizationDto.bio = organizationData.bio;
-    }
-    const options: any = {};
-    if (organizationData?.options?.auth) {
-      const objectToCompare = { otherProviders: organization.options?.auth?.otherProviders };
-      if (!_.isEqual(organizationData.options.auth, objectToCompare)) {
-        options.auth = { ...organizationData.options.auth };
-      }
-    }
+
+    const options: OrganizationOptionsDTO = OrganizationOptionsDTO.createEmpty();
+
     if (organizationData?.options?.notifications) {
       const objectToCompare = { centralized: organization.options?.notifications?.centralized, emails: organization?.options?.notifications?.emails };
       if (!_.isEqual(organizationData.options.notifications, objectToCompare)) {
-        options.notifications = { ...organizationData.options.notifications };
+        options.notifications = new OrganizationNotificationsDTO(organizationData.options.notifications.centralized, organizationData.options.notifications.emails, '', '', '');
       }
     }
     if (Object.keys(options).length > 0) {
@@ -132,6 +155,7 @@ export default class OrganizationsSet extends KysoCommand {
     if (Object.keys(updateOrganizationDto).length > 0) {
       try {
         api.setOrganizationSlug(organizationData.slug);
+
         await api.updateOrganization(organization.id, updateOrganizationDto);
         this.log(`Organization '${organizationData.slug}' updated`);
       } catch (e: any) {

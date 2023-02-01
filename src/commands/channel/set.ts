@@ -50,7 +50,7 @@ export default class ChannelsSet extends KysoCommand {
     const indexOrganization: number = tokenPermissions.organizations.findIndex(
       (resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === channelData.organization,
     );
-    if (indexOrganization === -1) {
+    if (indexOrganization === -1 && !Helper.isGlobalAdmin(tokenPermissions)) {
       this.log(`Error: You don't belong to the organization ${channelData.organization}`);
       return;
     }

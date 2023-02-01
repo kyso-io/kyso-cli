@@ -1,4 +1,4 @@
-import { NormalizedResponseDTO, Organization, ResourcePermissions, Team, TeamPermissionsEnum, TeamVisibilityEnum, TokenPermissions } from '@kyso-io/kyso-model';
+import { AllowDownload, NormalizedResponseDTO, Organization, ResourcePermissions, Team, TeamPermissionsEnum, TeamVisibilityEnum, TokenPermissions } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import jwtDecode from 'jwt-decode';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
@@ -27,7 +27,7 @@ export default class AddChannel extends KysoCommand {
   ];
 
   private async createChannel(api: Api, organization: Organization, userId: string, channelDisplayName?: string): Promise<void> {
-    const createTeam: Team = new Team(channelDisplayName, '', '', '', '', [], organization.id, TeamVisibilityEnum.PUBLIC, userId);
+    const createTeam: Team = new Team(channelDisplayName, '', '', '', '', [], organization.id, TeamVisibilityEnum.PUBLIC, userId, AllowDownload.ALL);
     if (!createTeam.display_name) {
       const displayNameResponse: { displayName: string } = await inquirer.prompt([
         {
@@ -107,7 +107,7 @@ export default class AddChannel extends KysoCommand {
       this.error('Error getting user permissions');
     }
     const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === slugifiedOrganization);
-    if (indexOrganization === -1) {
+    if (indexOrganization === -1 && !Helper.isGlobalAdmin(tokenPermissions)) {
       this.error(`You don't have permissions to create channels the organization ${args.organization}`);
     }
     const organizationResourcePermissions: ResourcePermissions = tokenPermissions.organizations[indexOrganization];

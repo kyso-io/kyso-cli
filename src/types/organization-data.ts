@@ -8,9 +8,10 @@ export interface OrganizationData {
   channels: string[];
   photo?: string | null;
   options: {
-    auth: {
+    // DEPRECATED
+    /*auth: {
       otherProviders: any[];
-    };
+    };*/
     notifications: {
       centralized: boolean;
       emails: string[];

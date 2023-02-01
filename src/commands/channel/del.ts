@@ -27,7 +27,7 @@ export default class DeleteChannel extends KysoCommand {
 
   private async deleteChannel(api: Api, tokenPermissions: TokenPermissions, organizationSlug: string, channelSlug: string): Promise<void> {
     const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === organizationSlug);
-    if (indexOrganization === -1) {
+    if (indexOrganization === -1 && !Helper.isGlobalAdmin(tokenPermissions)) {
       this.log(`Error: You don't belong to the organization '${organizationSlug}'`);
       return;
     }

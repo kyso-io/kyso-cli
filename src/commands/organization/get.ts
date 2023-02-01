@@ -84,9 +84,9 @@ export default class OrganizationsGet extends KysoCommand {
         bio: organization.bio,
         channels: [],
         options: {
-          auth: {
+          /*auth: {
             otherProviders: organization.options?.auth?.otherProviders || [],
-          },
+          },*/
           notifications: {
             centralized: organization.options?.notifications?.centralized || false,
             emails: organization.options?.notifications?.emails || [],
@@ -161,14 +161,7 @@ export default class OrganizationsGet extends KysoCommand {
       return;
     }
 
-    // Remove every options.auth because it's not being used for now
-    const finalResult: OrganizationData[] = [];
-    for (const iData of result) {
-      delete iData.options.auth;
-      finalResult.push(iData);
-    }
-
-    const yamlData: string = jsYaml.dump(finalResult);
+    const yamlData: string = jsYaml.dump(result);
     const yamlFilePath: string = resolve(args.yaml_file);
     writeFileSync(yamlFilePath, yamlData);
     this.log(`Organizations data saved in ${yamlFilePath}`);

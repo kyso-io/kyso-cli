@@ -57,7 +57,7 @@ export default class UploadPhoto extends KysoCommand {
     const indexOrganization: number = tokenPermissions.organizations.findIndex(
       (resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === organization.data.sluglified_name,
     );
-    if (indexOrganization === -1) {
+    if (indexOrganization === -1 && !Helper.isGlobalAdmin(tokenPermissions)) {
       this.log(`Error: You don't have permissions to upload the photo for the organization ${args.organization}`);
       return;
     }

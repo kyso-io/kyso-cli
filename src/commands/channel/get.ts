@@ -88,7 +88,7 @@ export default class ChannelsGet extends KysoCommand {
       this.error('Error getting user permissions');
     }
     const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === slugifiedOrganization);
-    if (indexOrganization === -1) {
+    if (indexOrganization === -1 && !Helper.isGlobalAdmin(tokenPermissions)) {
       this.error(`You don't belong to the organization '${args.organization}'`);
     }
     let organization: Organization | null = null;

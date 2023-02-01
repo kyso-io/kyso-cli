@@ -1,4 +1,4 @@
-import { CreateOrganizationDto, NormalizedResponseDTO, Organization } from '@kyso-io/kyso-model';
+import { AllowDownload, CreateOrganizationDto, NormalizedResponseDTO, Organization } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
 import { KysoCredentials } from '../../types/kyso-credentials';
@@ -20,7 +20,7 @@ export default class AddOrganizations extends KysoCommand {
   ];
 
   private async createOrganization(api: Api, organizationDisplayName: string): Promise<void> {
-    const createOrganizationDto: CreateOrganizationDto = new CreateOrganizationDto(organizationDisplayName, '', '', '');
+    const createOrganizationDto: CreateOrganizationDto = new CreateOrganizationDto(organizationDisplayName, '', '', '', AllowDownload.ALL);
     const locationResponse: { location: string } = await inquirer.prompt([
       {
         type: 'input',
