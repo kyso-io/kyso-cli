@@ -86,7 +86,7 @@ export default class DeleteUsers extends KysoCommand {
     } catch (e) {
       this.error('Error getting user permissions');
     }
-    if (!tokenPermissions.global || !tokenPermissions.global.includes(GlobalPermissionsEnum.GLOBAL_ADMIN)) {
+    if (!tokenPermissions.global || !Helper.isGlobalAdmin(tokenPermissions)) {
       this.error("You don't have permissions to delete users");
     }
     for (const email of emails) {

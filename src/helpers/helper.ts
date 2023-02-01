@@ -1,5 +1,5 @@
 import { Api } from '@kyso-io/kyso-store';
-import { KysoConfigFile, NormalizedResponseDTO, Organization, Team } from '@kyso-io/kyso-model';
+import { OrganizationPermissionsEnum, GlobalPermissionsEnum, TokenPermissions, KysoConfigFile, NormalizedResponseDTO, Organization, Team, ResourcePermissions } from '@kyso-io/kyso-model';
 import { KysoCredentials } from '../types/kyso-credentials';
 import { KysoCommand } from '../commands/kyso-command';
 import { existsSync, lstatSync, statSync, readdirSync, readFileSync } from 'fs';
@@ -277,5 +277,41 @@ export class Helper {
       strict: true,
       trim: true,
     });
+  }
+
+  public static isOrganizationAdmin(resourcePermissions: ResourcePermissions): boolean {
+    if (!resourcePermissions) {
+      return false;
+    }
+
+    if (!resourcePermissions.permissions || !Array.isArray(resourcePermissions.permissions)) {
+      return false;
+    }
+
+    return resourcePermissions.permissions.includes(OrganizationPermissionsEnum.ADMIN);
+  }
+
+  public static isGlobalAdmin(tokenPermissions: TokenPermissions): boolean {
+    if (!tokenPermissions) {
+      return false;
+    }
+
+    if (!tokenPermissions.global || !Array.isArray(tokenPermissions.global)) {
+      return false;
+    }
+
+    return tokenPermissions.global.includes(GlobalPermissionsEnum.GLOBAL_ADMIN);
+  }
+
+  public static hasPermission(resourcePermissions: ResourcePermissions, permission: any): boolean {
+    if (!resourcePermissions) {
+      return false;
+    }
+
+    if (!resourcePermissions.permissions || !Array.isArray(resourcePermissions.permissions)) {
+      return false;
+    }
+
+    return resourcePermissions.permissions.includes(permission);
   }
 }

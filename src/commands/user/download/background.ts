@@ -5,6 +5,7 @@ import axios from 'axios';
 import { writeFileSync } from 'fs';
 import jwtDecode from 'jwt-decode';
 import { join, resolve } from 'path';
+import { Helper } from '../../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../../helpers/interactive-login';
 import { ErrorResponse } from '../../../types/error-response';
 import { KysoCredentials } from '../../../types/kyso-credentials';
@@ -46,7 +47,7 @@ export default class DownloadUserBackground extends KysoCommand {
     } catch (e) {
       this.error('Error getting user permissions');
     }
-    if (!tokenPermissions.global || !tokenPermissions.global.includes(GlobalPermissionsEnum.GLOBAL_ADMIN)) {
+    if (!tokenPermissions.global || !Helper.isGlobalAdmin(tokenPermissions)) {
       this.error("You don't have permissions to delete users");
     }
     let userDto: UserDTO | null = null;

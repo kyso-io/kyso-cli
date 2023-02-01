@@ -50,11 +50,13 @@ export default class DeleteChannel extends KysoCommand {
       return;
     }
     api.setTeamSlug(channelSlug);
+
     const teamResourcePermissions: ResourcePermissions = tokenPermissions.teams[indexTeam];
-    const isGlobalAdmin: boolean = tokenPermissions.global.includes(GlobalPermissionsEnum.GLOBAL_ADMIN);
-    const isOrgAdmin: boolean = organizationResourcePermissions.permissions.includes(OrganizationPermissionsEnum.ADMIN);
-    const hasPermissionTeamAdmin: boolean = teamResourcePermissions.permissions.includes(TeamPermissionsEnum.ADMIN);
-    const hasPermissionTeamDelete: boolean = teamResourcePermissions.permissions.includes(TeamPermissionsEnum.DELETE);
+    const isGlobalAdmin: boolean = Helper.isGlobalAdmin(tokenPermissions);
+    const isOrgAdmin: boolean = Helper.isOrganizationAdmin(organizationResourcePermissions);
+    const hasPermissionTeamAdmin: boolean = Helper.hasPermission(teamResourcePermissions, TeamPermissionsEnum.ADMIN);
+    const hasPermissionTeamDelete: boolean = Helper.hasPermission(teamResourcePermissions, TeamPermissionsEnum.DELETE);
+
     if (!isGlobalAdmin && !isOrgAdmin && !hasPermissionTeamAdmin && !hasPermissionTeamDelete) {
       this.log(`Error: You don't have permissions to delete the channel ${channelSlug} from the organization ${organizationSlug}`);
       return;

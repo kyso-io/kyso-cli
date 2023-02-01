@@ -40,7 +40,7 @@ export default class UploadUserBackground extends KysoCommand {
     } catch (e) {
       this.error('Error getting user permissions');
     }
-    if (!tokenPermissions.global || !tokenPermissions.global.includes(GlobalPermissionsEnum.GLOBAL_ADMIN)) {
+    if (!Helper.isGlobalAdmin(tokenPermissions)) {
       this.error("You don't have permissions to delete users");
     }
     let userDto: UserDTO | null = null;

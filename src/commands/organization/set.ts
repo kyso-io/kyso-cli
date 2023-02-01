@@ -52,8 +52,10 @@ export default class OrganizationsSet extends KysoCommand {
       this.log(`Error: You don't belong to the organization ${organizationData.slug}`);
       return;
     }
-    const isOrgAdmin: boolean = resourcePermissions.permissions.includes(OrganizationPermissionsEnum.ADMIN);
-    const isGlobalAdmin: boolean = tokenPermissions.global.includes(GlobalPermissionsEnum.GLOBAL_ADMIN);
+
+    const isOrgAdmin: boolean = Helper.isOrganizationAdmin(resourcePermissions);
+    const isGlobalAdmin: boolean = Helper.isGlobalAdmin(tokenPermissions);
+
     if (!isOrgAdmin && !isGlobalAdmin) {
       this.log(`Error: You don't have permissions to get the information for the organization ${organizationData.slug}`);
       return;

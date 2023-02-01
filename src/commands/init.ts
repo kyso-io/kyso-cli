@@ -90,7 +90,7 @@ export default class Init extends KysoCommand {
     }
 
     const organizationsPermissions: ResourcePermissions[] = tokenPermissions.organizations.filter((organizationResourcePermission: ResourcePermissions) => {
-      const organizationHasCreateReportPermission: boolean = organizationResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE);
+      const organizationHasCreateReportPermission: boolean = Helper.hasPermission(organizationResourcePermission, ReportPermissionsEnum.CREATE);
       if (organizationHasCreateReportPermission) {
         return true;
       }
@@ -101,7 +101,7 @@ export default class Init extends KysoCommand {
         }
         if (teamResourcePermission.organization_inherited && organizationHasCreateReportPermission) {
           teamsOrganizationResourcePermissions.push(teamResourcePermission);
-        } else if (teamResourcePermission?.permissions && teamResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE)) {
+        } else if (Helper.hasPermission(teamResourcePermission, ReportPermissionsEnum.CREATE)) {
           teamsOrganizationResourcePermissions.push(teamResourcePermission);
         }
       }
@@ -120,7 +120,7 @@ export default class Init extends KysoCommand {
     const organizationResourcePermission: ResourcePermissions = organizationsPermissions.find(
       (resourcePermission: ResourcePermissions) => resourcePermission.name === organizationResponse.organization,
     )!;
-    const organizationHasCreateReportPermission: boolean = organizationResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE);
+    const organizationHasCreateReportPermission: boolean = Helper.hasPermission(organizationResourcePermission, ReportPermissionsEnum.CREATE);
     const teamsOrganizationResourcePermissions: ResourcePermissions[] = [];
     for (const teamResourcePermission of tokenPermissions.teams) {
       if (teamResourcePermission.organization_id !== organizationResourcePermission.id) {
@@ -128,7 +128,7 @@ export default class Init extends KysoCommand {
       }
       if (teamResourcePermission.organization_inherited && organizationHasCreateReportPermission) {
         teamsOrganizationResourcePermissions.push(teamResourcePermission);
-      } else if (teamResourcePermission?.permissions && teamResourcePermission.permissions.includes(ReportPermissionsEnum.CREATE)) {
+      } else if (Helper.hasPermission(teamResourcePermission, ReportPermissionsEnum.CREATE)) {
         teamsOrganizationResourcePermissions.push(teamResourcePermission);
       }
     }

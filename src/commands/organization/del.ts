@@ -27,9 +27,11 @@ export default class DeleteOrganization extends KysoCommand {
     }
     api.setOrganizationSlug(organizationSlug);
     const resourcePermissions: ResourcePermissions = tokenPermissions.organizations[indexOrganization];
-    const hasPermissionDelete: boolean = resourcePermissions.permissions.includes(OrganizationPermissionsEnum.DELETE);
-    const isOrgAdmin: boolean = resourcePermissions.permissions.includes(OrganizationPermissionsEnum.ADMIN);
-    const isGlobalAdmin: boolean = tokenPermissions.global.includes(GlobalPermissionsEnum.GLOBAL_ADMIN);
+
+    const hasPermissionDelete: boolean = Helper.hasPermission(resourcePermissions, OrganizationPermissionsEnum.DELETE);
+    const isOrgAdmin: boolean = Helper.isOrganizationAdmin(resourcePermissions);
+    const isGlobalAdmin: boolean = Helper.isGlobalAdmin(tokenPermissions);
+
     if (!hasPermissionDelete && !isOrgAdmin && !isGlobalAdmin) {
       this.log(`Error: You don't have permissions to delete the organization '${organizationSlug}'`);
       return;

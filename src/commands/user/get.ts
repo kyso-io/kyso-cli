@@ -6,6 +6,7 @@ import { writeFileSync } from 'fs';
 import * as jsYaml from 'js-yaml';
 import jwtDecode from 'jwt-decode';
 import { resolve } from 'path';
+import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
 import { ErrorResponse } from '../../types/error-response';
 import { KysoCredentials } from '../../types/kyso-credentials';
@@ -112,7 +113,7 @@ export default class GetUsers extends KysoCommand {
     } catch (e) {
       this.error('Error getting user permissions');
     }
-    if (!tokenPermissions.global || !tokenPermissions.global.includes(GlobalPermissionsEnum.GLOBAL_ADMIN)) {
+    if (!tokenPermissions.global || !Helper.isGlobalAdmin(tokenPermissions)) {
       this.error("You don't have permissions to delete users");
     }
     const result: ProfileData[] = [];

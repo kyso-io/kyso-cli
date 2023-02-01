@@ -55,13 +55,17 @@ export default class OrganizationsGet extends KysoCommand {
   private async getOrganizationData(api: Api, tokenPermissions: TokenPermissions, organizationSlug: string, getChannels: boolean, getImages: boolean): Promise<OrganizationData> {
     let organizationData: OrganizationData | null = null;
     const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === organizationSlug);
-    if (indexOrganization === -1) {
+
+    const isGlobalAdmin: boolean = Helper.isGlobalAdmin(tokenPermissions);
+
+    if (indexOrganization === -1 && !isGlobalAdmin) {
       this.log(`Error: You don't have permissions to get the information for the organization '${organizationSlug}'`);
       return organizationData;
     }
+
     const resourcePermissions: ResourcePermissions = tokenPermissions.organizations[indexOrganization];
-    const isOrgAdmin: boolean = resourcePermissions.permissions.includes(OrganizationPermissionsEnum.ADMIN);
-    const isGlobalAdmin: boolean = tokenPermissions.global.includes(GlobalPermissionsEnum.GLOBAL_ADMIN);
+    const isOrgAdmin: boolean = Helper.isOrganizationAdmin(resourcePermissions);
+
     if (!isOrgAdmin && !isGlobalAdmin) {
       this.log(`Error: You don't have permissions to get the information for the organization '${organizationSlug}'`);
       return organizationData;
