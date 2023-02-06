@@ -126,6 +126,21 @@ export default class Push extends KysoCommand {
       this.log(`\nError: Could not pull report of '${reportFolder}' folder using Kyso config file: ${message}\n`);
       return;
     }
+
+    // SLUG everything. Is idempotent, makes no effect if already slugified. But if is the display name
+    // because the user entered it by mistake, we can avoid an error slugifing by ourselves
+    if (kysoConfigFile.channel) {
+      kysoConfigFile.channel = Helper.slug(kysoConfigFile.channel);
+    }
+
+    if (kysoConfigFile.team) {
+      kysoConfigFile.team = Helper.slug(kysoConfigFile.team);
+    }
+
+    if (kysoConfigFile.organization) {
+      kysoConfigFile.organization = Helper.slug(kysoConfigFile.organization);
+    }
+
     const { payload }: any = jwtDecode(kysoCredentials.token);
     let tokenPermissions: TokenPermissions | null = null;
     try {
