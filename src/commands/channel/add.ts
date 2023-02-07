@@ -140,9 +140,16 @@ export default class AddChannel extends KysoCommand {
     }
     for (const channelDisplayName of channelsNames) {
       try {
-        await this.createChannel(api, organization, decoded.payload.id, channelDisplayName, flags.yes);
+        // Exists?
+        const existsChannel: NormalizedResponseDTO<Team> = await Helper.getChannelFromSlugSecurely(organization, channelDisplayName, kysoCredentials, true);
+        this.log(`Channel ${existsChannel.data.display_name} already exists`);
       } catch (e) {
-        this.log(`Error creating channel ${channelDisplayName}`);
+        // Don't exists... then let's create it
+        try {
+          await this.createChannel(api, organization, decoded.payload.id, channelDisplayName, flags.yes);
+        } catch (e) {
+          this.log(`Error creating channel ${channelDisplayName}`);
+        }
       }
     }
   }
