@@ -6,6 +6,7 @@ import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 import inquirer = require('inquirer');
 import { Helper } from '../../helpers/helper';
+import { Flags } from '@oclif/core';
 
 export default class AddChannel extends KysoCommand {
   static description =
@@ -26,54 +27,69 @@ export default class AddChannel extends KysoCommand {
     },
   ];
 
-  private async createChannel(api: Api, organization: Organization, userId: string, channelDisplayName?: string): Promise<void> {
-    const createTeam: Team = new Team(channelDisplayName, '', '', '', '', [], organization.id, TeamVisibilityEnum.PUBLIC, userId, AllowDownload.ALL);
-    if (!createTeam.display_name) {
-      const displayNameResponse: { displayName: string } = await inquirer.prompt([
-        {
-          type: 'input',
-          name: 'displayName',
-          message: 'What is the name of the channel?',
-          validate: function (displayName: string) {
-            if (displayName === '') {
-              return 'Name cannot be empty';
-            }
-            return true;
+  static flags = {
+    yes: Flags.boolean({
+      char: 'y',
+      description: "Don't ask with prompter and use default values",
+      required: false,
+      default: false,
+    }),
+  };
+
+  private async createChannel(api: Api, organization: Organization, userId: string, channelDisplayName?: string, yes?: boolean): Promise<void> {
+    const createTeam: Team = new Team(channelDisplayName, '', '', '', '', [], organization.id, TeamVisibilityEnum.PROTECTED, userId, AllowDownload.ALL);
+
+    // Don¡t show prompt
+    if (!yes) {
+      if (!createTeam.display_name) {
+        const displayNameResponse: { displayName: string } = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'displayName',
+            message: 'What is the name of the channel?',
+            validate: function (displayName: string) {
+              if (displayName === '') {
+                return 'Name cannot be empty';
+              }
+              return true;
+            },
           },
+        ]);
+        createTeam.display_name = displayNameResponse.displayName;
+      }
+      const teamVisibilityResponse: { teamVisibility: TeamVisibilityEnum } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'teamVisibility',
+          message: `What is the visibility of the channel '${createTeam.display_name}'?`,
+          choices: [
+            {
+              name: 'Private: Only invited members of this channel have access to this channels content.',
+              value: TeamVisibilityEnum.PRIVATE,
+            },
+            {
+              name: `Organization only: All members of the organization ${organization.display_name} can access this channel`,
+              value: TeamVisibilityEnum.PROTECTED,
+            },
+            {
+              name: 'Public: Everyone can see this channel. Reports in this channel can be viewed by anyone with the reports url.',
+              value: TeamVisibilityEnum.PUBLIC,
+            },
+          ],
         },
       ]);
-      createTeam.display_name = displayNameResponse.displayName;
+
+      createTeam.visibility = teamVisibilityResponse.teamVisibility;
+      const bioResponse: { bio: string } = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'bio',
+          message: `What is the description of the channel '${createTeam.display_name}'?`,
+        },
+      ]);
+      createTeam.bio = bioResponse.bio;
     }
-    const teamVisibilityResponse: { teamVisibility: TeamVisibilityEnum } = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'teamVisibility',
-        message: `What is the visibility of the channel '${createTeam.display_name}'?`,
-        choices: [
-          {
-            name: 'Private: Only invited members of this channel have access to this channels content.',
-            value: TeamVisibilityEnum.PRIVATE,
-          },
-          {
-            name: `Organization only: All members of the organization ${organization.display_name} can access this channel`,
-            value: TeamVisibilityEnum.PROTECTED,
-          },
-          {
-            name: 'Public: Everyone can see this channel. Reports in this channel can be viewed by anyone with the reports url.',
-            value: TeamVisibilityEnum.PUBLIC,
-          },
-        ],
-      },
-    ]);
-    createTeam.visibility = teamVisibilityResponse.teamVisibility;
-    const bioResponse: { bio: string } = await inquirer.prompt([
-      {
-        type: 'input',
-        name: 'bio',
-        message: `What is the description of the channel '${createTeam.display_name}'?`,
-      },
-    ]);
-    createTeam.bio = bioResponse.bio;
+
     try {
       api.setOrganizationSlug(organization.sluglified_name);
       const result: NormalizedResponseDTO<Team> = await api.createTeam(createTeam);
@@ -86,7 +102,7 @@ export default class AddChannel extends KysoCommand {
   }
 
   async run(): Promise<void> {
-    const { args } = await this.parse(AddChannel);
+    const { args, flags } = await this.parse(AddChannel);
 
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
@@ -94,7 +110,7 @@ export default class AddChannel extends KysoCommand {
     const result: NormalizedResponseDTO<Organization> = await Helper.getOrganizationFromSlugSecurely(args.organization, kysoCredentials);
     const slugifiedOrganization = result.data.sluglified_name;
 
-    const channelsNames: string[] = await Helper.getRealChannelsSlugFromStringArray(result.data, args.list_of_channels, kysoCredentials);
+    const channelsNames: string[] = args.list_of_channels.split(',');
 
     const api: Api = new Api();
     api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
@@ -123,7 +139,11 @@ export default class AddChannel extends KysoCommand {
       this.error(`Error getting the organization ${args.organization}`);
     }
     for (const channelDisplayName of channelsNames) {
-      await this.createChannel(api, organization, decoded.payload.id, channelDisplayName);
+      try {
+        await this.createChannel(api, organization, decoded.payload.id, channelDisplayName, flags.yes);
+      } catch (e) {
+        this.log(`Error creating channel ${channelDisplayName}`);
+      }
     }
   }
 }
