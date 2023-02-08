@@ -1,3 +1,6 @@
+![Vulnerabilities](https://dtrack.dev.kyso.io/api/v1/badge/vulns/project/c754fa45-30a8-40fe-abc3-bce36e7fa608)
+![Policy violations](https://dtrack.dev.kyso.io/api/v1/badge/violations/project/c754fa45-30a8-40fe-abc3-bce36e7fa608)
+
 For more detailed documentation please visit [docs.kyso.io](https://docs.kyso.io/posting-to-kyso/kyso-cli/installation)
 
 # Installation
