@@ -1,6 +1,6 @@
 import { Api } from '@kyso-io/kyso-store';
-import { Flags } from '@oclif/core';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
+import { ErrorResponse } from '../../types/error-response';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 
@@ -27,7 +27,12 @@ export default class Del extends KysoCommand {
       await api.deleteTheme(args.name);
       this.log(`\n🎉🎉🎉 Success! Theme deleted 🎉🎉🎉\n`);
     } catch (e: any) {
-      this.log(`Error deleting theme: ${e.response.data.message}`);
+      const errorResponse: ErrorResponse = e.response.data;
+      if (errorResponse.statusCode === 403) {
+        this.log(`You don't have permission to delete themes`);
+      } else {
+        this.log(`Error deleting theme: ${e.response.data.message}`);
+      }
     }
   }
 }

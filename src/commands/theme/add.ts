@@ -1,7 +1,7 @@
 import { Api } from '@kyso-io/kyso-store';
-import { Flags } from '@oclif/core';
 import { createReadStream, existsSync, ReadStream } from 'fs';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
+import { ErrorResponse } from '../../types/error-response';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 
@@ -44,7 +44,12 @@ export default class Add extends KysoCommand {
       await api.uploadTheme(args.name, readStream);
       this.log(`Theme ${args.name} uploaded successfully`);
     } catch (e: any) {
-      this.log(`Error adding theme: ${e.response.data.message}`);
+      const errorResponse: ErrorResponse = e.response.data;
+      if (errorResponse.statusCode === 403) {
+        this.log(`You don't have permission to upload themes`);
+      } else {
+        this.log(`Error adding theme: ${e.response.data.message}`);
+      }
     }
   }
 }

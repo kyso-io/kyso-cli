@@ -1,39 +1,31 @@
 import { Api } from '@kyso-io/kyso-store';
+import { NormalizedResponseDTO } from '@kyso-io/kyso-model';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
 import { ErrorResponse } from '../../types/error-response';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 
-export default class Set extends KysoCommand {
-  static description = 'Set the <theme_name> as default.';
+export default class List extends KysoCommand {
+  static description = 'List all available themes';
 
-  static examples = [`$ kyso theme set <theme_name>`];
-
-  static args = [
-    {
-      name: 'name',
-      description: 'Theme name',
-      required: true,
-    },
-  ];
+  static examples = [`$ kyso theme list`];
 
   async run(): Promise<void> {
-    const { args } = await this.parse(Set);
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
     api.configure(kysoCredentials?.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
     try {
-      await api.setDefaultTheme(args.name);
-      this.log(`\n🎉🎉🎉 Success! The theme has been changed 🎉🎉🎉\n`);
-      this.log(`\n`);
-      this.log(`Remember that users must close and reopen their browser for the changes to take effect.`);
+      const response: NormalizedResponseDTO<string[]> = await api.getAvailableThemes();
+      for (const theme of response.data) {
+        this.log(theme);
+      }
     } catch (e: any) {
       const errorResponse: ErrorResponse = e.response.data;
       if (errorResponse.statusCode === 403) {
-        this.log(`You don't have permission to change the theme`);
+        this.log(`You don't have permission to list the themes`);
       } else {
-        this.log(`Error changing the theme: ${e.response.data.message}`);
+        this.log(`Error listing themes: ${errorResponse.message}`);
       }
     }
   }
