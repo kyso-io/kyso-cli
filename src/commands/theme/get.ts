@@ -1,5 +1,4 @@
 import { Api } from '@kyso-io/kyso-store';
-import { Flags } from '@oclif/core';
 import AdmZip from 'adm-zip';
 import { join, resolve } from 'path';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
@@ -40,7 +39,11 @@ export default class Get extends KysoCommand {
       this.log(`\n🎉🎉🎉 Success! Theme downloaded to ${resolve(destinationPath)} 🎉🎉🎉\n`);
     } catch (e: any) {
       const errorResponse: ErrorResponse = JSON.parse(e.response.data.toString());
-      this.log(`Error downloading theme: ${errorResponse.message}`);
+      if (errorResponse.statusCode === 403) {
+        this.log(`You don't have permission to download themes`);
+      } else {
+        this.log(`Error downloading theme: ${errorResponse.message}`);
+      }
     }
   }
 }
