@@ -344,6 +344,7 @@ export class Helper {
         },
       },
     ]);
-    return kysoApiResponse.kysoInstallUrl;
+    const url: URL = new URL(kysoApiResponse.kysoInstallUrl);
+    return url.origin;
   }
 }
