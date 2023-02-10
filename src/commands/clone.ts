@@ -92,7 +92,7 @@ export default class Clone extends KysoCommand {
     } catch (error: any) {
       const errorResponse: ErrorResponse = error.response.data;
       if (errorResponse.statusCode === 404) {
-        this.log(`\nError: Team ${teamSlug} does not exist.\n`);
+        this.log(`\nError: Channel ${teamSlug} does not exist.\n`);
       } else if (errorResponse.statusCode === 403) {
         if (kysoCredentials?.token) {
           this.log(`\nError: ${errorResponse.message}\n`);

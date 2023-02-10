@@ -136,7 +136,7 @@ export default class Init extends KysoCommand {
     const teamResponse: { team: string } = await inquirer.prompt([
       {
         name: 'team',
-        message: 'Select a team',
+        message: 'Select a channel',
         type: 'list',
         choices: teamsOrganizationResourcePermissions.map((teamResourcePermissions: ResourcePermissions) => ({ name: teamResourcePermissions.name })),
       },

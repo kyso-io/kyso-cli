@@ -5,6 +5,7 @@ import { Api, loginAction, store } from '@kyso-io/kyso-store';
 import { KysoCommand } from '../commands/kyso-command';
 import { CheckCredentialsResultEnum } from '../types/check-credentials-result.enum';
 import { KysoCredentials } from '../types/kyso-credentials';
+import { Helper } from './helper';
 import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitlab, authenticateWithGoogle } from './oauths';
 import inquirer = require('inquirer');
 
@@ -58,27 +59,8 @@ export const interactiveLogin = async (kysoCredentials: KysoCredentials | null):
   if (kysoCredentials?.fixedKysoInstallUrl) {
     login.kysoInstallUrl = kysoCredentials.fixedKysoInstallUrl;
   } else {
-    const kysoApiResponse: { kysoInstallUrl: string } = await inquirer.prompt([
-      {
-        name: 'kysoInstallUrl',
-        message: 'What is the url of your kyso installation?',
-        type: 'input',
-        default: kysoCredentials?.kysoInstallUrl,
-        validate: function (password: string) {
-          if (password === '') {
-            return 'Url cannot be empty';
-          }
-          return true;
-        },
-        filter: (input: string) => {
-          if (input.endsWith('/')) {
-            input = input.slice(0, -1);
-          }
-          return input.trim();
-        },
-      },
-    ]);
-    login.kysoInstallUrl = kysoApiResponse.kysoInstallUrl;
+    const url: string = await Helper.askUserKysoInstallUrl();
+    login.kysoInstallUrl = url;
   }
 
   const providerResponse: { provider: LoginProviderEnum } = await inquirer.prompt([
