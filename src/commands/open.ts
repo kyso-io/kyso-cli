@@ -62,13 +62,20 @@ export default class Open extends KysoCommand {
       this.error('Kyso file does not defined the organization');
     }
     if (!kysoConfigFile.hasOwnProperty('team') || kysoConfigFile.team === null || kysoConfigFile.team.length === 0) {
-      this.error('Kyso file does not defined the team');
+      this.error('Kyso file does not defined the channel');
     }
     if (!kysoConfigFile.hasOwnProperty('title') || kysoConfigFile.title === null || kysoConfigFile.title.length === 0) {
       this.error('Kyso file does not defined the title');
     }
 
-    const domain: URL = new URL(kysoCredentials.kysoInstallUrl);
+    let domain: URL;
+    if (!kysoCredentials) {
+      const url: string = await Helper.askUserKysoInstallUrl();
+      domain = new URL(url);
+    } else {
+      domain = new URL(kysoCredentials.kysoInstallUrl);
+    }
+
     const reportUrl = `${domain.protocol}//${domain.hostname}/${kysoConfigFile.organization}/${kysoConfigFile.team}/${Helper.slug(kysoConfigFile.title)}`;
     this.log(`Opening "${reportUrl}" the in browser...`);
     await open(reportUrl);

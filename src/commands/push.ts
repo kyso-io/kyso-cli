@@ -169,13 +169,13 @@ export default class Push extends KysoCommand {
           teamId = tokenPermissions.teams[indexTeam].id;
         } else {
           this.log(
-            `\nError: You don't have permission to create reports in the '${kysoConfigFile.team}' team of the '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`,
+            `\nError: You don't have permission to create reports in the '${kysoConfigFile.team}' channel of the '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`,
           );
           return;
         }
       } else {
         this.log(
-          `\nError: You don't have permission to create reports in the '${kysoConfigFile.team}' team of the '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`,
+          `\nError: You don't have permission to create reports in the '${kysoConfigFile.team}' channel of the '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`,
         );
         return;
       }

@@ -1,12 +1,14 @@
+import { GlobalPermissionsEnum, KysoConfigFile, NormalizedResponseDTO, Organization, OrganizationPermissionsEnum, ResourcePermissions, Team, TokenPermissions } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
-import { OrganizationPermissionsEnum, GlobalPermissionsEnum, TokenPermissions, KysoConfigFile, NormalizedResponseDTO, Organization, Team, ResourcePermissions } from '@kyso-io/kyso-model';
-import { KysoCredentials } from '../types/kyso-credentials';
-import { KysoCommand } from '../commands/kyso-command';
-import { existsSync, lstatSync, statSync, readdirSync, readFileSync } from 'fs';
+import { existsSync, lstatSync, readdirSync, readFileSync, statSync } from 'fs';
 import ignore from 'ignore';
+import inquirer from 'inquirer';
 import { join } from 'path';
 import sha256File from 'sha256-file';
 import slugify from 'slugify';
+import { KysoCommand } from '../commands/kyso-command';
+import { KysoCredentials } from '../types/kyso-credentials';
+
 export class Helper {
   public static async getOrganizationFromSlugSecurely(organizationParameter: string, credentials: KysoCredentials): Promise<NormalizedResponseDTO<Organization>> {
     // Slug the organization to ensure that if someone introduced the name of the organization in
@@ -316,5 +318,32 @@ export class Helper {
     }
 
     return resourcePermissions.permissions.includes(permission);
+  }
+
+  public static async askUserKysoInstallUrl(defaultKysoInstallUrl?: string): Promise<string> {
+    const kysoApiResponse: { kysoInstallUrl: string } = await inquirer.prompt([
+      {
+        name: 'kysoInstallUrl',
+        message: 'What is the url of your kyso installation?',
+        type: 'input',
+        default: defaultKysoInstallUrl,
+        validate: function (urlStr: string) {
+          let url: URL;
+          try {
+            url = new URL(urlStr);
+          } catch (_) {
+            return false;
+          }
+          return url.protocol === 'http:' || url.protocol === 'https:';
+        },
+        filter: (input: string) => {
+          if (input.endsWith('/')) {
+            input = input.slice(0, -1);
+          }
+          return input.trim();
+        },
+      },
+    ]);
+    return kysoApiResponse.kysoInstallUrl;
   }
 }
