@@ -387,7 +387,10 @@ export default class Push extends KysoCommand {
       this.error('Path must be a directory');
     }
 
-    const basePath: string = isAbsolute(flags.path) ? flags.path : join('.', flags.path);
+    let basePath: string = isAbsolute(flags.path) ? flags.path : join('.', flags.path);
+    if (basePath.endsWith('/') || basePath.endsWith('\\')) {
+      basePath = basePath.slice(0, -1);
+    }
     await this.uploadReport(basePath, flags.message);
 
     if (flags.verbose) {
