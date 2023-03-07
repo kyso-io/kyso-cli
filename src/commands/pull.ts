@@ -14,7 +14,7 @@ import { KysoCommand } from './kyso-command';
 export default class Push extends KysoCommand {
   static description = 'Pull repository from Kyso';
 
-  static examples = [`$ kyso pull --path <destination_folder> --organization <organization> --team <team> --report <report_name> --version <version>`];
+  static examples = [`$ kyso pull --path <destination_folder> --organization <organization> --channel <channel> --report <report_name> --version <version>`];
 
   static flags = {
     path: Flags.string({
@@ -27,9 +27,9 @@ export default class Push extends KysoCommand {
       char: 'o',
       description: 'Organization slug name which the report belongs to. i.e: for organization "Kyso Inc" the organization slug is "kyso-inc".',
     }),
-    team: Flags.string({
-      char: 't',
-      description: 'Team slug name which the report belongs to. i.e: for team "My Awesome Team" the team slug is "my-awesome-team".',
+    channel: Flags.string({
+      char: 'c',
+      description: 'Channel slug name which the report belongs to. i.e: for channel "My Awesome Channel" the channel slug is "my-awesome-channel".',
     }),
     report: Flags.string({
       char: 'r',
@@ -66,9 +66,9 @@ export default class Push extends KysoCommand {
     try {
       this.log('Pulling report. Please wait...');
 
-      if (flags?.organization && flags?.team && flags?.report) {
+      if (flags?.organization && flags?.channel && flags?.report) {
         organizationSlug = flags.organization;
-        teamSlug = flags.team;
+        teamSlug = flags.channel;
         reportSlug = flags.report;
       } else {
         if (!flags.path) {
@@ -83,7 +83,7 @@ export default class Push extends KysoCommand {
         }
         kysoConfigFile = resultSearch.kysoConfigFile;
         organizationSlug = kysoConfigFile.organization;
-        teamSlug = kysoConfigFile.team;
+        teamSlug = kysoConfigFile.channel;
         reportSlug = Helper.slug(kysoConfigFile.title);
       }
     } catch (error: any) {
@@ -94,13 +94,13 @@ export default class Push extends KysoCommand {
       this.error('Organization is required');
     }
     if (!teamSlug) {
-      this.error('Team is required');
+      this.error('Channel is required');
     }
     if (!reportSlug) {
       this.error('Report is required');
     }
 
-    // Check if team is public
+    // Check if channel is public
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
     api.configure(kysoCredentials?.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
@@ -122,7 +122,7 @@ export default class Push extends KysoCommand {
     } catch (error: any) {
       const errorResponse: ErrorResponse = error.response.data;
       if (errorResponse.statusCode === 404) {
-        this.log(`\nError: Team ${teamSlug} does not exist.\n`);
+        this.log(`\nError: Channel ${teamSlug} does not exist.\n`);
       } else if (errorResponse.statusCode === 403) {
         if (kysoCredentials?.token) {
           this.log(`\nError: ${errorResponse.message}\n`);

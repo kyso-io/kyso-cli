@@ -1,12 +1,12 @@
 import { AllowDownload, NormalizedResponseDTO, Organization, ResourcePermissions, Team, TeamPermissionsEnum, TeamVisibilityEnum, TokenPermissions } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
+import { Flags } from '@oclif/core';
 import jwtDecode from 'jwt-decode';
+import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 import inquirer = require('inquirer');
-import { Helper } from '../../helpers/helper';
-import { Flags } from '@oclif/core';
 
 export default class AddChannel extends KysoCommand {
   static description =
