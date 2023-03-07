@@ -6,12 +6,12 @@ import { join } from 'path';
 import AdmZip from 'adm-zip';
 import convert = require('xml-js');
 import { v4 as uuidv4 } from 'uuid';
-const { execSync } = require('child_process');
+import { execSync } from 'child_process';
 
 export default class Import extends KysoCommand {
   static description = 'Import report into kyso from different sources';
 
-  static examples = [`$ kyso import --type powerpoint --path . --mappings Company:organization,Author:author,Keywords:team,Title:title,Comments:description`];
+  static examples = [`$ kyso import --type powerpoint --path . --mappings Company:organization,Author:author,Keywords:channel,Title:title,Comments:description`];
 
   static flags = {
     type: Flags.string({
@@ -31,7 +31,7 @@ export default class Import extends KysoCommand {
       char: 'm',
       description: 'mappings',
       required: false,
-      default: 'Company:organization,Creator:author,Keywords:team,Title:title,Comments:description',
+      default: 'Company:organization,Creator:author,Keywords:channel,Title:title,Comments:description',
     }),
     verbose: Flags.boolean({
       char: 'x',
@@ -153,7 +153,7 @@ export default class Import extends KysoCommand {
                 }
                 break;
               }
-              case 'team': {
+              case 'channel': {
                 if (value.value) {
                   teamSet = true;
                   teamValue = value.value;

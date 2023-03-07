@@ -66,9 +66,9 @@ export default class Login extends KysoCommand {
       hidden: true,
     }),
     // Should we give that option? Hidden
-    team: Flags.string({
-      char: 't',
-      description: 'Your team',
+    channel: Flags.string({
+      char: 'c',
+      description: 'Your channel',
       required: false,
       hidden: true,
     }),
@@ -178,7 +178,7 @@ export default class Login extends KysoCommand {
       const api: Api = new Api();
       const loginResult: NormalizedResponseDTO<string> = await api.login(loginModel);
       if (loginResult.data) {
-        KysoCommand.saveToken(loginResult.data, flags.organization || null, flags.team || null, loginModel.kysoInstallUrl, loginModel.email || null);
+        KysoCommand.saveToken(loginResult.data, flags.organization || null, flags.channel || null, loginModel.kysoInstallUrl, loginModel.email || null);
         this.log('Logged successfully');
       }
     } catch (error: any) {

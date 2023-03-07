@@ -1,4 +1,4 @@
-import { OrganizationNotificationsDTO, OrganizationOptionsDTO, UpdateOrganizationDTO, NormalizedResponseDTO, Organization, Team, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import { NormalizedResponseDTO, Organization, OrganizationNotificationsDTO, OrganizationOptionsDTO, ResourcePermissions, TokenPermissions, UpdateOrganizationDTO } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import axios from 'axios';
 import { createReadStream, existsSync, readFileSync, ReadStream, unlinkSync, writeFileSync } from 'fs';
@@ -158,7 +158,7 @@ export default class OrganizationsSet extends KysoCommand {
         await Helper.getChannelFromSlugSecurely(organization, channelSlug, kysoCredentials, true);
       } catch (e) {
         // If an exception is raised means that the channel doesn't exists in that organization
-        this.log(`Specified ${channelSlug} does not exist in organization ${organization.display_name}.`);
+        this.log(`Specified ${channelSlug} channel does not exist in organization ${organization.display_name}.`);
         unexistingChannels.push(channelSlug);
       }
     }
