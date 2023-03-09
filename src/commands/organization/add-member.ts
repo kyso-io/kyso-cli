@@ -9,8 +9,6 @@ export default class AddMemberToOrganization extends KysoCommand {
   static description = 'Add [LIST_OF_USER_EMAIL] users as member to [ORGANIZATION_NAME] with the desired role [ROLE].';
 
   static examples = [
-    `# Usage`,
-    `$ kyso organization add-member <list_of_user_email> <organization_name> <role>`,
     `# Add users with default role (team-reader)`,
     `$ kyso organization add-member lo+rey@dev.kyso.io,lo+palpatine@dev.kyso.io darkside`,
     `# Add users with specific role`,
