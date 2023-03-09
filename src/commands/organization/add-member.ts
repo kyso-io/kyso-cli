@@ -1,11 +1,12 @@
 import { KysoRole, UserDTO, OrganizationMember, NormalizedResponseDTO, Organization, AddUserOrganizationDto } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
+import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
 import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 
 export default class AddMemberToOrganization extends KysoCommand {
-  static description = 'Add list_of_user_email users as member to organization_name with the desired role.';
+  static description = 'Add [LIST_OF_USER_EMAIL] users as member to [ORGANIZATION_NAME] with the desired [ROLE].';
 
   static examples = [
     `# Usage`,
@@ -80,7 +81,7 @@ export default class AddMemberToOrganization extends KysoCommand {
 
     for (const userEmail of list_of_users) {
       try {
-        await this.addUserToOrganization(api, userEmail, organizationName, desiredRole);
+        await this.addUserToOrganization(api, userEmail.toLowerCase(), Helper.slug(organizationName), desiredRole);
       } catch (e) {
         this.log(`Error adding user ${userEmail} to org ${organizationName} with role ${desiredRole}`);
         console.log(e);
