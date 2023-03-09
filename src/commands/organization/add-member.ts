@@ -6,7 +6,7 @@ import { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 
 export default class AddMemberToOrganization extends KysoCommand {
-  static description = 'Add [LIST_OF_USER_EMAIL] users as member to [ORGANIZATION_NAME] with the desired [ROLE].';
+  static description = 'Add [LIST_OF_USER_EMAIL] users as member to [ORGANIZATION_NAME] with the desired role [ROLE].';
 
   static examples = [
     `# Usage`,
