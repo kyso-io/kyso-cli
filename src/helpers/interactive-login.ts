@@ -35,7 +35,7 @@ export const launchInteractiveLoginIfNotLogged = async (): Promise<void> => {
     case CheckCredentialsResultEnum.EXPIRED_TOKEN: {
       try {
         const savedCredentials: KysoCredentials = KysoCommand.getCredentials();
-        const api: Api = new Api();
+        const api: Api = new Api(savedCredentials.token);
         api.configure(savedCredentials.kysoInstallUrl + '/api/v1', savedCredentials.token);
         const refreshedToken: NormalizedResponseDTO<string> = await api.refreshToken();
         if (refreshedToken.data) {
