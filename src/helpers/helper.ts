@@ -347,4 +347,12 @@ export class Helper {
     const url: URL = new URL(kysoApiResponse.kysoInstallUrl);
     return url.origin;
   }
+
+  public static parseFileSizeStr(fileSizeStr: string): number {
+    const units: string[] = ['b', 'kb', 'mb', 'gb', 'tb', 'pb', 'eb', 'zb', 'yb'];
+    const size: number = parseFloat(fileSizeStr);
+    const unit: string = fileSizeStr.replace(/[^a-z]/gi, '').toLowerCase();
+    const power: number = units.indexOf(unit);
+    return Math.floor(size * Math.pow(1024, power));
+  }
 }
