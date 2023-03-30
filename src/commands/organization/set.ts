@@ -225,6 +225,7 @@ export default class OrganizationsSet extends KysoCommand {
       // capital letters we are going to be able to answer properly
       organizationData.slug = Helper.slug(organizationData.slug);
       await this.updateOrganization(api, tokenPermissions, organizationData, kysoCredentials);
+      this.log(`Organization ${organizationData.display_name} updated successfully`);
     }
   }
 }
