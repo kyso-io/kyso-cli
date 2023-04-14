@@ -578,6 +578,7 @@ export default class Push extends KysoCommand {
     }
 
     const formData = new FormData();
+    formData.append('ignoreKysoConfigFile', 'true');
     formData.append('file', createReadStream(outputFilePath), {
       filename: zipFileName,
       knownLength: size,
