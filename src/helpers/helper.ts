@@ -118,20 +118,45 @@ export class Helper {
       message: null,
       kysoConfigFile: null,
     };
-    let index: number = files.findIndex((file: string) => file.endsWith('kyso.json'));
-    if (index > -1) {
+
+    // First, search for kyso.yaml or kyso.json in the base path. We don't want to take a kyso file
+    // from a subfolder if we have a parent one
+    const parentJsonFileIndex = files.findIndex((f: string) => f.toLowerCase() === 'kyso.json');
+    const parentYamlFileIndex = files.findIndex((f: string) => f.toLowerCase() === 'kyso.yaml' || f.toLowerCase() === 'kyso.yml');
+    let index = -1;
+
+    if (parentJsonFileIndex > -1) {
       try {
-        data = KysoConfigFile.fromJSON(readFileSync(files[index], 'utf8').toString());
+        index = parentJsonFileIndex;
+        data = KysoConfigFile.fromJSON(readFileSync(files[parentJsonFileIndex], 'utf8').toString());
       } catch (error: any) {
         throw new Error(`Error parsing kyso.json: ${error.message}`);
       }
+    } else if (parentYamlFileIndex > -1) {
+      try {
+        index = parentYamlFileIndex;
+        data = KysoConfigFile.fromYaml(readFileSync(files[parentYamlFileIndex], 'utf8'));
+      } catch (error: any) {
+        throw new Error(`Error parsing kyso.yml|yaml: ${error.message}`);
+      }
     } else {
-      index = files.findIndex((file: string) => file.endsWith('kyso.yml') || file.endsWith('kyso.yaml'));
+      // No kyso file in the base path. Search for kyso files in subfolders and take the first
+      // occurrence
+      index = files.findIndex((file: string) => file.endsWith('kyso.json'));
       if (index > -1) {
         try {
-          data = KysoConfigFile.fromYaml(readFileSync(files[index], 'utf8'));
+          data = KysoConfigFile.fromJSON(readFileSync(files[index], 'utf8').toString());
         } catch (error: any) {
-          throw new Error(`Error parsing kyso.yml: ${error.message}`);
+          throw new Error(`Error parsing kyso.json: ${error.message}`);
+        }
+      } else {
+        index = files.findIndex((file: string) => file.endsWith('kyso.yml') || file.endsWith('kyso.yaml'));
+        if (index > -1) {
+          try {
+            data = KysoConfigFile.fromYaml(readFileSync(files[index], 'utf8'));
+          } catch (error: any) {
+            throw new Error(`Error parsing kyso.yml: ${error.message}`);
+          }
         }
       }
     }
