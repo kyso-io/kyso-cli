@@ -2,9 +2,9 @@
 /* eslint-disable no-await-in-loop */
 import {
   CheckPermissionDto,
-  File as KysoFile,
   GitMetadata,
   KysoConfigFile,
+  File as KysoFile,
   KysoSettingsEnum,
   NormalizedResponseDTO,
   ReportDTO,
@@ -18,7 +18,7 @@ import { Flags } from '@oclif/core';
 import AdmZip from 'adm-zip';
 import axios, { AxiosResponse } from 'axios';
 import FormData from 'form-data';
-import { createReadStream, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'fs';
+import { createReadStream, existsSync, lstatSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'fs';
 import hostedGitInfo from 'hosted-git-info';
 import * as jsYaml from 'js-yaml';
 import jwtDecode from 'jwt-decode';
@@ -442,23 +442,23 @@ export default class Push extends KysoCommand {
     }
   }
 
-  private getFiles(folderPath: string): { singleFileReports: { headers: { [key: string]: string }; filePath: string }[]; reportFiles: { path: string; sha: string }[] } {
-    const validFiles = Helper.getValidFiles(folderPath);
-    const singleFileReports: { headers: { [key: string]: string }; filePath: string }[] = [];
-    const reportFiles = [];
+  private getFiles(folderPath: string): { singleFileReports: { headers: { [key: string]: string }; filePath: string; sha: string }[]; reportFiles: { path: string; sha: string }[] } {
+    const validFiles: { path: string; sha: string }[] = Helper.getValidFiles(folderPath);
+    const singleFileReports: { headers: { [key: string]: string }; filePath: string; sha: string }[] = [];
+    const reportFiles: { path: string; sha: string }[] = [];
     for (const validFile of validFiles) {
       const extension = extname(validFile.path);
       if (extension === '.md') {
         const headers: { [key: string]: string } = this.getHeadersFromMarkdownFile(validFile.path);
         if (headers) {
-          singleFileReports.push({ headers, filePath: validFile.path });
+          singleFileReports.push({ headers, filePath: validFile.path, sha: validFile.sha });
         } else {
           reportFiles.push(validFile);
         }
       } else if (extension === '.ipynb') {
         const headers: { [key: string]: string } = this.getHeadersFromJupyterFile(validFile.path);
         if (headers) {
-          singleFileReports.push({ headers, filePath: validFile.path });
+          singleFileReports.push({ headers, filePath: validFile.path, sha: validFile.sha });
         } else {
           reportFiles.push(validFile);
         }
@@ -472,7 +472,7 @@ export default class Push extends KysoCommand {
     };
   }
 
-  private async uploadSimpleFile(basePath: string, reportSingleFile: { headers: { [key: string]: string }; filePath: string }, pushMessage: string): Promise<NormalizedResponseDTO<ReportDTO>> {
+  private async uploadSimpleFile(basePath: string, reportSingleFile: { headers: { [key: string]: string }; filePath: string; sha: string }, pushMessage: string): Promise<ReportDTO> {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api(kysoCredentials.token);
     api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials.token);
@@ -555,6 +555,28 @@ export default class Push extends KysoCommand {
       kysoConfigFile.authors = [payload.email];
     }
 
+    try {
+      const reportSlug: string = Helper.slug(kysoConfigFile.title);
+      const responseReportDto: NormalizedResponseDTO<ReportDTO> = await api.getReportByTeamIdAndSlug(teamId, reportSlug);
+      const reportDto = responseReportDto.data;
+      const responseReportFiles: NormalizedResponseDTO<KysoFile[]> = await api.getReportFiles(reportDto.id, reportDto.last_version);
+      const reportFiles: KysoFile[] = responseReportFiles.data;
+      const reportFile: KysoFile | undefined = reportFiles.find((reportFile: KysoFile) => reportFile.name === fileName);
+      if (!reportFile) {
+        this.log(`\nError: Could not find the file '${fileName}' in the report '${kysoConfigFile.title}'\n`);
+        return reportDto;
+      }
+      if (reportFile.sha === reportSingleFile.sha) {
+        this.log(`\nError: The file '${fileName}' has not changed since the last push\n`);
+        return reportDto;
+      }
+    } catch (error: any) {
+      const errorResponse: ErrorResponse = error.response.data;
+      if (errorResponse.statusCode === 404) {
+        // Report does not exist
+      }
+    }
+
     const zip: AdmZip = new AdmZip();
     zip.addFile(fileName, readFileSync(reportSingleFile.filePath));
     zip.addFile('kyso.yaml', Buffer.from(jsYaml.dump(kysoConfigFile)));
@@ -592,7 +614,7 @@ export default class Push extends KysoCommand {
     }
 
     this.log(`Uploading report '${reportSingleFile.filePath}'`);
-    let reportDto = null;
+    let reportDto: ReportDTO | null = null;
     try {
       const url = `${kysoCredentials.kysoInstallUrl}/api/v1/reports/kyso`;
       const response: AxiosResponse<NormalizedResponseDTO<ReportDTO>> = await axios.post(url, formData, {
