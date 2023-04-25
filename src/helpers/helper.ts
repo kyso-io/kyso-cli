@@ -283,6 +283,10 @@ export class Helper {
     let validFiles: { path: string; sha: string }[] = [];
     for (const file of filteredFiles) {
       // For each file
+      if (file.startsWith('.')) {
+        // Ignore hidden files
+        continue;
+      }
       const filePath: string = join(dirPath, file);
       // check if it is a directory
       if (lstatSync(filePath).isDirectory()) {
