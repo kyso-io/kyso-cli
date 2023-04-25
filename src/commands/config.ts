@@ -35,9 +35,9 @@ export default class Config extends KysoCommand {
           name: 'kysoInstallUrl',
           message: 'What is the url of your kyso installation?',
           type: 'input',
-          default: kysoCredentials?.fixedKysoInstallUrl || kysoCredentials?.kysoInstallUrl,
-          validate: function (password: string) {
-            if (password === '') {
+          default: kysoCredentials?.fixedKysoInstallUrl || kysoCredentials?.kysoInstallUrl || 'https://',
+          validate: function (url: string) {
+            if (url === '') {
               return 'Url cannot be empty';
             }
             return true;

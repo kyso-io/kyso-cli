@@ -15,6 +15,7 @@ enum ReportTypes {
   website = 'website',
   jupyter = 'jupyter',
   markdown = 'markdown',
+  meta = 'meta',
   other = 'other',
 }
 
@@ -147,11 +148,12 @@ export default class Init extends KysoCommand {
         name: 'reportType',
         message: 'Select a reportType',
         type: 'list',
-        choices: [{ name: ReportTypes.website }, { name: ReportTypes.jupyter }, { name: ReportTypes.markdown }, { name: ReportTypes.other }],
+        choices: [{ name: ReportTypes.website }, { name: ReportTypes.jupyter }, { name: ReportTypes.markdown }, { name: ReportTypes.meta }, { name: ReportTypes.other }],
       },
     ]);
 
     const defaultFile = '';
+
     /* https://gitlab.kyso.io/kyso-io/qa/issues/-/issues/134
     let defaultFile = 'index.html'
     if (reportTypeResponse.reportType === ReportTypes.jupyter) {
