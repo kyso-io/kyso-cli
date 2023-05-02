@@ -104,7 +104,7 @@ export default class Push extends KysoCommand {
       try {
         const remoteUrl: string = await git.listRemote(['--get-url']);
         const hostedGitInfoUrl = hostedGitInfo.fromUrl(remoteUrl);
-        repository = hostedGitInfoUrl ? hostedGitInfoUrl.https().replace('git+', '') : remoteUrl;
+        repository = hostedGitInfoUrl ? Helper.sanitizeUrlBasicAuthentication(hostedGitInfoUrl.https().replace('git+', '')) : Helper.sanitizeUrlBasicAuthentication(remoteUrl);
       } catch (e) {
         // Do nothing
       }

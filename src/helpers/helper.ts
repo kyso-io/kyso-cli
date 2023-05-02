@@ -384,4 +384,31 @@ export class Helper {
     const power: number = units.indexOf(unit);
     return Math.floor(size * Math.pow(1024, power));
   }
+
+  /**
+   * Sanitizes the incoming url parameter looking for auth credentials and
+   * returns the URL without that credentials, if exists, and if not, returns
+   * the same url.
+   *
+   * If any error happens, returns an empty string to avoid credentials leaking
+   *
+   * @param url
+   * @returns
+   */
+  public static sanitizeUrlBasicAuthentication(url: string): string {
+    try {
+      const reg = /\/\/([^:]+):([^@]+)@/;
+      const splittedUrl = url.split('?');
+      const matches = splittedUrl[0].match(reg);
+
+      if (matches && matches.length > 0) {
+        return `${splittedUrl[0].replace(reg, '//')}${url.replace(splittedUrl[0], '')}`;
+      } else {
+        return url;
+      }
+    } catch (e) {
+      console.log('Error sanitizing url. Returning empty string to avoid credential leaking');
+      return '';
+    }
+  }
 }

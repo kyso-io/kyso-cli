@@ -2,6 +2,7 @@
 *-error.log
 /.nyc_output
 /dist
+/test/out
 /kyso-cli-installer.tgz
 /lib
 /package-lock.json
