@@ -122,7 +122,7 @@ export class Helper {
     let parentJsonFileIndex = -1;
     let parentYamlFileIndex = -1;
 
-    if (!basePath) {
+    if (!basePath || basePath === '.') {
       // First, search for kyso.yaml or kyso.json in the base path. We don't want to take a kyso file
       // from a subfolder if we have a parent one
       parentJsonFileIndex = files.findIndex((f: string) => f.toLowerCase() === 'kyso.json');
