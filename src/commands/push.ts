@@ -124,7 +124,10 @@ export default class Push extends KysoCommand {
     const api: Api = new Api(kysoCredentials.token);
     api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials.token);
 
-    const { kysoConfigFile, valid, message, kysoConfigPath } = Helper.findKysoConfigFile(validFiles.map((f: { path: string; sha: string }) => f.path));
+    const { kysoConfigFile, valid, message, kysoConfigPath } = Helper.findKysoConfigFile(
+      validFiles.map((f: { path: string; sha: string }) => f.path),
+      basePath,
+    );
     if (!valid) {
       this.log(`\nError: Could not push report of '${reportFolder}' folder using Kyso config file: ${message}\n`);
       return;
@@ -228,7 +231,7 @@ export default class Push extends KysoCommand {
         }
       });
       if (newFiles.length === 0) {
-        this.log(`\nNo new or modified files to upload in the '${reportFolder}' folder.\n`);
+        this.log(`No new or modified files to upload in report '${kysoConfigFile.title}'`);
         return;
       }
       reportFiles.forEach((reportFile: KysoFile) => {
@@ -344,7 +347,11 @@ export default class Push extends KysoCommand {
     }
     // Check if report is a multiple report
     let mainKysoConfigFile: KysoConfigFile | null = null;
-    const data: { kysoConfigFile: KysoConfigFile; valid: boolean; message: string } = Helper.findKysoConfigFile(validFiles.map((file: { path: string; sha: string }) => file.path));
+
+    const data: { kysoConfigFile: KysoConfigFile; valid: boolean; message: string } = Helper.findKysoConfigFile(
+      validFiles.map((file: { path: string; sha: string }) => file.path),
+      basePath,
+    );
     if (!data.valid) {
       this.log(`Error in Kyso config file: ${data.message}`);
       return;
@@ -360,7 +367,10 @@ export default class Push extends KysoCommand {
           this.error(`Report '${reportFolder}' folder does not exist.`);
         }
         const validFiles: { path: string; sha: string }[] = Helper.getValidFiles(reportPath);
-        const { valid, message } = Helper.findKysoConfigFile(validFiles.map((file: { path: string; sha: string }) => file.path));
+        const { valid, message } = Helper.findKysoConfigFile(
+          validFiles.map((file: { path: string; sha: string }) => file.path),
+          basePath,
+        );
         if (!valid) {
           this.error(`Folder '${reportFolder}' does not have a valid Kyso config file: ${message}`);
         }

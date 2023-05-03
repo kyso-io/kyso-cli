@@ -108,7 +108,7 @@ export class Helper {
     return channelsSlug;
   }
 
-  public static findKysoConfigFile(files: string[]): { kysoConfigFile: KysoConfigFile | null; kysoConfigPath: string | null; valid: boolean; message: string | null } {
+  public static findKysoConfigFile(files: string[], basePath?: string): { kysoConfigFile: KysoConfigFile | null; kysoConfigPath: string | null; valid: boolean; message: string | null } {
     let data: {
       valid: boolean;
       message: string | null;
@@ -119,10 +119,22 @@ export class Helper {
       kysoConfigFile: null,
     };
 
-    // First, search for kyso.yaml or kyso.json in the base path. We don't want to take a kyso file
-    // from a subfolder if we have a parent one
-    const parentJsonFileIndex = files.findIndex((f: string) => f.toLowerCase() === 'kyso.json');
-    const parentYamlFileIndex = files.findIndex((f: string) => f.toLowerCase() === 'kyso.yaml' || f.toLowerCase() === 'kyso.yml');
+    let parentJsonFileIndex = -1;
+    let parentYamlFileIndex = -1;
+
+    if (!basePath) {
+      // First, search for kyso.yaml or kyso.json in the base path. We don't want to take a kyso file
+      // from a subfolder if we have a parent one
+      parentJsonFileIndex = files.findIndex((f: string) => f.toLowerCase() === 'kyso.json');
+      parentYamlFileIndex = files.findIndex((f: string) => f.toLowerCase() === 'kyso.yaml' || f.toLowerCase() === 'kyso.yml');
+    } else {
+      // If we come from a -p, then search using the base path
+      const sanitizedBasePath = basePath.charAt(basePath.length - 1) === '/' ? basePath.slice(0, -1) : basePath;
+
+      parentJsonFileIndex = files.findIndex((f: string) => f.toLowerCase() === `${sanitizedBasePath}/kyso.json`);
+      parentYamlFileIndex = files.findIndex((f: string) => f.toLowerCase() === `${sanitizedBasePath}/kyso.yaml` || f.toLowerCase() === `${sanitizedBasePath}/kyso.yml`);
+    }
+
     let index = -1;
 
     if (parentJsonFileIndex > -1) {
