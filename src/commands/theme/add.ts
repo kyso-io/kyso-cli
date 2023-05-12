@@ -8,7 +8,7 @@ import { KysoCommand } from '../kyso-command';
 export default class Add extends KysoCommand {
   static description = 'Uploads the <zip_file_path> to the given <theme_name> folder replacing its previous contents.';
 
-  static examples = [`$ kyso theme add <theme_name> <zip_file_path>`];
+  static examples = [`$ kyso theme add <theme_name> <zip_file_path>`, `$ kyso theme add default default.zip`];
 
   static args = [
     {

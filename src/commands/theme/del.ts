@@ -7,7 +7,7 @@ import { KysoCommand } from '../kyso-command';
 export default class Del extends KysoCommand {
   static description = 'Removes the <theme_name> folder.';
 
-  static examples = [`$ kyso theme del <theme_name>`];
+  static examples = [`$ kyso theme del <theme_name>`, `$ kyso theme del default`];
 
   static args = [
     {

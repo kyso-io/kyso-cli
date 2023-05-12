@@ -7,7 +7,7 @@ import { KysoCommand } from '../kyso-command';
 export default class Set extends KysoCommand {
   static description = 'Set the <theme_name> as default.';
 
-  static examples = [`$ kyso theme set <theme_name>`];
+  static examples = [`$ kyso theme set <theme_name>`, `$ kyso theme set default`];
 
   static args = [
     {
