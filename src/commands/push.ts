@@ -633,6 +633,7 @@ export default class Push extends KysoCommand {
           'content-length': formData.getLengthSync().toString(),
           Authorization: `Bearer ${kysoCredentials.token}`,
           'x-kyso-organization': kysoConfigFile.organization,
+          'x-kyso-team': kysoConfigFile.channel ?? kysoConfigFile.team,
         },
       });
       reportDto = response.data.data;
