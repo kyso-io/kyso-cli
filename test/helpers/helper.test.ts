@@ -38,4 +38,46 @@ describe('Helper test suite', () => {
       expect(Helper.sanitizeUrlBasicAuthentication(url)).toEqual('https://dev.kyso.io/moreUrl/specific_things?hello=itsme&pa_joder=user:password@domain.com&pa_joder=//user:password@domain.com');
     });
   });
+
+  describe('getValidFiles function', () => {
+    it('should return a valid files for a relative single file test/helpers/getValidFilesResources/TestingSpark.ipynb', async () => {
+      const expectedValue = [
+        {
+          path: `${__dirname}/getValidFilesResources/TestingSpark.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+      ];
+
+      let receivedValue = Helper.getValidFiles('test/helpers/getValidFilesResources/TestingSpark.ipynb');
+      expect(receivedValue).toEqual(expectedValue);
+
+      receivedValue = Helper.getValidFiles('./test/helpers/getValidFilesResources/TestingSpark.ipynb');
+      expect(receivedValue).toEqual(expectedValue);
+    });
+
+    it('should return a valid files for a relative single file ./test/helpers/getValidFilesResources/TestingSpark.ipynb', async () => {
+      const expectedValue = [
+        {
+          path: `${__dirname}/getValidFilesResources/TestingSpark.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+      ];
+
+      let receivedValue = Helper.getValidFiles('./test/helpers/getValidFilesResources/TestingSpark.ipynb');
+      expect(receivedValue).toEqual(expectedValue);
+    });
+
+    it('should return a valid files for an absolute path single file __dirname + /getValidFilesResources/TestingSpark.ipynb', async () => {
+      const expectedValue = [
+        {
+          path: `${__dirname}/getValidFilesResources/TestingSpark.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+      ];
+
+      const finalPath = __dirname + '/getValidFilesResources/TestingSpark.ipynb';
+      let receivedValue = Helper.getValidFiles(finalPath);
+      expect(receivedValue).toEqual(expectedValue);
+    });
+  });
 });

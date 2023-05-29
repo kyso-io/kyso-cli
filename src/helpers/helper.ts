@@ -315,7 +315,7 @@ export class Helper {
       let filePath = '';
 
       if (!path.isAbsolute(file)) {
-        filePath = join(dirPath, file);
+        filePath = path.resolve(file);
       } else {
         filePath = file;
       }
