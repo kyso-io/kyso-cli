@@ -666,10 +666,6 @@ export default class Push extends KysoCommand {
       this.error('Invalid path');
     }
 
-    if (!lstatSync(flags.path).isDirectory()) {
-      this.error('Path must be a directory');
-    }
-
     let basePath: string = isAbsolute(flags.path) ? flags.path : join('.', flags.path);
     if (basePath.endsWith('/') || basePath.endsWith('\\')) {
       basePath = basePath.slice(0, -1);

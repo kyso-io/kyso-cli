@@ -3,7 +3,7 @@ import { Api } from '@kyso-io/kyso-store';
 import { existsSync, lstatSync, readdirSync, readFileSync, statSync } from 'fs';
 import ignore from 'ignore';
 import inquirer from 'inquirer';
-import { join } from 'path';
+import path, { join } from 'path';
 import sha256File from 'sha256-file';
 import slugify from 'slugify';
 import { KysoCommand } from '../commands/kyso-command';
@@ -267,10 +267,20 @@ export class Helper {
   }
 
   public static getValidFiles(dirPath: string): { path: string; sha: string }[] {
+    let isSingleFile = false;
     if (!existsSync(dirPath)) {
-      throw new Error(`Folder ${dirPath} not found`);
+      throw new Error(`Path ${dirPath} not found`);
     }
-    const files: string[] = readdirSync(dirPath);
+
+    let files: string[];
+
+    if (lstatSync(dirPath).isDirectory()) {
+      files = readdirSync(dirPath);
+    } else if (lstatSync(dirPath).isFile()) {
+      files = [dirPath];
+      isSingleFile = true;
+    }
+
     const filesToIgnore: string[] = ['.git', '.DS_Store'];
     for (const file of files) {
       if (file === '.gitignore' || file === '.kysoignore') {
@@ -289,17 +299,35 @@ export class Helper {
         }
       }
     }
-    const ig = ignore().add(filesToIgnore);
-    // Remove ignored files defined in .gitignore or .kysoignore
-    const filteredFiles: string[] = files.filter((file) => !ig.ignores(file));
+
+    let filteredFiles: string[] = [];
+
+    if (!isSingleFile) {
+      // Remove ignored files defined in .gitignore or .kysoignore
+      const ig = ignore().add(filesToIgnore);
+      filteredFiles = files.filter((file) => !ig.ignores(file));
+    } else {
+      filteredFiles = files;
+    }
+
     let validFiles: { path: string; sha: string }[] = [];
     for (const file of filteredFiles) {
+      let filePath = '';
+
+      if (!path.isAbsolute(file)) {
+        filePath = join(dirPath, file);
+      } else {
+        filePath = file;
+      }
+
+      const fileBaseName: string = path.basename(filePath);
+
       // For each file
-      if (file.startsWith('.')) {
+      if (fileBaseName.startsWith('.')) {
         // Ignore hidden files
         continue;
       }
-      const filePath: string = join(dirPath, file);
+
       // check if it is a directory
       if (lstatSync(filePath).isDirectory()) {
         // Recursive call
@@ -313,6 +341,7 @@ export class Helper {
         });
       }
     }
+
     return validFiles;
   }
 
