@@ -4,7 +4,7 @@ include:
     file: '/templates/npm-package-with-container.yml'
 
 variables:
-  KYSO_CLI_BUILDER_IMAGE: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.6
+  KYSO_CLI_BUILDER_IMAGE: registry.kyso.io/kyso-io/kyso-cli:builder-v1.0.7
   DOCKER_BUILDKIT: 1
 
 stages:
