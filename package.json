@@ -1,7 +1,7 @@
 {
   "name": "@kyso-io/kyso-cli",
   "description": "Kyso Client",
-  "version": "1.17.1",
+  "version": "1.17.0",
   "author": "Kyso Inc.",
   "bin": {
     "kyso": "./bin/run"
@@ -109,7 +109,6 @@
     "posttest": "npm run lint",
     "prepack": "npm run build && oclif manifest && oclif readme",
     "test": "jest --coverage",
-    "version": "oclif readme && git add README.md",
     "change-version": "npm version --allow-same --no-commit-hooks --no-git-tag-version",
     "check-types": "tsc --noEmit --pretty",
     "prepare": "is-ci || husky install",

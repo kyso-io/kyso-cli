@@ -3,16 +3,6 @@
 
 For more detailed documentation please visit [docs.kyso.io](https://docs.kyso.io/posting-to-kyso/kyso-cli/installation)
 
-
-# Usage
-
-<!-- usage -->
-
-# Commands
-
-<!-- commands -->
-
-
 # Installation
 ## NPM and YARN
 The Kyso CLI could be installed as a NPM or YARN global package easily, just launching the next commands
