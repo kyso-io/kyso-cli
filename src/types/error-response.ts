@@ -1,4 +1,4 @@
-export interface ErrorResponse {
+export type ErrorResponse = {
   error: string;
   extendedMessage?: string[];
   message: string;
@@ -6,4 +6,4 @@ export interface ErrorResponse {
   path?: string;
   statusCode: number;
   timestamp: string;
-}
+};

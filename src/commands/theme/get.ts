@@ -2,8 +2,8 @@ import { Api } from '@kyso-io/kyso-store';
 import AdmZip from 'adm-zip';
 import { join, resolve } from 'path';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import { ErrorResponse } from '../../types/error-response';
-import { KysoCredentials } from '../../types/kyso-credentials';
+import type { ErrorResponse } from '../../types/error-response';
+import type { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 
 export default class Get extends KysoCommand {
@@ -34,7 +34,7 @@ export default class Get extends KysoCommand {
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
-    api.configure(kysoCredentials?.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
+    api.configure(`${kysoCredentials?.kysoInstallUrl}/api/v1`, kysoCredentials?.token);
     try {
       const buffer: Buffer = await api.downloadTheme(args.name);
       const zip: AdmZip = new AdmZip(buffer);

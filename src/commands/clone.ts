@@ -1,6 +1,7 @@
 /* eslint-disable complexity */
 /* eslint-disable max-params */
-import { NormalizedResponseDTO, Organization, Team, TeamVisibilityEnum } from '@kyso-io/kyso-model';
+import type { NormalizedResponseDTO, Organization, Team } from '@kyso-io/kyso-model';
+import { TeamVisibilityEnum } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import { Flags } from '@oclif/core';
 import AdmZip from 'adm-zip';
@@ -8,8 +9,8 @@ import { readdirSync } from 'fs';
 import { join, resolve } from 'path';
 import { Helper } from '../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
-import { ErrorResponse } from '../types/error-response';
-import { KysoCredentials } from '../types/kyso-credentials';
+import type { ErrorResponse } from '../types/error-response';
+import type { KysoCredentials } from '../types/kyso-credentials';
 import { KysoCommand } from './kyso-command';
 
 export default class Clone extends KysoCommand {
@@ -48,7 +49,7 @@ export default class Clone extends KysoCommand {
     }
 
     const parsed = await this.parse(Clone);
-    const cloneUrl: string = parsed.args.cloneUrl;
+    const { cloneUrl } = parsed.args;
 
     if (!cloneUrl) {
       this.log('\nError: Must provide the report URL\n');
@@ -68,7 +69,7 @@ export default class Clone extends KysoCommand {
     }
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
-    api.configure(baseUrl + '/api/v1', kysoCredentials?.token);
+    api.configure(`${baseUrl}/api/v1`, kysoCredentials?.token);
     let organization: Organization | null = null;
     try {
       const resultOrganization: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(organizationSlug);
@@ -140,8 +141,8 @@ export default class Clone extends KysoCommand {
 
   async extractReport(baseUrl: string, organization: string, team: string, report: string, version: number | null, path: string): Promise<void> {
     const api: Api = new Api();
-    api.configure(baseUrl + '/api/v1', KysoCommand.getCredentials()?.token, organization, team);
-    const finalPath: string = path + '/' + report;
+    api.configure(`${baseUrl}/api/v1`, KysoCommand.getCredentials()?.token, organization, team);
+    const finalPath: string = `${path}/${report}`;
 
     const data: any = {
       teamName: team,

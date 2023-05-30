@@ -1,9 +1,10 @@
 import { Api } from '@kyso-io/kyso-store';
-import { createReadStream, existsSync, ReadStream } from 'fs';
+import type { ReadStream } from 'fs';
+import { createReadStream, existsSync } from 'fs';
 import jwtDecode from 'jwt-decode';
 import { Helper } from '../../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../../helpers/interactive-login';
-import { KysoCredentials } from '../../../types/kyso-credentials';
+import type { KysoCredentials } from '../../../types/kyso-credentials';
 import { KysoCommand } from '../../kyso-command';
 
 export default class UploadPhoto extends KysoCommand {
@@ -32,7 +33,7 @@ export default class UploadPhoto extends KysoCommand {
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
+    api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials?.token);
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     try {
       const readStream: ReadStream = createReadStream(args.path);

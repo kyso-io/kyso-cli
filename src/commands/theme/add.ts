@@ -1,8 +1,9 @@
 import { Api } from '@kyso-io/kyso-store';
-import { createReadStream, existsSync, ReadStream } from 'fs';
+import type { ReadStream } from 'fs';
+import { createReadStream, existsSync } from 'fs';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import { ErrorResponse } from '../../types/error-response';
-import { KysoCredentials } from '../../types/kyso-credentials';
+import type { ErrorResponse } from '../../types/error-response';
+import type { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 
 export default class Add extends KysoCommand {
@@ -38,7 +39,7 @@ export default class Add extends KysoCommand {
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
-    api.configure(kysoCredentials?.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
+    api.configure(`${kysoCredentials?.kysoInstallUrl}/api/v1`, kysoCredentials?.token);
     try {
       const readStream: ReadStream = createReadStream(args.path);
       await api.uploadTheme(args.name, readStream);

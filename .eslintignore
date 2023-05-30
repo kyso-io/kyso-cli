@@ -1,2 +1,4 @@
 /dist
 /test
+/tmp
+/node_modules

@@ -1,14 +1,16 @@
-import { NormalizedResponseDTO, SignUpDto, TokenPermissions, User } from '@kyso-io/kyso-model';
+import type { NormalizedResponseDTO, TokenPermissions, User } from '@kyso-io/kyso-model';
+import { SignUpDto } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import jwtDecode from 'jwt-decode';
-import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import { ErrorResponse } from '../../types/error-response';
-import { KysoCredentials } from '../../types/kyso-credentials';
-import { KysoCommand } from '../kyso-command';
 import inquirer = require('inquirer');
-import { Helper } from '../../helpers/helper';
 import { Flags } from '@oclif/core';
 import * as crypto from 'crypto';
+import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
+import type { ErrorResponse } from '../../types/error-response';
+import type { KysoCredentials } from '../../types/kyso-credentials';
+import { KysoCommand } from '../kyso-command';
+import { Helper } from '../../helpers/helper';
+
 export default class AddUsers extends KysoCommand {
   static description = 'Add users to the system';
 
@@ -56,7 +58,7 @@ export default class AddUsers extends KysoCommand {
     }
 
     username = Helper.isEmail(extractedEmail) ? extractedEmail.split('@')[0] : extractedEmail;
-    displayName = displayName ? displayName : username;
+    displayName = displayName || username;
 
     const wishlist = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
     const length = 30;
@@ -74,7 +76,7 @@ export default class AddUsers extends KysoCommand {
             type: 'input',
             name: 'email',
             message: 'What is the email of the user?',
-            validate: function (email: string) {
+            validate(email: string) {
               if (email === '') {
                 return 'Email cannot be empty';
               }
@@ -92,7 +94,7 @@ export default class AddUsers extends KysoCommand {
           type: 'input',
           name: 'username',
           message: 'What is the username of the user?',
-          validate: function (username: string) {
+          validate(username: string) {
             if (username === '') {
               return 'Username cannot be empty';
             }
@@ -106,7 +108,7 @@ export default class AddUsers extends KysoCommand {
           type: 'input',
           name: 'display_name',
           message: 'What is the name of the user?',
-          validate: function (display_name: string) {
+          validate(display_name: string) {
             if (display_name === '') {
               return 'Name cannot be empty';
             }
@@ -120,7 +122,7 @@ export default class AddUsers extends KysoCommand {
           type: 'password',
           name: 'password',
           message: 'What is the password of the user?',
-          validate: function (password: string) {
+          validate(password: string) {
             if (password === '') {
               return 'Password cannot be empty';
             }
@@ -134,7 +136,7 @@ export default class AddUsers extends KysoCommand {
           type: 'password',
           name: 'password_confirmation',
           message: 'What is the password confirmation of the user?',
-          validate: function (password_confirmation: string) {
+          validate(password_confirmation: string) {
             if (password_confirmation === '') {
               return 'Password confirmation cannot be empty';
             }
@@ -165,7 +167,7 @@ export default class AddUsers extends KysoCommand {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     const api: Api = new Api();
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
+    api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials?.token);
     let tokenPermissions: TokenPermissions | null = null;
     try {
       const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(decoded.payload.username);

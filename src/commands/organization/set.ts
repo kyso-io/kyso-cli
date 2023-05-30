@@ -1,15 +1,17 @@
-import { NormalizedResponseDTO, Organization, OrganizationNotificationsDTO, OrganizationOptionsDTO, ResourcePermissions, TokenPermissions, UpdateOrganizationDTO } from '@kyso-io/kyso-model';
+import type { NormalizedResponseDTO, Organization, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import { OrganizationNotificationsDTO, OrganizationOptionsDTO, UpdateOrganizationDTO } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import axios from 'axios';
-import { createReadStream, existsSync, readFileSync, ReadStream, unlinkSync, writeFileSync } from 'fs';
+import type { ReadStream } from 'fs';
+import { createReadStream, existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 import * as jsYaml from 'js-yaml';
 import jwtDecode from 'jwt-decode';
 import * as _ from 'lodash';
 import { join } from 'path';
 import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import { KysoCredentials } from '../../types/kyso-credentials';
-import { OrganizationData } from '../../types/organization-data';
+import type { KysoCredentials } from '../../types/kyso-credentials';
+import type { OrganizationData } from '../../types/organization-data';
 import { KysoCommand } from '../kyso-command';
 
 export default class OrganizationsSet extends KysoCommand {
@@ -176,12 +178,10 @@ export default class OrganizationsSet extends KysoCommand {
       } catch (e: any) {
         this.log(`Error updating organization ${organizationData.slug}: ${e.response.data.message}`);
       }
+    } else if (!updatedPhoto) {
+      this.log(`No changes to update for the organization ${organizationData.slug}`);
     } else {
-      if (!updatedPhoto) {
-        this.log(`No changes to update for the organization ${organizationData.slug}`);
-      } else {
-        this.log(`Organization '${organizationData.slug}' updated`);
-      }
+      this.log(`Organization '${organizationData.slug}' updated`);
     }
   }
 
@@ -207,7 +207,7 @@ export default class OrganizationsSet extends KysoCommand {
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
+    api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials?.token);
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     let tokenPermissions: TokenPermissions | null = null;
     try {

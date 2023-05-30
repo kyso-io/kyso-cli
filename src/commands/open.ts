@@ -4,7 +4,7 @@ import { existsSync, lstatSync, readdirSync } from 'fs';
 import open from 'open';
 import { isAbsolute, join } from 'path';
 import { Helper } from '../helpers/helper';
-import { KysoCredentials } from '../types/kyso-credentials';
+import type { KysoCredentials } from '../types/kyso-credentials';
 import { KysoCommand } from './kyso-command';
 
 export default class Open extends KysoCommand {

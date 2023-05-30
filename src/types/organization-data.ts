@@ -1,4 +1,4 @@
-export interface OrganizationData {
+export type OrganizationData = {
   slug: string;
   display_name: string;
   allowed_access_domains: string[];
@@ -9,12 +9,12 @@ export interface OrganizationData {
   photo?: string | null;
   options: {
     // DEPRECATED
-    /*auth: {
+    /* auth: {
       otherProviders: any[];
-    };*/
+    }; */
     notifications: {
       centralized: boolean;
       emails: string[];
     };
   };
-}
+};

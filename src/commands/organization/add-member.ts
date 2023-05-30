@@ -1,8 +1,9 @@
-import { KysoRole, UserDTO, OrganizationMember, NormalizedResponseDTO, Organization, AddUserOrganizationDto } from '@kyso-io/kyso-model';
+import type { UserDTO, NormalizedResponseDTO, Organization } from '@kyso-io/kyso-model';
+import { AddUserOrganizationDto } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import { KysoCredentials } from '../../types/kyso-credentials';
+import type { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 
 export default class AddMemberToOrganization extends KysoCommand {
@@ -50,7 +51,7 @@ export default class AddMemberToOrganization extends KysoCommand {
         this.error(`Provided user ${userEmail} not found at ${kysoCredentials.kysoInstallUrl}`);
       }
 
-      const newMember: AddUserOrganizationDto = new AddUserOrganizationDto(organizationObject.data.id, usersResponse.data[0].id, role ? role : 'team-reader');
+      const newMember: AddUserOrganizationDto = new AddUserOrganizationDto(organizationObject.data.id, usersResponse.data[0].id, role || 'team-reader');
 
       api.setOrganizationSlug(organizationObject.data.sluglified_name);
       await api.addUserToOrganization(newMember);
@@ -75,7 +76,7 @@ export default class AddMemberToOrganization extends KysoCommand {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
 
     const api: Api = new Api();
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
+    api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials?.token);
 
     for (const userEmail of list_of_users) {
       try {

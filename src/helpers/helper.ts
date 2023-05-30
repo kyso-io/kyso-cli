@@ -1,4 +1,5 @@
-import { GlobalPermissionsEnum, KysoConfigFile, NormalizedResponseDTO, Organization, OrganizationPermissionsEnum, ResourcePermissions, Team, TokenPermissions } from '@kyso-io/kyso-model';
+import type { NormalizedResponseDTO, Organization, ResourcePermissions, Team, TokenPermissions } from '@kyso-io/kyso-model';
+import { GlobalPermissionsEnum, KysoConfigFile, OrganizationPermissionsEnum } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import { existsSync, lstatSync, readdirSync, readFileSync, statSync } from 'fs';
 import ignore from 'ignore';
@@ -7,7 +8,7 @@ import path, { join } from 'path';
 import sha256File from 'sha256-file';
 import slugify from 'slugify';
 import { KysoCommand } from '../commands/kyso-command';
-import { KysoCredentials } from '../types/kyso-credentials';
+import type { KysoCredentials } from '../types/kyso-credentials';
 
 export class Helper {
   public static async getOrganizationFromSlugSecurely(organizationParameter: string, credentials: KysoCredentials): Promise<NormalizedResponseDTO<Organization>> {
@@ -18,7 +19,7 @@ export class Helper {
     let result: NormalizedResponseDTO<Organization>;
     try {
       const api: Api = new Api();
-      api.configure(credentials.kysoInstallUrl + '/api/v1', credentials?.token);
+      api.configure(`${credentials.kysoInstallUrl}/api/v1`, credentials?.token);
       result = await api.getOrganizationBySlug(slugifiedOrganization);
     } catch (e) {
       console.log(`Can't retrieve organization ${organizationParameter}`);
@@ -40,7 +41,7 @@ export class Helper {
     let result: NormalizedResponseDTO<Team>;
     try {
       const api: Api = new Api();
-      api.configure(credentials.kysoInstallUrl + '/api/v1', credentials?.token, organization.sluglified_name);
+      api.configure(`${credentials.kysoInstallUrl}/api/v1`, credentials?.token, organization.sluglified_name);
       result = await api.getTeamBySlug(organization.id, slugifiedChannel);
     } catch (e) {
       if (!silent) {
@@ -254,11 +255,11 @@ export class Helper {
       if (file.startsWith('.') || file.endsWith('__MACOSX')) {
         continue;
       }
-      if (!existsSync(dirPath + '/' + file)) {
+      if (!existsSync(`${dirPath}/${file}`)) {
         continue;
       }
-      if (statSync(dirPath + '/' + file).isDirectory()) {
-        arrayOfFiles = Helper.getAllFiles(dirPath + '/' + file, arrayOfFiles);
+      if (statSync(`${dirPath}/${file}`).isDirectory()) {
+        arrayOfFiles = Helper.getAllFiles(`${dirPath}/${file}`, arrayOfFiles);
       } else {
         arrayOfFiles.push(join(dirPath, '/', file));
       }
@@ -316,7 +317,7 @@ export class Helper {
 
       if (!path.isAbsolute(file)) {
         if (!isSingleFile) {
-          filePath = path.resolve(dirPath + '/' + file);
+          filePath = path.resolve(`${dirPath}/${file}`);
         } else {
           filePath = path.resolve(dirPath);
         }
@@ -401,7 +402,7 @@ export class Helper {
         message: 'What is the url of your kyso installation?',
         type: 'input',
         default: defaultKysoInstallUrl,
-        validate: function (urlStr: string) {
+        validate(urlStr: string) {
           let url: URL;
           try {
             url = new URL(urlStr);
@@ -427,7 +428,7 @@ export class Helper {
     const size: number = parseFloat(fileSizeStr);
     const unit: string = fileSizeStr.replace(/[^a-z]/gi, '').toLowerCase();
     const power: number = units.indexOf(unit);
-    return Math.floor(size * Math.pow(1024, power));
+    return Math.floor(size * 1024 ** power);
   }
 
   /**
@@ -448,9 +449,8 @@ export class Helper {
 
       if (matches && matches.length > 0) {
         return `${splittedUrl[0].replace(reg, '//')}${url.replace(splittedUrl[0], '')}`;
-      } else {
-        return url;
       }
+      return url;
     } catch (e) {
       console.log('Error sanitizing url. Returning empty string to avoid credential leaking');
       return '';

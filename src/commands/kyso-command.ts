@@ -1,13 +1,14 @@
 /* eslint-disable max-params */
 import { setOrganizationAuthAction, setTeamAuthAction, setTokenAuthAction, store } from '@kyso-io/kyso-store';
-import { Command, Config } from '@oclif/core';
+import type { Config } from '@oclif/core';
+import { Command } from '@oclif/core';
 import * as dotenv from 'dotenv';
 import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 import jwtDecode from 'jwt-decode';
 import { homedir } from 'os';
 import { join } from 'path';
 import { CheckCredentialsResultEnum } from '../types/check-credentials-result.enum';
-import { KysoCredentials } from '../types/kyso-credentials';
+import type { KysoCredentials } from '../types/kyso-credentials';
 
 dotenv.config({
   path: join(__dirname, '../../.env'),
@@ -19,7 +20,9 @@ export abstract class KysoCommand extends Command {
   static args = [];
 
   public static tokenFilePath: string = join(this.DATA_DIRECTORY, 'auth.json');
+
   private verbose: boolean;
+
   private previousKysoCliVerbose = process.env.KYSO_CLI_VERBOSE;
 
   constructor(argv: string[], config: Config) {

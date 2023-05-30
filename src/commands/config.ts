@@ -1,6 +1,6 @@
 import { Flags } from '@oclif/core';
 import inquirer from 'inquirer';
-import { KysoCredentials } from '../types/kyso-credentials';
+import type { KysoCredentials } from '../types/kyso-credentials';
 import { KysoCommand } from './kyso-command';
 
 export default class Config extends KysoCommand {
@@ -36,7 +36,7 @@ export default class Config extends KysoCommand {
           message: 'What is the url of your kyso installation?',
           type: 'input',
           default: kysoCredentials?.fixedKysoInstallUrl || kysoCredentials?.kysoInstallUrl || 'https://',
-          validate: function (url: string) {
+          validate(url: string) {
             if (url === '') {
               return 'Url cannot be empty';
             }

@@ -1,10 +1,11 @@
-import { NormalizedResponseDTO, Organization, ResourcePermissions, Team, TeamPermissionsEnum, TokenPermissions } from '@kyso-io/kyso-model';
+import type { NormalizedResponseDTO, Organization, ResourcePermissions, Team, TokenPermissions } from '@kyso-io/kyso-model';
+import { TeamPermissionsEnum } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import jwtDecode from 'jwt-decode';
 import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import { ErrorResponse } from '../../types/error-response';
-import { KysoCredentials } from '../../types/kyso-credentials';
+import type { ErrorResponse } from '../../types/error-response';
+import type { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 
 export default class DeleteChannel extends KysoCommand {
@@ -82,7 +83,7 @@ export default class DeleteChannel extends KysoCommand {
 
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     const api: Api = new Api();
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
+    api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials?.token);
     let tokenPermissions: TokenPermissions | null = null;
     try {
       const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(decoded.payload.username);

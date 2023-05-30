@@ -1,4 +1,4 @@
-import { NormalizedResponseDTO, Organization, ResourcePermissions, Team, TokenPermissions } from '@kyso-io/kyso-model';
+import type { NormalizedResponseDTO, Organization, ResourcePermissions, Team, TokenPermissions } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import { writeFileSync } from 'fs';
 import * as jsYaml from 'js-yaml';
@@ -6,8 +6,8 @@ import jwtDecode from 'jwt-decode';
 import { resolve } from 'path';
 import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import { ChannelData } from '../../types/channels-data';
-import { KysoCredentials } from '../../types/kyso-credentials';
+import type { ChannelData } from '../../types/channels-data';
+import type { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 
 export default class ChannelsGet extends KysoCommand {
@@ -78,7 +78,7 @@ export default class ChannelsGet extends KysoCommand {
     const channelsNames: string[] = await Helper.getRealChannelsSlugFromStringArray(secureOrg.data, args.list_of_channels, kysoCredentials);
 
     const api: Api = new Api();
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
+    api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials?.token);
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     let tokenPermissions: TokenPermissions | null = null;
     try {

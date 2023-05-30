@@ -2,10 +2,12 @@
 /* eslint-disable indent */
 
 /* eslint-disable camelcase */
-import { KysoSetting, KysoSettingsEnum, NormalizedResponseDTO } from '@kyso-io/kyso-model';
+import type { KysoSetting, NormalizedResponseDTO } from '@kyso-io/kyso-model';
+import { KysoSettingsEnum } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import * as http from 'http';
 import open from 'open';
+
 const destroyer = require('server-destroy');
 
 const PORT = process.env.AUTH_SERVER_PORT || 3000;
@@ -18,7 +20,7 @@ export const authenticateWithGoogle = async (kysoInstallUrl: string): Promise<{ 
     let serverClosed = false;
     let timeout = null;
     const api: Api = new Api();
-    api.configure(kysoInstallUrl + '/api/v1');
+    api.configure(`${kysoInstallUrl}/api/v1`);
     let settings: KysoSetting[] = [];
     try {
       const response: NormalizedResponseDTO<KysoSetting[]> = await api.getPublicSettings();
@@ -54,9 +56,9 @@ export const authenticateWithGoogle = async (kysoInstallUrl: string): Promise<{ 
       .createServer(async (req, res) => {
         try {
           if (req && req.url && req.url.includes(redirectUrl)) {
-            const qs = new URL(req.url, serverBaseUrl).searchParams;
+            const queryString = new URL(req.url, serverBaseUrl).searchParams;
             res.end('Authentication successful! Please return to the console.');
-            resolve({ code: qs.get('code'), redirectUrl: googleAuthCallback, errorMessage: null });
+            resolve({ code: queryString.get('code'), redirectUrl: googleAuthCallback, errorMessage: null });
           } else {
             resolve({ code: null, redirectUrl: googleAuthCallback, errorMessage: 'Could not authenticate with Google' });
           }
@@ -101,7 +103,7 @@ export const authenticateWithGithub = async (kysoInstallUrl: string): Promise<{ 
     let serverClosed = false;
     let timeout = null;
     const api: Api = new Api();
-    api.configure(kysoInstallUrl + '/api/v1');
+    api.configure(`${kysoInstallUrl}/api/v1`);
     let settings: KysoSetting[] = [];
     try {
       const response: NormalizedResponseDTO<KysoSetting[]> = await api.getPublicSettings();
@@ -170,7 +172,7 @@ export const authenticateWithBitbucket = async (kysoInstallUrl: string): Promise
     let serverClosed = false;
     let timeout = null;
     const api: Api = new Api();
-    api.configure(kysoInstallUrl + '/api/v1');
+    api.configure(`${kysoInstallUrl}/api/v1`);
     let settings: KysoSetting[] = [];
     try {
       const response: NormalizedResponseDTO<KysoSetting[]> = await api.getPublicSettings();
@@ -239,7 +241,7 @@ export const authenticateWithGitlab = async (kysoInstallUrl: string): Promise<{ 
     let serverClosed = false;
     let timeout = null;
     const api: Api = new Api();
-    api.configure(kysoInstallUrl + '/api/v1');
+    api.configure(`${kysoInstallUrl}/api/v1`);
     let settings: KysoSetting[] = [];
     try {
       const response: NormalizedResponseDTO<KysoSetting[]> = await api.getPublicSettings();

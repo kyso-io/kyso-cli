@@ -1,15 +1,16 @@
-import { GlobalPermissionsEnum, NormalizedResponseDTO, TokenPermissions, UserDTO } from '@kyso-io/kyso-model';
+import type { NormalizedResponseDTO, TokenPermissions, UserDTO } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import axios from 'axios';
-import { createReadStream, existsSync, readFileSync, ReadStream, unlinkSync, writeFileSync } from 'fs';
+import type { ReadStream } from 'fs';
+import { createReadStream, existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 import * as jsYaml from 'js-yaml';
 import jwtDecode from 'jwt-decode';
 import { join } from 'path';
 import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import { ErrorResponse } from '../../types/error-response';
-import { KysoCredentials } from '../../types/kyso-credentials';
-import { ProfileData } from '../../types/profile-data';
+import type { ErrorResponse } from '../../types/error-response';
+import type { KysoCredentials } from '../../types/kyso-credentials';
+import type { ProfileData } from '../../types/profile-data';
 import { KysoCommand } from '../kyso-command';
 
 export default class SetUsers extends KysoCommand {
@@ -139,12 +140,10 @@ export default class SetUsers extends KysoCommand {
       } catch (e: any) {
         this.error(`Error updating user ${profileData.email}: ${e.response.data.message}`);
       }
+    } else if (!updatedPhoto && !updatedBackgroundImage) {
+      this.log(`No changes for the user '${profileData.email}'`);
     } else {
-      if (!updatedPhoto && !updatedBackgroundImage) {
-        this.log(`No changes for the user '${profileData.email}'`);
-      } else {
-        this.log(`User '${profileData.email}' updated`);
-      }
+      this.log(`User '${profileData.email}' updated`);
     }
   }
 
@@ -171,7 +170,7 @@ export default class SetUsers extends KysoCommand {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     const api: Api = new Api();
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
+    api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials?.token);
     let tokenPermissions: TokenPermissions | null = null;
     try {
       const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(decoded.payload.username);

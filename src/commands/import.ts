@@ -1,12 +1,12 @@
 import { Flags } from '@oclif/core';
-import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
-import { KysoCommand } from './kyso-command';
 import { existsSync, readdirSync, lstatSync, copyFileSync, mkdirSync, writeFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import AdmZip from 'adm-zip';
 import convert = require('xml-js');
 import { v4 as uuidv4 } from 'uuid';
 import { execSync } from 'child_process';
+import { KysoCommand } from './kyso-command';
+import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
 
 export default class Import extends KysoCommand {
   static description = 'Import report into kyso from different sources';
@@ -255,12 +255,14 @@ export default class Import extends KysoCommand {
             // Call kyso push
             const result = execSync(`kyso push --path ${tmpFolder}`);
             rmSync(tmpFolder, { recursive: true, force: true });
-            for (const x of result.toString().split('\n')) console.log(`\t${x}`);
+            for (const x of result.toString().split('\n')) {
+              console.log(`\t${x}`);
+            }
           } else {
             console.log("\t💔 Sorry, we can't retrieve all the required metadata to upload this report");
           }
         } catch (error) {
-          console.log('🔴 An unexpected error happened when processing ' + filename);
+          console.log(`🔴 An unexpected error happened when processing ${filename}`);
 
           if (flags.verbose) {
             console.log(error);

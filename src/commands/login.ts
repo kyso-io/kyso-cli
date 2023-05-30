@@ -2,12 +2,13 @@
 
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable indent */
-import { Login as LoginModel, LoginProviderEnum, NormalizedResponseDTO } from '@kyso-io/kyso-model';
+import type { NormalizedResponseDTO } from '@kyso-io/kyso-model';
+import { Login as LoginModel, LoginProviderEnum } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import { Flags } from '@oclif/core';
 import { interactiveLogin } from '../helpers/interactive-login';
 import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitlab, authenticateWithGoogle } from '../helpers/oauths';
-import { ErrorResponse } from '../types/error-response';
+import type { ErrorResponse } from '../types/error-response';
 import { KysoCommand } from './kyso-command';
 
 export default class Login extends KysoCommand {

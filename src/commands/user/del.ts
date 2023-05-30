@@ -1,11 +1,11 @@
-import { GlobalPermissionsEnum, NormalizedResponseDTO, TokenPermissions, UserDTO } from '@kyso-io/kyso-model';
+import type { NormalizedResponseDTO, TokenPermissions, UserDTO } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import jwtDecode from 'jwt-decode';
-import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import { ErrorResponse } from '../../types/error-response';
-import { KysoCredentials } from '../../types/kyso-credentials';
-import { KysoCommand } from '../kyso-command';
 import inquirer = require('inquirer');
+import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
+import type { ErrorResponse } from '../../types/error-response';
+import type { KysoCredentials } from '../../types/kyso-credentials';
+import { KysoCommand } from '../kyso-command';
 import { Helper } from '../../helpers/helper';
 
 export default class DeleteUsers extends KysoCommand {
@@ -29,7 +29,7 @@ export default class DeleteUsers extends KysoCommand {
           type: 'input',
           name: 'email',
           message: 'What is the email of the user?',
-          validate: function (email: string) {
+          validate(email: string) {
             if (email === '') {
               return 'Email cannot be empty';
             }
@@ -78,7 +78,7 @@ export default class DeleteUsers extends KysoCommand {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     const api: Api = new Api();
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
+    api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials?.token);
     let tokenPermissions: TokenPermissions | null = null;
     try {
       const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(decoded.payload.username);

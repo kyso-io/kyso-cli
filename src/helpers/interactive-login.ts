@@ -1,13 +1,14 @@
 /* eslint-disable indent */
 
-import { Login, LoginProviderEnum, NormalizedResponseDTO } from '@kyso-io/kyso-model';
+import type { NormalizedResponseDTO } from '@kyso-io/kyso-model';
+import { Login, LoginProviderEnum } from '@kyso-io/kyso-model';
 import { Api, loginAction, setTokenAuthAction, store } from '@kyso-io/kyso-store';
+import inquirer = require('inquirer');
 import { KysoCommand } from '../commands/kyso-command';
 import { CheckCredentialsResultEnum } from '../types/check-credentials-result.enum';
-import { KysoCredentials } from '../types/kyso-credentials';
+import type { KysoCredentials } from '../types/kyso-credentials';
 import { Helper } from './helper';
 import { authenticateWithBitbucket, authenticateWithGithub, authenticateWithGitlab, authenticateWithGoogle } from './oauths';
-import inquirer = require('inquirer');
 
 export const launchInteractiveLoginIfNotLogged = async (): Promise<void> => {
   const checkCredentialsResult: CheckCredentialsResultEnum = await KysoCommand.checkCredentials();
@@ -36,7 +37,7 @@ export const launchInteractiveLoginIfNotLogged = async (): Promise<void> => {
       try {
         const savedCredentials: KysoCredentials = KysoCommand.getCredentials();
         const api: Api = new Api(savedCredentials.token);
-        api.configure(savedCredentials.kysoInstallUrl + '/api/v1', savedCredentials.token);
+        api.configure(`${savedCredentials.kysoInstallUrl}/api/v1`, savedCredentials.token);
         const refreshedToken: NormalizedResponseDTO<string> = await api.refreshToken();
         if (refreshedToken.data) {
           store.dispatch(setTokenAuthAction(refreshedToken.data));
@@ -51,6 +52,8 @@ export const launchInteractiveLoginIfNotLogged = async (): Promise<void> => {
       // All right, nothing to do
       break;
     }
+    default:
+      break;
   }
 };
 
@@ -88,7 +91,7 @@ export const interactiveLogin = async (kysoCredentials: KysoCredentials | null):
           name: 'email',
           message: 'What is your email?',
           type: 'input',
-          validate: function (password: string) {
+          validate(password: string) {
             if (password === '') {
               return 'Email cannot be empty';
             }
@@ -99,6 +102,9 @@ export const interactiveLogin = async (kysoCredentials: KysoCredentials | null):
       login.email = emailResponse.email;
       break;
     }
+    default:
+      login.email = '';
+      break;
   }
   switch (providerResponse.provider) {
     case LoginProviderEnum.KYSO: {
@@ -108,7 +114,7 @@ export const interactiveLogin = async (kysoCredentials: KysoCredentials | null):
           message: 'What is your password?',
           type: 'password',
           mask: '*',
-          validate: function (password: string) {
+          validate(password: string) {
             if (password === '') {
               return 'Password cannot be empty';
             }
@@ -126,7 +132,7 @@ export const interactiveLogin = async (kysoCredentials: KysoCredentials | null):
           message: `What is your access token (Get one from ${login.kysoInstallUrl}/settings )?`,
           type: 'accessToken',
           mask: '*',
-          validate: function (accessToken: string) {
+          validate(accessToken: string) {
             if (accessToken === '') {
               return 'Access token cannot be empty';
             }
@@ -171,6 +177,9 @@ export const interactiveLogin = async (kysoCredentials: KysoCredentials | null):
       login.payload = gitlabResponse.redirectUrl;
       break;
     }
+    default:
+      throw new Error('No provider selected');
+      break;
   }
   if (login.kysoInstallUrl) {
     process.env.KYSO_API = `${login.kysoInstallUrl}/api/v1`;

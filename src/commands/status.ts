@@ -1,6 +1,7 @@
 /* eslint-disable complexity */
 /* eslint-disable no-await-in-loop */
-import { CheckPermissionDto, File as KysoFile, KysoConfigFile, NormalizedResponseDTO, ReportDTO, ReportPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import type { File as KysoFile, KysoConfigFile, NormalizedResponseDTO, ReportDTO, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import { CheckPermissionDto, ReportPermissionsEnum } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import color from '@oclif/color';
 import { Flags } from '@oclif/core';
@@ -10,8 +11,8 @@ import moment from 'moment';
 import { join, resolve } from 'path';
 import { Helper } from '../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
-import { ErrorResponse } from '../types/error-response';
-import { KysoCredentials } from '../types/kyso-credentials';
+import type { ErrorResponse } from '../types/error-response';
+import type { KysoCredentials } from '../types/kyso-credentials';
 import { KysoCommand } from './kyso-command';
 
 export default class Status extends KysoCommand {
@@ -33,7 +34,7 @@ export default class Status extends KysoCommand {
   private async reportStatus(reportFolder: string, basePath: string): Promise<void> {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api(kysoCredentials.token);
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials.token);
+    api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials.token);
 
     const filesBasePath: string[] = readdirSync(basePath).map((file: string) => join(basePath, file));
     const { kysoConfigFile, valid, message } = Helper.findKysoConfigFile(filesBasePath);
@@ -103,12 +104,10 @@ export default class Status extends KysoCommand {
         const indexFile: number = reportFiles.findIndex((reportFile: KysoFile) => reportFile.name === validFile.name);
         if (indexFile === -1) {
           newFiles.push(validFile.name);
+        } else if (reportFiles[indexFile].sha === validFile.sha) {
+          unmodifiedFiles.push(reportFiles[indexFile].name);
         } else {
-          if (reportFiles[indexFile].sha === validFile.sha) {
-            unmodifiedFiles.push(reportFiles[indexFile].name);
-          } else {
-            modifiedFiles.push(reportFiles[indexFile].name);
-          }
+          modifiedFiles.push(reportFiles[indexFile].name);
         }
       });
       reportFiles.forEach((reportFile: KysoFile) => {

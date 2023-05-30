@@ -1,4 +1,4 @@
-import { NormalizedResponseDTO, Organization, ResourcePermissions, Team, TokenPermissions } from '@kyso-io/kyso-model';
+import type { NormalizedResponseDTO, Organization, ResourcePermissions, Team, TokenPermissions } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import { Flags } from '@oclif/core';
 import axios from 'axios';
@@ -8,8 +8,8 @@ import jwtDecode from 'jwt-decode';
 import { resolve } from 'path';
 import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import { KysoCredentials } from '../../types/kyso-credentials';
-import { OrganizationData } from '../../types/organization-data';
+import type { KysoCredentials } from '../../types/kyso-credentials';
+import type { OrganizationData } from '../../types/organization-data';
 import { KysoCommand } from '../kyso-command';
 
 export default class OrganizationsGet extends KysoCommand {
@@ -84,9 +84,9 @@ export default class OrganizationsGet extends KysoCommand {
         bio: organization.bio,
         channels: [],
         options: {
-          /*auth: {
+          /* auth: {
             otherProviders: organization.options?.auth?.otherProviders || [],
-          },*/
+          }, */
           notifications: {
             centralized: organization.options?.notifications?.centralized || false,
             emails: organization.options?.notifications?.emails || [],
@@ -139,7 +139,7 @@ export default class OrganizationsGet extends KysoCommand {
     const organizationsSlugs: string[] = await Helper.getRealOrganizationSlugFromStringArray(args.list_of_orgs, kysoCredentials);
 
     const api: Api = new Api();
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
+    api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials?.token);
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     let tokenPermissions: TokenPermissions | null = null;
     try {

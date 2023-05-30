@@ -1,35 +1,26 @@
 /* eslint-disable complexity */
 /* eslint-disable no-await-in-loop */
-import {
-  CheckPermissionDto,
-  GitMetadata,
-  KysoConfigFile,
-  File as KysoFile,
-  KysoSettingsEnum,
-  NormalizedResponseDTO,
-  ReportDTO,
-  ReportPermissionsEnum,
-  ReportType,
-  ResourcePermissions,
-  TokenPermissions,
-} from '@kyso-io/kyso-model';
+import type { GitMetadata, File as KysoFile, NormalizedResponseDTO, ReportDTO, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import { CheckPermissionDto, KysoConfigFile, KysoSettingsEnum, ReportPermissionsEnum, ReportType } from '@kyso-io/kyso-model';
 import { Api, createKysoReportAction, setOrganizationAuthAction, setTeamAuthAction, store, updateKysoReportAction } from '@kyso-io/kyso-store';
 import { Flags } from '@oclif/core';
 import AdmZip from 'adm-zip';
-import axios, { AxiosResponse } from 'axios';
+import type { AxiosResponse } from 'axios';
+import axios from 'axios';
 import FormData from 'form-data';
-import { createReadStream, existsSync, lstatSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'fs';
+import { createReadStream, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'fs';
 import hostedGitInfo from 'hosted-git-info';
 import * as jsYaml from 'js-yaml';
 import jwtDecode from 'jwt-decode';
 import { homedir } from 'os';
 import { basename, extname, isAbsolute, join } from 'path';
-import { BranchSummary, CleanOptions, SimpleGit, simpleGit } from 'simple-git';
+import type { BranchSummary, SimpleGit } from 'simple-git';
+import { CleanOptions, simpleGit } from 'simple-git';
 import { v4 as uuidv4 } from 'uuid';
 import { Helper } from '../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
-import { ErrorResponse } from '../types/error-response';
-import { KysoCredentials } from '../types/kyso-credentials';
+import type { ErrorResponse } from '../types/error-response';
+import type { KysoCredentials } from '../types/kyso-credentials';
 import { KysoCommand } from './kyso-command';
 
 export default class Push extends KysoCommand {
@@ -122,7 +113,7 @@ export default class Push extends KysoCommand {
   private async uploadReportAux(reportFolder: string, basePath: string, validFiles: { path: string; sha: string }[], pushMessage: string): Promise<void> {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api(kysoCredentials.token);
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials.token);
+    api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials.token);
 
     const { kysoConfigFile, valid, message, kysoConfigPath } = Helper.findKysoConfigFile(
       validFiles.map((f: { path: string; sha: string }) => f.path),
@@ -284,7 +275,7 @@ export default class Push extends KysoCommand {
     let existsMethod = true;
     // Check the put endpoint is available in the api
     try {
-      api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials.token, kysoConfigFile.organization, kysoConfigFile.team || kysoConfigFile.channel);
+      api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials.token, kysoConfigFile.organization, kysoConfigFile.team || kysoConfigFile.channel);
       await api.getHttpClient().put(`/reports/kyso/XXXX`);
     } catch (error: any) {
       const errorResponse: ErrorResponse = error.response.data;
@@ -485,7 +476,7 @@ export default class Push extends KysoCommand {
   private async uploadSimpleFile(basePath: string, reportSingleFile: { headers: { [key: string]: string }; filePath: string; sha: string }, pushMessage: string): Promise<ReportDTO> {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api(kysoCredentials.token);
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials.token);
+    api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials.token);
 
     const fileName: string = basename(reportSingleFile.filePath);
     const kysoConfigFile: KysoConfigFile = { ...reportSingleFile.headers } as any;
@@ -602,7 +593,7 @@ export default class Push extends KysoCommand {
 
     const resultKysoSettings: NormalizedResponseDTO<string> = await api.getSettingValue(KysoSettingsEnum.MAX_FILE_SIZE);
 
-    const size = statSync(outputFilePath).size;
+    const { size } = statSync(outputFilePath);
     const maxFileSize = Helper.parseFileSizeStr(resultKysoSettings.data || '500mb');
     if (size > maxFileSize) {
       this.log(`\nError: You exceeded the maximum upload size permitted (${payload.maxFileSizeStr})`);

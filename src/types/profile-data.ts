@@ -1,4 +1,4 @@
-export interface ProfileData {
+export type ProfileData = {
   email: string;
   username: string;
   name: string;
@@ -8,4 +8,4 @@ export interface ProfileData {
   link: string | null;
   photo?: string | null;
   background?: string | null;
-}
+};

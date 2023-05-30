@@ -1,9 +1,10 @@
-import { Organization, GlobalPermissionsEnum, NormalizedResponseDTO, OrganizationPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import type { NormalizedResponseDTO, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import { OrganizationPermissionsEnum } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import jwtDecode from 'jwt-decode';
 import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import { KysoCredentials } from '../../types/kyso-credentials';
+import type { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
 
 export default class DeleteOrganization extends KysoCommand {
@@ -56,7 +57,7 @@ export default class DeleteOrganization extends KysoCommand {
 
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     const api: Api = new Api();
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
+    api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials?.token);
     let tokenPermissions: TokenPermissions | null = null;
     try {
       const resultPermissions: NormalizedResponseDTO<TokenPermissions> = await api.getUserPermissions(decoded.payload.username);

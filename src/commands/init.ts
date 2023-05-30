@@ -1,14 +1,15 @@
-import { NormalizedResponseDTO, ReportPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import type { NormalizedResponseDTO, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import { ReportPermissionsEnum } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import { Flags } from '@oclif/core';
 import { existsSync, lstatSync, readdirSync, writeFileSync } from 'fs';
 import * as jsYaml from 'js-yaml';
 import jwtDecode from 'jwt-decode';
 import { basename, isAbsolute, join } from 'path';
-import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
-import { KysoCredentials } from '../types/kyso-credentials';
-import { KysoCommand } from './kyso-command';
 import inquirer = require('inquirer');
+import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
+import type { KysoCredentials } from '../types/kyso-credentials';
+import { KysoCommand } from './kyso-command';
 import { Helper } from '../helpers/helper';
 
 enum ReportTypes {
@@ -168,7 +169,7 @@ export default class Init extends KysoCommand {
         message: 'Entrypoint file?',
         type: 'input',
         default: defaultFile,
-        validate: function (mainFile: string) {
+        validate(mainFile: string) {
           if (mainFile === '') {
             return 'main file cannot be empty';
           }
@@ -184,7 +185,7 @@ export default class Init extends KysoCommand {
         message: 'Title',
         type: 'input',
         default: basename(process.cwd()),
-        validate: function (title: string) {
+        validate(title: string) {
           if (title === '') {
             return 'title cannot be empty';
           }

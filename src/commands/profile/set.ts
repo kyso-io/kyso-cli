@@ -1,13 +1,14 @@
-import { NormalizedResponseDTO, UserDTO } from '@kyso-io/kyso-model';
+import type { NormalizedResponseDTO, UserDTO } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import axios from 'axios';
-import { createReadStream, existsSync, readFileSync, ReadStream, unlinkSync, writeFileSync } from 'fs';
+import type { ReadStream } from 'fs';
+import { createReadStream, existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 import * as jsYaml from 'js-yaml';
 import jwtDecode from 'jwt-decode';
 import { join } from 'path';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import { KysoCredentials } from '../../types/kyso-credentials';
-import { ProfileData } from '../../types/profile-data';
+import type { KysoCredentials } from '../../types/kyso-credentials';
+import type { ProfileData } from '../../types/profile-data';
 import { KysoCommand } from '../kyso-command';
 
 export default class UserProfileSet extends KysoCommand {
@@ -80,7 +81,7 @@ export default class UserProfileSet extends KysoCommand {
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
+    api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials?.token);
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     let userDto: UserDTO | null = null;
     let profileData: ProfileData | null = null;
@@ -156,12 +157,10 @@ export default class UserProfileSet extends KysoCommand {
       } catch (e: any) {
         this.error(`Error updating user profile: ${e.response.data.message}`);
       }
+    } else if (!updatedPhoto && !updatedBackgroundImage) {
+      this.log('No changes to update');
     } else {
-      if (!updatedPhoto && !updatedBackgroundImage) {
-        this.log('No changes to update');
-      } else {
-        this.log('User profile updated');
-      }
+      this.log('User profile updated');
     }
   }
 }

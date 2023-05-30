@@ -1,10 +1,12 @@
-import { GlobalPermissionsEnum, NormalizedResponseDTO, Organization, OrganizationPermissionsEnum, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import type { NormalizedResponseDTO, Organization, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import { OrganizationPermissionsEnum } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
-import { createReadStream, existsSync, ReadStream } from 'fs';
+import type { ReadStream } from 'fs';
+import { createReadStream, existsSync } from 'fs';
 import jwtDecode from 'jwt-decode';
 import { Helper } from '../../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../../helpers/interactive-login';
-import { KysoCredentials } from '../../../types/kyso-credentials';
+import type { KysoCredentials } from '../../../types/kyso-credentials';
 import { KysoCommand } from '../../kyso-command';
 
 export default class UploadPhoto extends KysoCommand {
@@ -45,7 +47,7 @@ export default class UploadPhoto extends KysoCommand {
     const organization: NormalizedResponseDTO<Organization> = await Helper.getOrganizationFromSlugSecurely(args.organization, kysoCredentials);
 
     const api: Api = new Api();
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token, organization.data.sluglified_name);
+    api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials?.token, organization.data.sluglified_name);
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     let tokenPermissions: TokenPermissions | null = null;
     try {

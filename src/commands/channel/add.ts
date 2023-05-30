@@ -1,12 +1,13 @@
-import { AllowDownload, NormalizedResponseDTO, Organization, ResourcePermissions, Team, TeamPermissionsEnum, TeamVisibilityEnum, TokenPermissions } from '@kyso-io/kyso-model';
+import type { NormalizedResponseDTO, Organization, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import { AllowDownload, Team, TeamPermissionsEnum, TeamVisibilityEnum } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import { Flags } from '@oclif/core';
 import jwtDecode from 'jwt-decode';
+import inquirer = require('inquirer');
 import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import { KysoCredentials } from '../../types/kyso-credentials';
+import type { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
-import inquirer = require('inquirer');
 
 export default class AddChannel extends KysoCommand {
   static description =
@@ -47,7 +48,7 @@ export default class AddChannel extends KysoCommand {
             type: 'input',
             name: 'displayName',
             message: 'What is the name of the channel?',
-            validate: function (displayName: string) {
+            validate(displayName: string) {
               if (displayName === '') {
                 return 'Name cannot be empty';
               }
@@ -113,7 +114,7 @@ export default class AddChannel extends KysoCommand {
     const channelsNames: string[] = args.list_of_channels.split(',');
 
     const api: Api = new Api();
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
+    api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials?.token);
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     let tokenPermissions: TokenPermissions | null = null;
     try {

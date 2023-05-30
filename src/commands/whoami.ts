@@ -1,6 +1,6 @@
-import { User } from '@kyso-io/kyso-model';
+import type { User } from '@kyso-io/kyso-model';
 import jwtDecode from 'jwt-decode';
-import { KysoCredentials } from '../types/kyso-credentials';
+import type { KysoCredentials } from '../types/kyso-credentials';
 import { KysoCommand } from './kyso-command';
 
 export default class Push extends KysoCommand {

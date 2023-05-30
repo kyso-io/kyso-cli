@@ -1,4 +1,4 @@
-import { NormalizedResponseDTO, UserDTO } from '@kyso-io/kyso-model';
+import type { NormalizedResponseDTO, UserDTO } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import { Flags } from '@oclif/core';
 import axios from 'axios';
@@ -6,7 +6,7 @@ import { writeFileSync } from 'fs';
 import jwtDecode from 'jwt-decode';
 import { join, resolve } from 'path';
 import { launchInteractiveLoginIfNotLogged } from '../../../helpers/interactive-login';
-import { KysoCredentials } from '../../../types/kyso-credentials';
+import type { KysoCredentials } from '../../../types/kyso-credentials';
 import { KysoCommand } from '../../kyso-command';
 
 export default class DownloadProfileBackground extends KysoCommand {
@@ -30,7 +30,7 @@ export default class DownloadProfileBackground extends KysoCommand {
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
+    api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials?.token);
     const decoded: { payload: any } = jwtDecode(kysoCredentials.token);
     try {
       const result: NormalizedResponseDTO<UserDTO> = await api.getUserProfileByUsername(decoded.payload.username);

@@ -1,9 +1,9 @@
-import { TeamVisibilityEnum } from '@kyso-io/kyso-model';
+import type { TeamVisibilityEnum } from '@kyso-io/kyso-model';
 
-export interface ChannelData {
+export type ChannelData = {
   organization: string;
   slug: string;
   visibility: TeamVisibilityEnum;
   display_name: string;
   description: string | null;
-}
+};

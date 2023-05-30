@@ -1,0 +1,83 @@
+{
+  // Configuration for JavaScript files
+  "extends": [
+    "airbnb-base",
+    "plugin:prettier/recommended"
+  ],
+  "rules": {
+    "prettier/prettier": [
+      "error",
+      {
+        // "singleQuote": true,
+        // "endOfLine": "auto"
+      }
+    ]
+  },
+  "overrides": [
+    // Configuration for TypeScript files
+    {
+      "files": ["**/*.ts", "**/*.tsx"],
+      "plugins": ["@typescript-eslint", "unused-imports", "simple-import-sort"],
+      "extends": ["airbnb-typescript", "plugin:prettier/recommended"],
+      "parserOptions": {
+        "project": "./tsconfig.json"
+      },
+      "rules": {
+        "prettier/prettier": [
+          "error",
+          {
+            // "singleQuote": false,
+            // "endOfLine": "auto"
+          }
+        ],
+        // "max-len": [
+        //   "error",
+        //   {
+        //     "code": 200
+        //   }
+        // ],
+        "no-console": "warn",
+        "no-plusplus": "warn",
+        "no-continue": "warn",
+        "no-lonely-if": "warn",
+        "no-underscore-dangle": "warn",
+        "class-methods-use-this": "warn",
+        "@typescript-eslint/no-shadow": "warn",
+        "@typescript-eslint/naming-convention": "warn",
+        "unused-imports/no-unused-vars": "warn",
+        "default-case": "warn",
+        "no-prototype-builtins": "warn",
+        "prefer-regex-literals": "warn",
+        "prefer-destructuring": "warn",
+        "consistent-return": "warn",
+        "no-useless-escape": "off",
+        "no-nested-ternary": "off",
+        "no-restricted-syntax": "off",
+        "no-param-reassign": "off",
+        "@typescript-eslint/no-use-before-define": "off",
+        "no-empty": "off",
+        "no-await-in-loop": "warn", // Sometimes is needed man...
+        "semi": "error",
+        "curly": ["error", "all"],
+        "no-extra-semi": "error",
+        "react/jsx-filename-extension": "off",
+        "@typescript-eslint/comma-dangle": "off", // Avoid conflict rule between Eslint and Prettier
+        "@typescript-eslint/consistent-type-imports": "error", // Ensure `import type` is used when it's necessary
+        "@typescript-eslint/no-explicit-any": "warn",
+        "import/no-extraneous-dependencies": "off", // Removed because detects 3rd party dependencies as extraneous...
+        "import/prefer-default-export": "off", // Named export is easier to refactor automatically
+        "simple-import-sort/imports": "off", // Import configuration for `eslint-plugin-simple-import-sort`
+        "simple-import-sort/exports": "off", // Export configuration for `eslint-plugin-simple-import-sort`
+        "@typescript-eslint/no-unused-vars": "off",
+        "unused-imports/no-unused-imports": "error",
+        // "unused-imports/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
+      }
+    },
+    // Configuration for testing
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "plugins": ["jest", "jest-formatting", "testing-library"],
+      "extends": ["plugin:jest/recommended", "plugin:jest-formatting/recommended"]
+    }
+  ]
+}

@@ -5,8 +5,8 @@ import { Flags } from '@oclif/core';
 import { readFileSync, writeFileSync } from 'fs';
 import { isAbsolute, join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { KysoCommand } from './kyso-command';
 import inquirer = require('inquirer');
+import { KysoCommand } from './kyso-command';
 import { Helper } from '../helpers/helper';
 
 export default class Format extends KysoCommand {

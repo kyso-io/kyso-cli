@@ -1,5 +1,6 @@
 /* eslint-disable max-params */
-import { KysoConfigFile, NormalizedResponseDTO, Organization, Team, TeamVisibilityEnum } from '@kyso-io/kyso-model';
+import type { KysoConfigFile, NormalizedResponseDTO, Organization, Team } from '@kyso-io/kyso-model';
+import { TeamVisibilityEnum } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import { Flags } from '@oclif/core';
 import AdmZip from 'adm-zip';
@@ -7,8 +8,8 @@ import { readdirSync } from 'fs';
 import { join, resolve } from 'path';
 import { Helper } from '../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../helpers/interactive-login';
-import { ErrorResponse } from '../types/error-response';
-import { KysoCredentials } from '../types/kyso-credentials';
+import type { ErrorResponse } from '../types/error-response';
+import type { KysoCredentials } from '../types/kyso-credentials';
 import { KysoCommand } from './kyso-command';
 
 export default class Push extends KysoCommand {
@@ -103,7 +104,7 @@ export default class Push extends KysoCommand {
     // Check if channel is public
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
-    api.configure(kysoCredentials?.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
+    api.configure(`${kysoCredentials?.kysoInstallUrl}/api/v1`, kysoCredentials?.token);
     let organization: Organization | null = null;
     try {
       const resultOrganization: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(organizationSlug);
@@ -148,7 +149,7 @@ export default class Push extends KysoCommand {
     try {
       const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
       const api: Api = new Api();
-      api.configure(kysoCredentials?.kysoInstallUrl + '/api/v1', kysoCredentials?.token, organization, team);
+      api.configure(`${kysoCredentials?.kysoInstallUrl}/api/v1`, kysoCredentials?.token, organization, team);
       const result: Buffer = await api.pullReport(report, team, version);
       const zip: AdmZip = new AdmZip(result);
       let finalPath: string = path;

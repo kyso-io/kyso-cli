@@ -1,9 +1,10 @@
-import { AllowDownload, CreateOrganizationDto, NormalizedResponseDTO, Organization } from '@kyso-io/kyso-model';
+import type { NormalizedResponseDTO, Organization } from '@kyso-io/kyso-model';
+import { AllowDownload, CreateOrganizationDto } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
-import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
-import { KysoCredentials } from '../../types/kyso-credentials';
-import { KysoCommand } from '../kyso-command';
 import inquirer = require('inquirer');
+import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
+import type { KysoCredentials } from '../../types/kyso-credentials';
+import { KysoCommand } from '../kyso-command';
 
 export default class AddOrganizations extends KysoCommand {
   static description =
@@ -34,7 +35,7 @@ export default class AddOrganizations extends KysoCommand {
         type: 'input',
         name: 'link',
         message: `What is the link of the organization '${createOrganizationDto.display_name}'?`,
-        validate: function (link: string) {
+        validate(link: string) {
           if (link) {
             // Check if link is vaild url
             const urlRegex = new RegExp(
@@ -79,7 +80,7 @@ export default class AddOrganizations extends KysoCommand {
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api();
-    api.configure(kysoCredentials.kysoInstallUrl + '/api/v1', kysoCredentials?.token);
+    api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials?.token);
     for (const organizationDisplayName of organizationsNames) {
       await this.createOrganization(api, organizationDisplayName);
     }
