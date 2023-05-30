@@ -315,7 +315,11 @@ export class Helper {
       let filePath = '';
 
       if (!path.isAbsolute(file)) {
-        filePath = path.resolve(file);
+        if (!isSingleFile) {
+          filePath = path.resolve(dirPath + '/' + file);
+        } else {
+          filePath = path.resolve(dirPath);
+        }
       } else {
         filePath = file;
       }

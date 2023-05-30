@@ -79,5 +79,182 @@ describe('Helper test suite', () => {
       let receivedValue = Helper.getValidFiles(finalPath);
       expect(receivedValue).toEqual(expectedValue);
     });
+
+    it('should return a valid files for a relative directory path ./test/helpers/getValidFilesResources/folderWithMultipleFiles', async () => {
+      const expectedValue = [
+        {
+          path: `${__dirname}/getValidFilesResources/folderWithMultipleFiles/TestingSpark.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+        {
+          path: `${__dirname}/getValidFilesResources/folderWithMultipleFiles/TestingSpark2.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+      ];
+
+      let receivedValue = Helper.getValidFiles('./test/helpers/getValidFilesResources/folderWithMultipleFiles');
+      expect(receivedValue).toEqual(expectedValue);
+    });
+
+    it('should return a valid files for a relative directory path ./test/helpers/getValidFilesResources/folderWithMultipleFiles/', async () => {
+      const expectedValue = [
+        {
+          path: `${__dirname}/getValidFilesResources/folderWithMultipleFiles/TestingSpark.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+        {
+          path: `${__dirname}/getValidFilesResources/folderWithMultipleFiles/TestingSpark2.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+      ];
+
+      let receivedValue = Helper.getValidFiles('./test/helpers/getValidFilesResources/folderWithMultipleFiles/');
+      expect(receivedValue).toEqual(expectedValue);
+    });
+
+    it('should return a valid files for an absolute directory path __dirname + /getValidFilesResources/folderWithMultipleFiles', async () => {
+      const expectedValue = [
+        {
+          path: `${__dirname}/getValidFilesResources/folderWithMultipleFiles/TestingSpark.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+        {
+          path: `${__dirname}/getValidFilesResources/folderWithMultipleFiles/TestingSpark2.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+      ];
+
+      const finalPath = __dirname + '/getValidFilesResources/folderWithMultipleFiles';
+      let receivedValue = Helper.getValidFiles(finalPath);
+      expect(receivedValue).toEqual(expectedValue);
+    });
+
+    it('should return a valid files for an absolute directory path __dirname + /getValidFilesResources/folderWithMultipleFiles/', async () => {
+      const expectedValue = [
+        {
+          path: `${__dirname}/getValidFilesResources/folderWithMultipleFiles/TestingSpark.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+        {
+          path: `${__dirname}/getValidFilesResources/folderWithMultipleFiles/TestingSpark2.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+      ];
+
+      const finalPath = __dirname + '/getValidFilesResources/folderWithMultipleFiles/';
+      let receivedValue = Helper.getValidFiles(finalPath);
+      expect(receivedValue).toEqual(expectedValue);
+    });
+
+    it('should return a valid files for a relative directory path ./test/helpers/getValidFilesResources/folderWithMultipleFilesAndGitIgnore ignoring files at .gitignore', async () => {
+      const expectedValue = [
+        {
+          path: `${__dirname}/getValidFilesResources/folderWithMultipleFilesAndGitIgnore/TestingSpark.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+        // This is the ignored file
+        // {
+        //   path: `${__dirname}/getValidFilesResources/folderWithMultipleFilesAndGitIgnore/TestingSpark2.ipynb`,
+        //   sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        // }
+      ];
+
+      let receivedValue = Helper.getValidFiles('./test/helpers/getValidFilesResources/folderWithMultipleFilesAndGitIgnore');
+      expect(receivedValue).toEqual(expectedValue);
+    });
+
+    it('should return a valid files for a absolute directory path __dirname + /getValidFilesResources/folderWithMultipleFilesAndGitIgnore ignoring files at .gitignore', async () => {
+      const expectedValue = [
+        {
+          path: `${__dirname}/getValidFilesResources/folderWithMultipleFilesAndGitIgnore/TestingSpark.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+        // This is the ignored file
+        // {
+        //   path: `${__dirname}/getValidFilesResources/folderWithMultipleFilesAndGitIgnore/TestingSpark2.ipynb`,
+        //   sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        // }
+      ];
+
+      const finalPath = __dirname + '/getValidFilesResources/folderWithMultipleFilesAndGitIgnore/';
+      let receivedValue = Helper.getValidFiles(finalPath);
+      expect(receivedValue).toEqual(expectedValue);
+    });
+
+    it('should return a valid files for a relative directory path ./test/helpers/getValidFilesResources/folderWithMultipleFilesAndKysoIgnore ignoring files at .kysoignore', async () => {
+      const expectedValue = [
+        {
+          path: `${__dirname}/getValidFilesResources/folderWithMultipleFilesAndKysoIgnore/TestingSpark.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+        // This is the ignored file
+        // {
+        //   path: `${__dirname}/getValidFilesResources/folderWithMultipleFilesAndGitIgnore/TestingSpark2.ipynb`,
+        //   sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        // }
+      ];
+
+      let receivedValue = Helper.getValidFiles('./test/helpers/getValidFilesResources/folderWithMultipleFilesAndKysoIgnore');
+      expect(receivedValue).toEqual(expectedValue);
+    });
+
+    it('should return a valid files for a absolute directory path __dirname + /getValidFilesResources/folderWithMultipleFilesAndKysoIgnore ignoring files at .kysoignore', async () => {
+      const expectedValue = [
+        {
+          path: `${__dirname}/getValidFilesResources/folderWithMultipleFilesAndKysoIgnore/TestingSpark.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+        // This is the ignored file
+        // {
+        //   path: `${__dirname}/getValidFilesResources/folderWithMultipleFilesAndGitIgnore/TestingSpark2.ipynb`,
+        //   sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        // }
+      ];
+
+      const finalPath = __dirname + '/getValidFilesResources/folderWithMultipleFilesAndKysoIgnore/';
+      let receivedValue = Helper.getValidFiles(finalPath);
+      expect(receivedValue).toEqual(expectedValue);
+    });
+
+    it('should return a valid files for a relative directory path ./test/helpers/getValidFilesResources/folderWithSubfolders with nested subfolders', async () => {
+      const expectedValue = [
+        {
+          path: `${__dirname}/getValidFilesResources/folderWithSubfolders/TestingSpark.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+        {
+          path: `${__dirname}/getValidFilesResources/folderWithSubfolders/subfolder1/TestingSpark.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+        {
+          path: `${__dirname}/getValidFilesResources/folderWithSubfolders/subfolder1/subfolder1_2/TestingSpark.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+      ];
+
+      let receivedValue = Helper.getValidFiles('./test/helpers/getValidFilesResources/folderWithSubfolders');
+      expect(receivedValue).toEqual(expectedValue);
+    });
+
+    it('should return a valid files for a absolute directory path __dirname + /getValidFilesResources/folderWithSubfolders', async () => {
+      const expectedValue = [
+        {
+          path: `${__dirname}/getValidFilesResources/folderWithSubfolders/TestingSpark.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+        {
+          path: `${__dirname}/getValidFilesResources/folderWithSubfolders/subfolder1/TestingSpark.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+        {
+          path: `${__dirname}/getValidFilesResources/folderWithSubfolders/subfolder1/subfolder1_2/TestingSpark.ipynb`,
+          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        },
+      ];
+
+      const finalPath = __dirname + '/getValidFilesResources/folderWithSubfolders/';
+      let receivedValue = Helper.getValidFiles(finalPath);
+      expect(receivedValue).toEqual(expectedValue);
+    });
   });
 });
