@@ -1,6 +1,6 @@
 include:
   - project: 'common/gitlab-ci'
-    ref: v0.5.0
+    ref: v0.5.1
     file: '/templates/npm-package-with-container.yml'
 
 variables:
@@ -70,6 +70,15 @@ build-binaries:
     paths:
       - binaries.txt
     expire_in: 1 day
+
+jest-test:
+  stage: test
+  interruptible: false
+  allow_failure: false
+  image: ${KYSO_CLI_BUILDER_IMAGE}
+  script:
+    - npm install
+    - npm run test
 
 push-to-npm:
   stage: push_to_npm
