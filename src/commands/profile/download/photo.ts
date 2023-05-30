@@ -23,6 +23,8 @@ export default class DownloadProfilePhoto extends KysoCommand {
     }),
   };
 
+  static args = [];
+
   async run(): Promise<void> {
     const { flags } = await this.parse(DownloadProfilePhoto);
     await launchInteractiveLoginIfNotLogged();

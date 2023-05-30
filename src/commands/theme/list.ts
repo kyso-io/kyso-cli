@@ -10,6 +10,8 @@ export default class List extends KysoCommand {
 
   static examples = [`$ kyso theme list`];
 
+  static args = [];
+
   async run(): Promise<void> {
     await launchInteractiveLoginIfNotLogged();
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();

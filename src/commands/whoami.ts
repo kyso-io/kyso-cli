@@ -8,6 +8,8 @@ export default class Push extends KysoCommand {
 
   static examples = [`$ kyso whoami`];
 
+  static args = [];
+
   async run(): Promise<void> {
     const kysoCredentials: KysoCredentials | null = KysoCommand.getCredentials();
     if (kysoCredentials) {

@@ -23,6 +23,8 @@ export default class DownloadProfileBackground extends KysoCommand {
     }),
   };
 
+  static args = [];
+
   async run(): Promise<void> {
     const { flags } = await this.parse(DownloadProfileBackground);
     await launchInteractiveLoginIfNotLogged();
