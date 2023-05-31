@@ -144,7 +144,6 @@ export default class Push extends KysoCommand {
     // Channel not set. If there are metas, apply it
     if (!kysoConfigFile.channel && !kysoConfigFile.team) {
       if (metaChannel) {
-        console.log('Applying meta channel');
         kysoConfigFile.team = metaChannel;
         kysoConfigFile.channel = metaChannel;
       } else {
@@ -161,7 +160,6 @@ export default class Push extends KysoCommand {
     // Organization not set. If there are metas, apply it
     if (!kysoConfigFile.organization) {
       if (metaOrganization) {
-        console.log('Applying meta organization');
         kysoConfigFile.organization = metaOrganization;
       } else {
         // Not set and no metas ---> Error
