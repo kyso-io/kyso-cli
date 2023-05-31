@@ -110,7 +110,14 @@ export default class Push extends KysoCommand {
     }
   }
 
-  private async uploadReportAux(reportFolder: string, basePath: string, validFiles: { path: string; sha: string }[], pushMessage: string): Promise<void> {
+  private async uploadReportAux(
+    reportFolder: string,
+    basePath: string,
+    validFiles: { path: string; sha: string }[],
+    pushMessage: string,
+    metaOrganization?: string,
+    metaChannel?: string,
+  ): Promise<void> {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api(kysoCredentials.token);
     api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials.token);
@@ -134,8 +141,32 @@ export default class Push extends KysoCommand {
       kysoConfigFile.team = Helper.slug(kysoConfigFile.team);
     }
 
+    // Channel not set. If there are metas, apply it
+    if (!kysoConfigFile.channel && !kysoConfigFile.team) {
+      if (metaChannel) {
+        console.log('Applying meta channel');
+        kysoConfigFile.team = metaChannel;
+        kysoConfigFile.channel = metaChannel;
+      } else {
+        // Not set and no metas ---> Error
+        kysoConfigFile.team = null;
+        kysoConfigFile.channel = null;
+      }
+    }
+
     if (kysoConfigFile.organization) {
       kysoConfigFile.organization = Helper.slug(kysoConfigFile.organization);
+    }
+
+    // Organization not set. If there are metas, apply it
+    if (!kysoConfigFile.organization) {
+      if (metaOrganization) {
+        console.log('Applying meta organization');
+        kysoConfigFile.organization = metaOrganization;
+      } else {
+        // Not set and no metas ---> Error
+        kysoConfigFile.organization = null;
+      }
     }
 
     const { payload }: any = jwtDecode(kysoCredentials.token);
@@ -150,7 +181,7 @@ export default class Push extends KysoCommand {
       (resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === kysoConfigFile.organization,
     );
     if (indexOrganization === -1 && !Helper.isGlobalAdmin(tokenPermissions)) {
-      this.log(`\nError: You don't have permissions to create reports in the '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`);
+      this.log(`\nYou don't have permissions to create reports in the '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`);
       return;
     }
     let teamId: string | null = null;
@@ -166,13 +197,13 @@ export default class Push extends KysoCommand {
           teamId = tokenPermissions.teams[indexTeam].id;
         } else {
           this.log(
-            `\nError: You don't have permission to create reports in the '${kysoConfigFile.team}' channel of the '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`,
+            `\You don't have permission to create reports in the '${kysoConfigFile.team}' channel of the '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`,
           );
           return;
         }
       } else {
         this.log(
-          `\nError: You don't have permission to create reports in the '${kysoConfigFile.team}' channel of the '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`,
+          `\You don't have permission to create reports in the '${kysoConfigFile.team}' channel of the '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`,
         );
         return;
       }
@@ -240,13 +271,10 @@ export default class Push extends KysoCommand {
 
     // Check if report has defined main file
     if (kysoConfigFile.main && validFiles.length > 0) {
-      const indexMainFile: number = validFiles.findIndex((file: { path: string; sha: string }) => {
-        let validFilePathWithoutBasePath: string = basePath === '.' ? file.path : file.path.replace(basePath, '');
-        if (validFilePathWithoutBasePath.startsWith('/')) {
-          validFilePathWithoutBasePath = validFilePathWithoutBasePath.slice(1);
-        }
-        return validFilePathWithoutBasePath === kysoConfigFile.main;
-      });
+      // Remove last traling / if exists
+      const sanitizeBasePath = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+      const indexMainFile: number = validFiles.findIndex((x) => x.path.endsWith(`${sanitizeBasePath}/${kysoConfigFile.main}`));
+
       if (indexMainFile === -1) {
         this.log(`\nError: Main file '${kysoConfigFile.main}' defined in the '${reportFolder}' folder does not exist.\n`);
         return;
@@ -351,6 +379,11 @@ export default class Push extends KysoCommand {
 
     if (mainKysoConfigFile?.reports) {
       this.log(`\n${mainKysoConfigFile.reports.length} ${mainKysoConfigFile.reports.length > 1 ? 'reports' : 'report'} found\n`);
+
+      // Retrieve meta organization and meta channel (defaults)
+      const metaOrganization = mainKysoConfigFile.organization;
+      const metaChannel = mainKysoConfigFile.channel ? mainKysoConfigFile.channel : mainKysoConfigFile.team;
+
       for (const reportFolder of mainKysoConfigFile.reports) {
         // Check if folder exists
         const reportPath: string = join(basePath, reportFolder);
@@ -365,7 +398,7 @@ export default class Push extends KysoCommand {
         if (!valid) {
           this.error(`Folder '${reportFolder}' does not have a valid Kyso config file: ${message}`);
         }
-        await this.uploadReportAux(reportFolder, reportPath, validFiles, pushMessage);
+        await this.uploadReportAux(reportFolder, reportPath, validFiles, pushMessage, metaOrganization, metaChannel);
       }
     } else {
       const parts: string[] = basePath.split('/');
@@ -510,7 +543,7 @@ export default class Push extends KysoCommand {
       (resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === kysoConfigFile.organization,
     );
     if (indexOrganization === -1 && !Helper.isGlobalAdmin(tokenPermissions)) {
-      this.log(`\nError: You don't have permissions to create reports in the '${kysoConfigFile.organization}' organization defined in the '${reportSingleFile.filePath}' file.\n`);
+      this.log(`\You don't have permissions to create reports in the '${kysoConfigFile.organization}' organization defined in the '${reportSingleFile.filePath}' file.\n`);
       return;
     }
     let teamId: string | null = null;
@@ -526,13 +559,13 @@ export default class Push extends KysoCommand {
           teamId = tokenPermissions.teams[indexTeam].id;
         } else {
           this.log(
-            `\nError: You don't have permission to create reports in the '${kysoConfigFile.team}' channel of the '${kysoConfigFile.organization}' organization defined in the '${reportSingleFile.filePath}' file.\n`,
+            `\You don't have permission to create reports in the '${kysoConfigFile.team}' channel of the '${kysoConfigFile.organization}' organization defined in the '${reportSingleFile.filePath}' file.\n`,
           );
           return;
         }
       } else {
         this.log(
-          `\nError: You don't have permission to create reports in the '${kysoConfigFile.team}' channel of the '${kysoConfigFile.organization}' organization defined in the '${reportSingleFile.filePath}' file.\n`,
+          `\You don't have permission to create reports in the '${kysoConfigFile.team}' channel of the '${kysoConfigFile.organization}' organization defined in the '${reportSingleFile.filePath}' file.\n`,
         );
         return;
       }

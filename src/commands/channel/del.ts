@@ -29,7 +29,7 @@ export default class DeleteChannel extends KysoCommand {
   private async deleteChannel(api: Api, tokenPermissions: TokenPermissions, organizationSlug: string, channelSlug: string): Promise<void> {
     const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === organizationSlug);
     if (indexOrganization === -1 && !Helper.isGlobalAdmin(tokenPermissions)) {
-      this.log(`Error: You don't belong to the organization '${organizationSlug}'`);
+      this.log(`You don't belong to the organization '${organizationSlug}'`);
       return;
     }
     api.setOrganizationSlug(organizationSlug);
@@ -47,7 +47,7 @@ export default class DeleteChannel extends KysoCommand {
     }
     const indexTeam: number = tokenPermissions.teams.findIndex((resourcePermissionTeam: ResourcePermissions) => resourcePermissionTeam.name === channelSlug);
     if (indexTeam === -1) {
-      this.log(`Error: You don't belong to the channel '${channelSlug}'`);
+      this.log(`You don't belong to the channel '${channelSlug}'`);
       return;
     }
     api.setTeamSlug(channelSlug);
@@ -59,7 +59,7 @@ export default class DeleteChannel extends KysoCommand {
     const hasPermissionTeamDelete: boolean = Helper.hasPermission(teamResourcePermissions, TeamPermissionsEnum.DELETE);
 
     if (!isGlobalAdmin && !isOrgAdmin && !hasPermissionTeamAdmin && !hasPermissionTeamDelete) {
-      this.log(`Error: You don't have permissions to delete the channel ${channelSlug} from the organization ${organizationSlug}`);
+      this.log(`You don't have permissions to delete the channel ${channelSlug} from the organization ${organizationSlug}`);
       return;
     }
     try {

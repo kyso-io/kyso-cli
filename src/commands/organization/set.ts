@@ -51,7 +51,7 @@ export default class OrganizationsSet extends KysoCommand {
     const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === organizationData.slug);
     const resourcePermissions: ResourcePermissions = tokenPermissions.organizations[indexOrganization];
     if (indexOrganization === -1 && !Helper.isGlobalAdmin(tokenPermissions)) {
-      this.log(`Error: You don't belong to the organization ${organizationData.slug}`);
+      this.log(`You don't belong to the organization ${organizationData.slug}`);
       return;
     }
 
@@ -59,7 +59,7 @@ export default class OrganizationsSet extends KysoCommand {
     const isGlobalAdmin: boolean = Helper.isGlobalAdmin(tokenPermissions);
 
     if (!isOrgAdmin && !isGlobalAdmin) {
-      this.log(`Error: You don't have permissions to get the information for the organization ${organizationData.slug}`);
+      this.log(`You don't have permissions to get the information for the organization ${organizationData.slug}`);
       return;
     }
     let organization: Organization | null = null;

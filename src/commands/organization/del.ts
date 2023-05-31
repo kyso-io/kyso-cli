@@ -23,7 +23,7 @@ export default class DeleteOrganization extends KysoCommand {
   private async deleteOrganization(api: Api, tokenPermissions: TokenPermissions, organizationSlug: string): Promise<void> {
     const indexOrganization: number = tokenPermissions.organizations.findIndex((resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === organizationSlug);
     if (indexOrganization === -1 && !Helper.isGlobalAdmin(tokenPermissions)) {
-      this.log(`Error: You don't have permissions to delete the organization '${organizationSlug}'`);
+      this.log(`You don't have permissions to delete the organization '${organizationSlug}'`);
       return;
     }
     api.setOrganizationSlug(organizationSlug);
@@ -34,7 +34,7 @@ export default class DeleteOrganization extends KysoCommand {
     const isGlobalAdmin: boolean = Helper.isGlobalAdmin(tokenPermissions);
 
     if (!hasPermissionDelete && !isOrgAdmin && !isGlobalAdmin) {
-      this.log(`Error: You don't have permissions to delete the organization '${organizationSlug}'`);
+      this.log(`You don't have permissions to delete the organization '${organizationSlug}'`);
       return;
     }
     try {

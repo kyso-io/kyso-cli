@@ -59,7 +59,7 @@ export default class OrganizationsGet extends KysoCommand {
     const isGlobalAdmin: boolean = Helper.isGlobalAdmin(tokenPermissions);
 
     if (indexOrganization === -1 && !isGlobalAdmin) {
-      this.log(`Error: You don't have permissions to get the information for the organization '${organizationSlug}'`);
+      this.log(`You don't have permissions to get the information for the organization '${organizationSlug}'`);
       return organizationData;
     }
 
@@ -67,7 +67,7 @@ export default class OrganizationsGet extends KysoCommand {
     const isOrgAdmin: boolean = Helper.isOrganizationAdmin(resourcePermissions);
 
     if (!isOrgAdmin && !isGlobalAdmin) {
-      this.log(`Error: You don't have permissions to get the information for the organization '${organizationSlug}'`);
+      this.log(`You don't have permissions to get the information for the organization '${organizationSlug}'`);
       return organizationData;
     }
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();

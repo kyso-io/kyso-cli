@@ -37,7 +37,7 @@ export default class ChannelsGet extends KysoCommand {
     let channelData: ChannelData | null = null;
     const index: number = tokenPermissions.teams.findIndex((resourcePermissionTeam: ResourcePermissions) => resourcePermissionTeam.name === channelSlug);
     if (index === -1) {
-      this.log(`Error: You don't have permissions to get the information for the channel '${channelSlug}'`);
+      this.log(`You don't have permissions to get the information for the channel '${channelSlug}'`);
       return channelData;
     }
     let team: Team | null = null;

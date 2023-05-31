@@ -120,65 +120,29 @@ export class Helper {
       kysoConfigFile: null,
     };
 
-    let parentJsonFileIndex = -1;
-    let parentYamlFileIndex = -1;
+    const allKysoYamlFiles = files.filter((x) => x.endsWith('kyso.yaml') || x.endsWith('kyso.json') || x.endsWith('kyso.yml'));
+    const sortedKysoYamlFiles = allKysoYamlFiles.sort((x, y) => x.length - y.length);
 
-    if (!basePath || basePath === '.') {
-      // First, search for kyso.yaml or kyso.json in the base path. We don't want to take a kyso file
-      // from a subfolder if we have a parent one
-      parentJsonFileIndex = files.findIndex((f: string) => f.toLowerCase() === 'kyso.json');
-      parentYamlFileIndex = files.findIndex((f: string) => f.toLowerCase() === 'kyso.yaml' || f.toLowerCase() === 'kyso.yml');
-    } else {
-      // If we come from a -p, then search using the base path
-      const sanitizedBasePath = basePath.charAt(basePath.length - 1) === '/' ? basePath.slice(0, -1) : basePath;
+    const kysoConfigPath = sortedKysoYamlFiles && sortedKysoYamlFiles.length > 0 ? sortedKysoYamlFiles[0] : null;
 
-      parentJsonFileIndex = files.findIndex((f: string) => f.toLowerCase() === `${sanitizedBasePath}/kyso.json`);
-      parentYamlFileIndex = files.findIndex((f: string) => f.toLowerCase() === `${sanitizedBasePath}/kyso.yaml` || f.toLowerCase() === `${sanitizedBasePath}/kyso.yml`);
+    if (!kysoConfigPath) {
+      return { kysoConfigFile: null, kysoConfigPath: null, valid: false, message: 'No kyso config file found' };
     }
 
-    let index = -1;
-
-    if (parentJsonFileIndex > -1) {
+    if (kysoConfigPath.endsWith('yml') || kysoConfigPath.endsWith('yaml')) {
       try {
-        index = parentJsonFileIndex;
-        data = KysoConfigFile.fromJSON(readFileSync(files[parentJsonFileIndex], 'utf8').toString());
+        data = KysoConfigFile.fromYaml(readFileSync(kysoConfigPath, 'utf8'));
       } catch (error: any) {
-        throw new Error(`Error parsing kyso.json: ${error.message}`);
+        throw new Error(`Error parsing ${kysoConfigPath}: ${error.message}`);
       }
-    } else if (parentYamlFileIndex > -1) {
+    } else if (kysoConfigPath.endsWith('json')) {
       try {
-        index = parentYamlFileIndex;
-        data = KysoConfigFile.fromYaml(readFileSync(files[parentYamlFileIndex], 'utf8'));
+        data = KysoConfigFile.fromJSON(readFileSync(kysoConfigPath, 'utf8').toString());
       } catch (error: any) {
-        throw new Error(`Error parsing kyso.yml|yaml: ${error.message}`);
+        throw new Error(`Error parsing ${kysoConfigPath}: ${error.message}`);
       }
     } else {
-      // No kyso file in the base path. Search for kyso files in subfolders and take the first
-      // occurrence
-      index = files.findIndex((file: string) => file.endsWith('kyso.json'));
-      if (index > -1) {
-        try {
-          data = KysoConfigFile.fromJSON(readFileSync(files[index], 'utf8').toString());
-        } catch (error: any) {
-          throw new Error(`Error parsing kyso.json: ${error.message}`);
-        }
-      } else {
-        index = files.findIndex((file: string) => file.endsWith('kyso.yml') || file.endsWith('kyso.yaml'));
-        if (index > -1) {
-          try {
-            data = KysoConfigFile.fromYaml(readFileSync(files[index], 'utf8'));
-          } catch (error: any) {
-            throw new Error(`Error parsing kyso.yml: ${error.message}`);
-          }
-        }
-      }
-    }
-
-    let kysoConfigPath: string | null = null;
-    if (index === -1) {
       data.message = 'No kyso config file found.';
-    } else {
-      kysoConfigPath = files[index];
     }
 
     // To allow the possibility to rename team to channel

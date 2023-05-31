@@ -52,7 +52,7 @@ export default class ChannelsSet extends KysoCommand {
       (resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === channelData.organization,
     );
     if (indexOrganization === -1 && !Helper.isGlobalAdmin(tokenPermissions)) {
-      this.log(`Error: You don't belong to the organization ${channelData.organization}`);
+      this.log(`You don't belong to the organization ${channelData.organization}`);
       return;
     }
     let channel: Team | null = null;
@@ -72,14 +72,14 @@ export default class ChannelsSet extends KysoCommand {
       (resourcePermissionChannel: ResourcePermissions) => resourcePermissionChannel.organization_id === organization.id && resourcePermissionChannel.name === channelData.slug,
     );
     if (indexChannel === -1) {
-      this.log(`Error: You don't belong to the channel ${channelData.slug} of the organization ${channelData.organization}`);
+      this.log(`You don't belong to the channel ${channelData.slug} of the organization ${channelData.organization}`);
       return;
     }
     try {
       const checkPermissionDto: CheckPermissionDto = new CheckPermissionDto(channelData.organization, channelData.slug, TeamPermissionsEnum.EDIT);
       const checkPermissionsResponse: NormalizedResponseDTO<boolean> = await api.checkPermission(checkPermissionDto);
       if (!checkPermissionsResponse.data) {
-        this.log(`Error: You don't have permissions to edit the information for the channel '${channelData.slug}' of the organization '${channelData.organization}'`);
+        this.log(`You don't have permissions to edit the information for the channel '${channelData.slug}' of the organization '${channelData.organization}'`);
         return;
       }
     } catch (e: any) {

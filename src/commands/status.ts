@@ -54,7 +54,7 @@ export default class Status extends KysoCommand {
       (resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === kysoConfigFile.organization,
     );
     if (indexOrganization === -1 && !Helper.isGlobalAdmin(tokenPermissions)) {
-      this.log(`\nError: You don't have permissions to create reports in the '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`);
+      this.log(`\nYou don't have permissions to create reports in the '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`);
       return;
     }
     let teamId: string | null = null;
@@ -69,11 +69,11 @@ export default class Status extends KysoCommand {
         if (indexTeam > -1) {
           teamId = tokenPermissions.teams[indexTeam].id;
         } else {
-          this.log(`\nError: You don't have permission to get reports in '${kysoConfigFile.team}' channel of '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`);
+          this.log(`\nYou don't have permission to get reports in '${kysoConfigFile.team}' channel of '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`);
           return;
         }
       } else {
-        this.log(`\nError: You don't have permission to get reports in '${kysoConfigFile.team}' channel of '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`);
+        this.log(`\nYou don't have permission to get reports in '${kysoConfigFile.team}' channel of '${kysoConfigFile.organization}' organization defined in the '${reportFolder}' folder.\n`);
         return;
       }
     } catch (error: any) {

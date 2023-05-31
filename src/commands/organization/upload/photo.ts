@@ -60,7 +60,7 @@ export default class UploadPhoto extends KysoCommand {
       (resourcePermissionOrganization: ResourcePermissions) => resourcePermissionOrganization.name === organization.data.sluglified_name,
     );
     if (indexOrganization === -1 && !Helper.isGlobalAdmin(tokenPermissions)) {
-      this.log(`Error: You don't have permissions to upload the photo for the organization ${args.organization}`);
+      this.log(`You don't have permissions to upload the photo for the organization ${args.organization}`);
       return;
     }
     const resourcePermissions: ResourcePermissions = tokenPermissions.organizations[indexOrganization];
@@ -70,7 +70,7 @@ export default class UploadPhoto extends KysoCommand {
     const isGlobalAdmin: boolean = Helper.isGlobalAdmin(tokenPermissions);
 
     if (!hasPermissionDelete && !isOrgAdmin && !isGlobalAdmin) {
-      this.log(`Error: You don't have permissions to upload the photo for the organization ${args.organization}`);
+      this.log(`You don't have permissions to upload the photo for the organization ${args.organization}`);
       return;
     }
     try {
