@@ -279,14 +279,11 @@ export class Helper {
     for (const file of filteredFiles) {
       let filePath = '';
 
-      if (!path.isAbsolute(file)) {
-        if (!isSingleFile) {
-          filePath = path.resolve(`${dirPath}/${file}`);
-        } else {
-          filePath = path.resolve(dirPath);
-        }
+      if (isSingleFile) {
+        filePath = path.resolve(dirPath);
       } else {
-        filePath = file;
+        const sanitizedDirPath = dirPath.endsWith('/') ? dirPath : `${dirPath}/`;
+        filePath = sanitizedDirPath + file;
       }
 
       const fileBaseName: string = path.basename(filePath);
@@ -303,7 +300,6 @@ export class Helper {
         const folderFiles: { path: string; sha: string }[] = Helper.getValidFiles(filePath);
         validFiles = [...validFiles, ...folderFiles];
       } else {
-        // Add to the valid files
         validFiles.push({
           path: filePath,
           sha: sha256File(filePath),

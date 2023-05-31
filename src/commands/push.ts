@@ -270,7 +270,13 @@ export default class Push extends KysoCommand {
     // Check if report has defined main file
     if (kysoConfigFile.main && validFiles.length > 0) {
       // Remove last traling / if exists
-      const sanitizeBasePath = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+      let sanitizeBasePath = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+
+      // edge case
+      if (sanitizeBasePath === '.') {
+        sanitizeBasePath = '';
+      }
+
       const indexMainFile: number = validFiles.findIndex((x) => x.path.endsWith(`${sanitizeBasePath}/${kysoConfigFile.main}`));
 
       if (indexMainFile === -1) {
@@ -599,7 +605,7 @@ export default class Push extends KysoCommand {
         return reportDto;
       }
       if (reportFile.sha === reportSingleFile.sha) {
-        this.log(`\nError: The file '${fileName}' has not changed since the last push\n`);
+        this.log(`\n'${fileName}' has not changed since the last push\n`);
         return reportDto;
       }
     } catch (error: any) {
@@ -684,13 +690,13 @@ export default class Push extends KysoCommand {
 
     await launchInteractiveLoginIfNotLogged();
 
-    if (!existsSync(flags.path)) {
-      this.error('Invalid path');
-    }
-
     let basePath: string = isAbsolute(flags.path) ? flags.path : join('.', flags.path);
     if (basePath.endsWith('/') || basePath.endsWith('\\')) {
       basePath = basePath.slice(0, -1);
+    }
+
+    if (!existsSync(basePath)) {
+      this.error('Invalid path');
     }
 
     const { singleFileReports, reportFiles } = this.getFiles(basePath);
