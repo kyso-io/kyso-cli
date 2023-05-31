@@ -44,7 +44,7 @@ describe('Helper test suite', () => {
       const expectedValue = [
         {
           path: `${__dirname}/getValidFilesResources/TestingSpark.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
       ];
 
@@ -59,7 +59,7 @@ describe('Helper test suite', () => {
       const expectedValue = [
         {
           path: `${__dirname}/getValidFilesResources/TestingSpark.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
       ];
 
@@ -71,7 +71,7 @@ describe('Helper test suite', () => {
       const expectedValue = [
         {
           path: `${__dirname}/getValidFilesResources/TestingSpark.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
       ];
 
@@ -83,12 +83,12 @@ describe('Helper test suite', () => {
     it('should return a valid files for a relative directory path ./test/helpers/getValidFilesResources/folderWithMultipleFiles', async () => {
       const expectedValue = [
         {
-          path: `${__dirname}/getValidFilesResources/folderWithMultipleFiles/TestingSpark.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          path: `./test/helpers/getValidFilesResources/folderWithMultipleFiles/TestingSpark.ipynb`,
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
         {
-          path: `${__dirname}/getValidFilesResources/folderWithMultipleFiles/TestingSpark2.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          path: `./test/helpers/getValidFilesResources/folderWithMultipleFiles/TestingSpark2.ipynb`,
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
       ];
 
@@ -99,12 +99,12 @@ describe('Helper test suite', () => {
     it('should return a valid files for a relative directory path ./test/helpers/getValidFilesResources/folderWithMultipleFiles/', async () => {
       const expectedValue = [
         {
-          path: `${__dirname}/getValidFilesResources/folderWithMultipleFiles/TestingSpark.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          path: `./test/helpers/getValidFilesResources/folderWithMultipleFiles/TestingSpark.ipynb`,
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
         {
-          path: `${__dirname}/getValidFilesResources/folderWithMultipleFiles/TestingSpark2.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          path: `./test/helpers/getValidFilesResources/folderWithMultipleFiles/TestingSpark2.ipynb`,
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
       ];
 
@@ -116,11 +116,11 @@ describe('Helper test suite', () => {
       const expectedValue = [
         {
           path: `${__dirname}/getValidFilesResources/folderWithMultipleFiles/TestingSpark.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
         {
           path: `${__dirname}/getValidFilesResources/folderWithMultipleFiles/TestingSpark2.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
       ];
 
@@ -133,11 +133,11 @@ describe('Helper test suite', () => {
       const expectedValue = [
         {
           path: `${__dirname}/getValidFilesResources/folderWithMultipleFiles/TestingSpark.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
         {
           path: `${__dirname}/getValidFilesResources/folderWithMultipleFiles/TestingSpark2.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
       ];
 
@@ -149,13 +149,13 @@ describe('Helper test suite', () => {
     it('should return a valid files for a relative directory path ./test/helpers/getValidFilesResources/folderWithMultipleFilesAndGitIgnore ignoring files at .gitignore', async () => {
       const expectedValue = [
         {
-          path: `${__dirname}/getValidFilesResources/folderWithMultipleFilesAndGitIgnore/TestingSpark.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          path: `./test/helpers/getValidFilesResources/folderWithMultipleFilesAndGitIgnore/TestingSpark.ipynb`,
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
         // This is the ignored file
         // {
         //   path: `${__dirname}/getValidFilesResources/folderWithMultipleFilesAndGitIgnore/TestingSpark2.ipynb`,
-        //   sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        //   sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         // }
       ];
 
@@ -167,12 +167,12 @@ describe('Helper test suite', () => {
       const expectedValue = [
         {
           path: `${__dirname}/getValidFilesResources/folderWithMultipleFilesAndGitIgnore/TestingSpark.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
         // This is the ignored file
         // {
         //   path: `${__dirname}/getValidFilesResources/folderWithMultipleFilesAndGitIgnore/TestingSpark2.ipynb`,
-        //   sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        //   sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         // }
       ];
 
@@ -184,13 +184,13 @@ describe('Helper test suite', () => {
     it('should return a valid files for a relative directory path ./test/helpers/getValidFilesResources/folderWithMultipleFilesAndKysoIgnore ignoring files at .kysoignore', async () => {
       const expectedValue = [
         {
-          path: `${__dirname}/getValidFilesResources/folderWithMultipleFilesAndKysoIgnore/TestingSpark.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          path: `./test/helpers/getValidFilesResources/folderWithMultipleFilesAndKysoIgnore/TestingSpark.ipynb`,
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
         // This is the ignored file
         // {
         //   path: `${__dirname}/getValidFilesResources/folderWithMultipleFilesAndGitIgnore/TestingSpark2.ipynb`,
-        //   sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        //   sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         // }
       ];
 
@@ -202,12 +202,12 @@ describe('Helper test suite', () => {
       const expectedValue = [
         {
           path: `${__dirname}/getValidFilesResources/folderWithMultipleFilesAndKysoIgnore/TestingSpark.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
         // This is the ignored file
         // {
         //   path: `${__dirname}/getValidFilesResources/folderWithMultipleFilesAndGitIgnore/TestingSpark2.ipynb`,
-        //   sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+        //   sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         // }
       ];
 
@@ -219,16 +219,16 @@ describe('Helper test suite', () => {
     it('should return a valid files for a relative directory path ./test/helpers/getValidFilesResources/folderWithSubfolders with nested subfolders', async () => {
       const expectedValue = [
         {
-          path: `${__dirname}/getValidFilesResources/folderWithSubfolders/TestingSpark.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          path: `./test/helpers/getValidFilesResources/folderWithSubfolders/TestingSpark.ipynb`,
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
         {
-          path: `${__dirname}/getValidFilesResources/folderWithSubfolders/subfolder1/TestingSpark.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          path: `./test/helpers/getValidFilesResources/folderWithSubfolders/subfolder1/TestingSpark.ipynb`,
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
         {
-          path: `${__dirname}/getValidFilesResources/folderWithSubfolders/subfolder1/subfolder1_2/TestingSpark.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          path: `./test/helpers/getValidFilesResources/folderWithSubfolders/subfolder1/subfolder1_2/TestingSpark.ipynb`,
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
       ];
 
@@ -240,15 +240,15 @@ describe('Helper test suite', () => {
       const expectedValue = [
         {
           path: `${__dirname}/getValidFilesResources/folderWithSubfolders/TestingSpark.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
         {
           path: `${__dirname}/getValidFilesResources/folderWithSubfolders/subfolder1/TestingSpark.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
         {
           path: `${__dirname}/getValidFilesResources/folderWithSubfolders/subfolder1/subfolder1_2/TestingSpark.ipynb`,
-          sha: 'a91ae1b28d1e8f441131fb9d3dc57dba41ceb86f736464a3ccd130f151b5a9aa',
+          sha: '8919c01c3220f71df6d8bd5b4a26df6effc8dbb439322736467fa7129761302d',
         },
       ];
 
