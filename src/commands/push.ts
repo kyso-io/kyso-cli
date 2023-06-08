@@ -390,12 +390,6 @@ export default class Push extends KysoCommand {
     mainKysoConfigFile = data.kysoConfigFile;
 
     if (mainKysoConfigFile?.reports) {
-      if (!Array.isArray(mainKysoConfigFile.reports)) {
-        this.error(`\nError: 'reports' property in Kyso config file must be an array.\n`);
-      }
-      if (mainKysoConfigFile.reports.length === 0) {
-        this.error(`\nError: 'reports' property in Kyso config file must have at least one report.\n`);
-      }
       this.log(`\n${mainKysoConfigFile.reports.length} ${mainKysoConfigFile.reports.length > 1 ? 'reports' : 'report'} found\n`);
 
       // Retrieve meta organization and meta channel (defaults)
@@ -413,23 +407,39 @@ export default class Push extends KysoCommand {
           if (!existsSync(reportPath)) {
             this.error(`Folder '${reportFolder}' does not exist.`);
           }
-          // Get folders
+          // Get folders and valid files
           for (const fileInFolder of readdirSync(reportPath)) {
             const fileInFolderPath: string = join(reportPath, fileInFolder);
             if (statSync(fileInFolderPath).isDirectory()) {
-              folders.push(join(folder, fileInFolder));
+              folders.push(fileInFolder);
+            } else {
+              const extension: string = extname(fileInFolderPath);
+              if (extension === '.md' || extension === '.ipynb') {
+                const { singleFileReports } = this.getFiles(fileInFolderPath);
+                if (singleFileReports.length === 0) {
+                  continue;
+                }
+                folders.push(fileInFolder);
+              }
             }
           }
         } else {
           folders.push(reportFolder);
         }
       }
-      // for (const reportFolder of mainKysoConfigFile.reports) {
       for (const reportFolder of folders) {
         // Check if folder exists
         const reportPath: string = join(basePath, reportFolder);
         if (!existsSync(reportPath)) {
           this.error(`Report '${reportFolder}' folder does not exist.`);
+        }
+        if (!statSync(reportPath).isDirectory()) {
+          const { singleFileReports } = this.getFiles(reportPath);
+          if (singleFileReports.length === 0) {
+            continue;
+          }
+          await this.uploadSimpleFile(basePath, singleFileReports[0], pushMessage, metaOrganization, metaChannel, metaTags);
+          continue;
         }
         const validFiles: { path: string; sha: string }[] = Helper.getValidFiles(reportPath);
         const { valid, message } = Helper.findKysoConfigFile(
@@ -522,7 +532,7 @@ export default class Push extends KysoCommand {
     const singleFileReports: { headers: { [key: string]: string }; filePath: string; sha: string }[] = [];
     const reportFiles: { path: string; sha: string }[] = [];
     for (const validFile of validFiles) {
-      const extension = extname(validFile.path);
+      const extension: string = extname(validFile.path);
       if (extension === '.md') {
         const headers: { [key: string]: string } = this.getHeadersFromMarkdownFile(validFile.path);
         if (headers) {
@@ -547,7 +557,14 @@ export default class Push extends KysoCommand {
     };
   }
 
-  private async uploadSimpleFile(basePath: string, reportSingleFile: { headers: { [key: string]: string }; filePath: string; sha: string }, pushMessage: string): Promise<ReportDTO> {
+  private async uploadSimpleFile(
+    basePath: string,
+    reportSingleFile: { headers: { [key: string]: string }; filePath: string; sha: string },
+    pushMessage: string,
+    metaOrganization?: string,
+    metaChannel?: string,
+    metaTags?: string[],
+  ): Promise<ReportDTO> {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api(kysoCredentials.token);
     api.configure(`${kysoCredentials.kysoInstallUrl}/api/v1`, kysoCredentials.token);
@@ -570,6 +587,42 @@ export default class Push extends KysoCommand {
     }
     if (kysoConfigFile.organization) {
       kysoConfigFile.organization = Helper.slug(kysoConfigFile.organization);
+    }
+
+    // Channel not set. If there are metas, apply it
+    if (!kysoConfigFile.channel && !kysoConfigFile.team) {
+      if (metaChannel) {
+        kysoConfigFile.team = metaChannel;
+        kysoConfigFile.channel = metaChannel;
+      } else {
+        // Not set and no metas ---> Error
+        kysoConfigFile.team = null;
+        kysoConfigFile.channel = null;
+      }
+    }
+
+    // Organization not set. If there are metas, apply it
+    if (!kysoConfigFile.organization) {
+      if (metaOrganization) {
+        kysoConfigFile.organization = metaOrganization;
+      } else {
+        // Not set and no metas ---> Error
+        kysoConfigFile.organization = null;
+      }
+    }
+
+    if ((!kysoConfigFile.tags || !Array.isArray(kysoConfigFile.tags) || kysoConfigFile.tags.length === 0) && metaTags && metaTags.length > 0) {
+      kysoConfigFile.tags = metaTags;
+    }
+
+    if (!kysoConfigFile.organization) {
+      this.log(`\nError: Organization not set in the '${reportSingleFile.filePath}' file.\n`);
+      return null;
+    }
+
+    if (!kysoConfigFile.channel) {
+      this.log(`\nError: Channel not set in the '${reportSingleFile.filePath}' file.\n`);
+      return null;
     }
 
     const { payload }: any = jwtDecode(kysoCredentials.token);
@@ -737,10 +790,35 @@ export default class Push extends KysoCommand {
     }
 
     const { singleFileReports, reportFiles } = this.getFiles(basePath);
-    for (const reportSingleFile of singleFileReports) {
-      await this.uploadSimpleFile(basePath, reportSingleFile, flags.message);
+
+    let uploadSingleFileReports = true;
+    // Check if the user wants to upload a meta report to ignore reports with single file
+    if (reportFiles.length > 0) {
+      const data: { kysoConfigFile: KysoConfigFile; valid: boolean; message: string } = Helper.findKysoConfigFile(
+        reportFiles.map((file: { path: string; sha: string }) => file.path),
+        basePath,
+      );
+      if (!data.valid) {
+        this.log(`Error in Kyso config file: ${data.message}`);
+        return;
+      }
+      if (data.kysoConfigFile.reports) {
+        if (!Array.isArray(data.kysoConfigFile.reports)) {
+          this.error(`\nError: 'reports' property in Kyso config file must be an array.\n`);
+        }
+        if (data.kysoConfigFile.reports.length === 0) {
+          this.error(`\nError: 'reports' property in Kyso config file must have at least one report.\n`);
+        }
+        uploadSingleFileReports = false;
+      }
+      await this.uploadReport(reportFiles, basePath, flags.message);
     }
-    await this.uploadReport(reportFiles, basePath, flags.message);
+
+    if (uploadSingleFileReports) {
+      for (const reportSingleFile of singleFileReports) {
+        await this.uploadSimpleFile(basePath, reportSingleFile, flags.message);
+      }
+    }
 
     if (flags.verbose) {
       this.log('Disabling verbose mode');
