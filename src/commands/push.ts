@@ -142,11 +142,13 @@ export default class Push extends KysoCommand {
       kysoConfigFile.team = Helper.slug(kysoConfigFile.team);
     }
 
+    let updateKysoConfigFile = false;
     // Channel not set. If there are metas, apply it
     if (!kysoConfigFile.channel && !kysoConfigFile.team) {
       if (metaChannel) {
         kysoConfigFile.team = metaChannel;
         kysoConfigFile.channel = metaChannel;
+        updateKysoConfigFile = true;
       } else {
         // Not set and no metas ---> Error
         kysoConfigFile.team = null;
@@ -162,14 +164,16 @@ export default class Push extends KysoCommand {
     if (!kysoConfigFile.organization) {
       if (metaOrganization) {
         kysoConfigFile.organization = metaOrganization;
+        updateKysoConfigFile = true;
       } else {
         // Not set and no metas ---> Error
         kysoConfigFile.organization = null;
       }
     }
 
-    if (!kysoConfigFile.tags && metaTags && metaTags.length > 0) {
+    if ((!kysoConfigFile.tags || !Array.isArray(kysoConfigFile.tags) || kysoConfigFile.tags.length === 0) && metaTags && metaTags.length > 0) {
       kysoConfigFile.tags = metaTags;
+      updateKysoConfigFile = true;
     }
 
     const { payload }: any = jwtDecode(kysoCredentials.token);
@@ -290,7 +294,6 @@ export default class Push extends KysoCommand {
       }
     }
 
-    let updateKysoConfigFile = false;
     if (!kysoConfigFile.authors || kysoConfigFile.authors.length === 0) {
       kysoConfigFile.authors = [payload.email];
       updateKysoConfigFile = true;
