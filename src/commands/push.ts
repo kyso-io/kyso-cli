@@ -8,7 +8,7 @@ import AdmZip from 'adm-zip';
 import type { AxiosResponse } from 'axios';
 import axios from 'axios';
 import FormData from 'form-data';
-import { createReadStream, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'fs';
+import { createReadStream, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'fs';
 import hostedGitInfo from 'hosted-git-info';
 import * as jsYaml from 'js-yaml';
 import jwtDecode from 'jwt-decode';
@@ -117,6 +117,7 @@ export default class Push extends KysoCommand {
     pushMessage: string,
     metaOrganization?: string,
     metaChannel?: string,
+    metaTags?: string[],
   ): Promise<void> {
     const kysoCredentials: KysoCredentials = KysoCommand.getCredentials();
     const api: Api = new Api(kysoCredentials.token);
@@ -165,6 +166,10 @@ export default class Push extends KysoCommand {
         // Not set and no metas ---> Error
         kysoConfigFile.organization = null;
       }
+    }
+
+    if (!kysoConfigFile.tags && metaTags && metaTags.length > 0) {
+      kysoConfigFile.tags = metaTags;
     }
 
     const { payload }: any = jwtDecode(kysoCredentials.token);
@@ -382,13 +387,42 @@ export default class Push extends KysoCommand {
     mainKysoConfigFile = data.kysoConfigFile;
 
     if (mainKysoConfigFile?.reports) {
+      if (!Array.isArray(mainKysoConfigFile.reports)) {
+        this.error(`\nError: 'reports' property in Kyso config file must be an array.\n`);
+      }
+      if (mainKysoConfigFile.reports.length === 0) {
+        this.error(`\nError: 'reports' property in Kyso config file must have at least one report.\n`);
+      }
       this.log(`\n${mainKysoConfigFile.reports.length} ${mainKysoConfigFile.reports.length > 1 ? 'reports' : 'report'} found\n`);
 
       // Retrieve meta organization and meta channel (defaults)
-      const metaOrganization = mainKysoConfigFile.organization;
-      const metaChannel = mainKysoConfigFile.channel ? mainKysoConfigFile.channel : mainKysoConfigFile.team;
+      const metaOrganization: string = mainKysoConfigFile.organization;
+      const metaChannel: string = mainKysoConfigFile.channel ? mainKysoConfigFile.channel : mainKysoConfigFile.team;
+      const metaTags: string[] = mainKysoConfigFile.tags ? mainKysoConfigFile.tags : [];
 
+      // Get report folders
+      const folders: string[] = [];
       for (const reportFolder of mainKysoConfigFile.reports) {
+        // Wildcard?
+        if (reportFolder.endsWith('*')) {
+          const folder: string = reportFolder.slice(0, -1);
+          const reportPath: string = join(basePath, folder);
+          if (!existsSync(reportPath)) {
+            this.error(`Folder '${reportFolder}' does not exist.`);
+          }
+          // Get folders
+          for (const fileInFolder of readdirSync(reportPath)) {
+            const fileInFolderPath: string = join(reportPath, fileInFolder);
+            if (statSync(fileInFolderPath).isDirectory()) {
+              folders.push(join(folder, fileInFolder));
+            }
+          }
+        } else {
+          folders.push(reportFolder);
+        }
+      }
+      // for (const reportFolder of mainKysoConfigFile.reports) {
+      for (const reportFolder of folders) {
         // Check if folder exists
         const reportPath: string = join(basePath, reportFolder);
         if (!existsSync(reportPath)) {
@@ -402,7 +436,7 @@ export default class Push extends KysoCommand {
         if (!valid) {
           this.error(`Folder '${reportFolder}' does not have a valid Kyso config file: ${message}`);
         }
-        await this.uploadReportAux(reportFolder, reportPath, validFiles, pushMessage, metaOrganization, metaChannel);
+        await this.uploadReportAux(reportFolder, reportPath, validFiles, pushMessage, metaOrganization, metaChannel, metaTags);
       }
     } else {
       const parts: string[] = basePath.split('/');
