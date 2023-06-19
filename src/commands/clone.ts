@@ -143,20 +143,9 @@ export default class Clone extends KysoCommand {
     const api: Api = new Api();
     api.configure(`${baseUrl}/api/v1`, KysoCommand.getCredentials()?.token, organization, team);
     const finalPath: string = `${path}/${report}`;
-
-    const data: any = {
-      teamName: team,
-      reportName: report,
-    };
-    if (version && version > 0) {
-      data.version = version;
-    }
-    const result: Buffer = await api.pullReport(report, team);
-
+    const result: Buffer = await api.pullReport(report, team, version);
     const zip: AdmZip = new AdmZip(result);
-
     zip.extractAllTo(finalPath, true);
-
     this.log(`\n🎉🎉🎉 Success! Report downloaded to ${resolve(finalPath)} 🎉🎉🎉\n`);
   }
 }
