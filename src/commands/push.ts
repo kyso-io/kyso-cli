@@ -264,7 +264,10 @@ export default class Push extends KysoCommand {
         return;
       }
       reportFiles.forEach((reportFile: KysoFile) => {
-        const indexFile: number = validFiles.findIndex((validFile: { path: string; sha: string }) => reportFile.sha === validFile.sha);
+        const indexFile: number = validFiles.findIndex((validFile: { path: string; sha: string }) => {
+          const pathWithoutBasePath: string = validFile.path.replace(`${basePath}/`, '');
+          return reportFile.name === pathWithoutBasePath;
+        });
         if (indexFile === -1) {
           deletedFiles.push(reportFile.id);
         }
