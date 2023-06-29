@@ -554,6 +554,21 @@ export default class Push extends KysoCommand {
         reportFiles.push(validFile);
       }
     }
+    if (reportFiles.length > 0) {
+      const { kysoConfigFile, valid, message } = Helper.findKysoConfigFile(
+        validFiles.map((f: { path: string; sha: string }) => f.path),
+        folderPath,
+      );
+      if (!valid) {
+        this.log(`Error in Kyso config file: ${message}`);
+        return;
+      }
+      const pathMainFile: string = join(folderPath, kysoConfigFile.main);
+      const validMainFile: { path: string; sha: string } | undefined = validFiles.find((f: { path: string; sha: string }) => f.path === pathMainFile);
+      if (validMainFile) {
+        reportFiles.push(validMainFile);
+      }
+    }
     return {
       singleFileReports,
       reportFiles,
