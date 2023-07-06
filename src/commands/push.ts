@@ -565,7 +565,8 @@ export default class Push extends KysoCommand {
       }
       const pathMainFile: string = join(folderPath, kysoConfigFile.main);
       const validMainFile: { path: string; sha: string } | undefined = validFiles.find((f: { path: string; sha: string }) => f.path === pathMainFile);
-      if (validMainFile) {
+      const index: number = reportFiles.findIndex((f: { path: string; sha: string }) => f.path === pathMainFile);
+      if (validMainFile && index === -1) {
         reportFiles.push(validMainFile);
       }
     }

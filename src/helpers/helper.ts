@@ -1,7 +1,7 @@
 import type { NormalizedResponseDTO, Organization, ResourcePermissions, Team, TokenPermissions } from '@kyso-io/kyso-model';
 import { GlobalPermissionsEnum, KysoConfigFile, OrganizationPermissionsEnum } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
-import { existsSync, lstatSync, readdirSync, readFileSync, statSync } from 'fs';
+import { existsSync, lstatSync, readFileSync, readdirSync, statSync } from 'fs';
 import ignore from 'ignore';
 import inquirer from 'inquirer';
 import path, { join } from 'path';
