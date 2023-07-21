@@ -1,4 +1,4 @@
-import type { NormalizedResponseDTO, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
+import type { Organization, NormalizedResponseDTO, ResourcePermissions, TokenPermissions } from '@kyso-io/kyso-model';
 import { OrganizationPermissionsEnum } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import jwtDecode from 'jwt-decode';
@@ -37,8 +37,22 @@ export default class DeleteOrganization extends KysoCommand {
       this.log(`You don't have permissions to delete the organization '${organizationSlug}'`);
       return;
     }
+
+    let organizationId: string | null = null;
+    if (!resourcePermissions) {
+      try {
+        const organizationResult: NormalizedResponseDTO<Organization> = await api.getOrganizationBySlug(organizationSlug);
+        organizationId = organizationResult.data.id;
+      } catch (e: any) {
+        this.log(`Error getting the organization '${organizationSlug}': ${e.response.data.message}`);
+        return;
+      }
+    } else {
+      organizationId = resourcePermissions.id;
+    }
+
     try {
-      await api.deleteOrganization(resourcePermissions.id);
+      await api.deleteOrganization(organizationId);
       this.log(`Organization '${organizationSlug}' deleted`);
     } catch (e: any) {
       this.log(`Error deleting the organization '${organizationSlug}': ${e.response.data.message}`);
