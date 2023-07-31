@@ -2,11 +2,11 @@ import type { NormalizedResponseDTO, Organization, TokenPermissions } from '@kys
 import { AllowDownload, CreateOrganizationDto, KysoSettingsEnum } from '@kyso-io/kyso-model';
 import { Api } from '@kyso-io/kyso-store';
 import jwtDecode from 'jwt-decode';
+import inquirer = require('inquirer');
 import { Helper } from '../../helpers/helper';
 import { launchInteractiveLoginIfNotLogged } from '../../helpers/interactive-login';
 import type { KysoCredentials } from '../../types/kyso-credentials';
 import { KysoCommand } from '../kyso-command';
-import inquirer = require('inquirer');
 
 export default class AddOrganizations extends KysoCommand {
   static description =

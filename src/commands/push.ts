@@ -563,7 +563,7 @@ export default class Push extends KysoCommand {
         this.log(`Error in Kyso config file: ${message}`);
         return;
       }
-      const pathMainFile: string = join(folderPath, kysoConfigFile.main);
+      const pathMainFile: string = join(folderPath, kysoConfigFile.main ? kysoConfigFile.main : '');
       const validMainFile: { path: string; sha: string } | undefined = validFiles.find((f: { path: string; sha: string }) => f.path === pathMainFile);
       const index: number = reportFiles.findIndex((f: { path: string; sha: string }) => f.path === pathMainFile);
       if (validMainFile && index === -1) {
