@@ -1,10 +1,11 @@
-# Global Dockerfile Arguments (in our CI can be overriden in ./.build-args)
-ARG SERVICE_IMG=registry.kyso.io/docker/node
-ARG SERVICE_TAG=fixme
-# Base image (SERVICE_TAG must be overriden when building)
+ARG SERVICE_IMG=node
+ARG SERVICE_TAG=16.16.0-alpine3.16
+
 FROM ${SERVICE_IMG}:${SERVICE_TAG}
+
 # Set the PACKAGE_VERSION value from the args (if not defined the build fails)
 ARG PACKAGE_VERSION=invalid
+
 # Install package
 RUN apk update &&\
  apk add --no-cache coreutils curl git &&\
