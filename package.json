@@ -1,5 +1,5 @@
 {
-  "name": "@kyso-io/kyso-cli",
+  "name": "kyso",
   "description": "Kyso Client",
   "version": "1.17.11",
   "author": "Kyso Inc.",
