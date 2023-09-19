@@ -17,7 +17,7 @@ jobs:
         with:
           always-auth: true
           node-version: 16
-          registry-url: https://registry.npmjs.org/
+          registry-url: 'https://registry.npmjs.org'
       - run: |
           npm install
           npm ci
@@ -30,13 +30,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Docker Login
+    - name: Docker build and push
       env:
         DOCKER_USER: ${{secrets.DOCKER_USER}}
         DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
       run: |
         docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-    - name: Build the Docker image
-      run: |
-        docker build --file Dockerfile --tag kyso:${{github.ref_name}} --build-arg PACKAGE_VERSION=${{github.ref_name}} .
-        docker push kyso:${{github.ref_name}}
+        docker build --file Dockerfile --tag kyso/kyso:${{github.ref_name}} --build-arg PACKAGE_VERSION=${{github.ref_name}} .
+        docker push kyso/kyso:${{github.ref_name}}    
